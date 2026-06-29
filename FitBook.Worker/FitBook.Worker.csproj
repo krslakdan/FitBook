@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-FitBook.Worker-a6512573-b08f-410d-909b-6231f9e37238</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MailKit" Version="4.17.0" />
+    <PackageReference Include="MimeKit" Version="4.17.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.17" />
+    <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FitBook.Model\FitBook.Model.csproj" />
+    <ProjectReference Include="..\FitBook.Common.Services\FitBook.Common.Services.csproj" />
+  </ItemGroup>
+</Project>

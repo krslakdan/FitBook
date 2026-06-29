@@ -1,0 +1,42 @@
+# --- .NET ---
+**/bin
+**/obj
+**/.vs
+**/.vscode
+**/.idea
+**/*.*proj.user
+**/*.dbmdl
+**/*.jfm
+
+# --- Flutter / Dart ---
+**/.dart_tool
+**/build
+**/.gradle
+**/node_modules
+UI/.dart_tool
+UI/build
+
+# --- Docker & Environment ---
+.env
+.env.*
+!.env.example
+docker-data
+release
+fit-build-*.zip
+**/docker-compose*
+**/Dockerfile*
+**/secrets.dev.yaml
+**/values.dev.yaml
+**/azds.yaml
+**/charts
+
+# --- System & IDE ---
+**/.classpath
+**/.project
+**/.settings
+**/.toolstarget
+.git
+
+# --- Ostalo ---
+LICENSE
+README.md

@@ -1,0 +1,64 @@
+name: fitbook
+
+services:
+  fitbook-db:
+    image: ${SQLSERVER_IMAGE:-mcr.microsoft.com/mssql/server:2022-CU13-ubuntu-22.04}
+    container_name: fitbook-db
+    environment:
+      ACCEPT_EULA: ${ACCEPT_EULA:-Y}
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-FitBook_230163!}
+    ports:
+      - "${SQL_HOST_PORT:-1435}:1433"
+    volumes:
+      - fitbook_sqlserver_data:/var/opt/mssql
+    networks:
+      - fitbook-net
+
+  fitbook-rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: fitbook-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RabbitMQ__Username:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RabbitMQ__Password:-guest}
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    volumes:
+      - fitbook_rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - fitbook-net
+
+  fitbook-api:
+    build:
+      context: .
+      dockerfile: FitBook.WebAPI/Dockerfile
+    container_name: fitbook-api
+    env_file:
+      - .env
+    ports:
+      - "${API_HOST_PORT:-5121}:5121"
+    depends_on:
+      - fitbook-db
+      - fitbook-rabbitmq
+    networks:
+      - fitbook-net
+
+  fitbook-worker:
+    build:
+      context: .
+      dockerfile: FitBook.Worker/Dockerfile
+    container_name: fitbook-worker
+    env_file:
+      - .env
+    depends_on:
+      - fitbook-rabbitmq
+    networks:
+      - fitbook-net
+
+volumes:
+  fitbook_sqlserver_data:
+  fitbook_rabbitmq_data:
+
+networks:
+  fitbook-net:
+    driver: bridge
