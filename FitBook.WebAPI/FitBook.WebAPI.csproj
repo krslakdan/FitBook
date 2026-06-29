@@ -23,5 +23,9 @@
     <ProjectReference Include="..\FitBook.Services\FitBook.Services.csproj" />
     <ProjectReference Include="..\FitBook.Common.Services\FitBook.Common.Services.csproj" />
   </ItemGroup>
-
+	<ItemGroup>
+		<Folder Include="wwwroot\uploads\users\" />
+		<Folder Include="wwwroot\uploads\news\" />
+		<Folder Include="wwwroot\uploads\trainers\" />
+	</ItemGroup>
 </Project>
