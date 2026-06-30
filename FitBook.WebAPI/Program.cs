@@ -4,9 +4,12 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using FitBook.Common.Services.CryptoService;
 using FitBook.Services;
+using FitBook.Services.Configuration;
 using FitBook.Services.Database;
 using FitBook.WebAPI.Filters;
 using System.Text;
+
+EnvConfiguration.LoadDotEnv();
 
 var builder = WebApplication.CreateBuilder(args);
 
