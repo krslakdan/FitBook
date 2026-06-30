@@ -1,19 +1,40 @@
+using FitBook.Services.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace FitBook.Services.Database;
 
-public class FitBookDbContext : DbContext
+public partial class FitBookDbContext : DbContext
 {
     public FitBookDbContext(DbContextOptions<FitBookDbContext> options)
         : base(options)
     {
     }
 
+    public DbSet<DifficultyLevel> DifficultyLevels { get; set; }
+    public DbSet<Hall> Halls { get; set; }
+    public DbSet<MembershipPackage> MembershipPackages { get; set; }
+    public DbSet<MembershipPayment> MembershipPayments { get; set; }
+    public DbSet<NewsItem> NewsItems { get; set; }
+    public DbSet<RecommendationSignal> RecommendationSignals { get; set; }
+    public DbSet<Reservation> Reservations { get; set; }
+    public DbSet<ReservationStatusAudit> ReservationStatusAudits { get; set; }
+    public DbSet<SystemNotification> SystemNotifications { get; set; }
+    public DbSet<Trainer> Trainers { get; set; }
+    public DbSet<Training> Trainings { get; set; }
+    public DbSet<TrainingCategory> TrainingCategories { get; set; }
+    public DbSet<TrainingEquipment> TrainingEquipment { get; set; }
+    public DbSet<TrainingTerm> TrainingTerms { get; set; }
+    public DbSet<UserAccount> UserAccounts { get; set; }
+    public DbSet<UserMembership> UserMemberships { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Configure all foreign keys and seed data here.
-        // Add DbSet<T> properties as FitBook entities are implemented.
+        // Apply all configurations from this assembly automatically
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(FitBookDbContext).Assembly);
+
+        // Seed initial database records
+        CreateSeed(modelBuilder);
     }
 }

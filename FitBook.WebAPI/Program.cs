@@ -2,9 +2,14 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using FitBook.Common.Services.CryptoService;
+using FitBook.Services;
+using FitBook.Services.Configuration;
 using FitBook.Services.Database;
 using FitBook.WebAPI.Filters;
 using System.Text;
+
+EnvConfiguration.LoadDotEnv();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +19,9 @@ builder.Services.AddControllers(options => options.Filters.Add<ExceptionFilter>(
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<FitBookDbContext>(options =>
     options.UseSqlServer(connectionString));
+
+builder.Services.AddScoped<ICryptoService, CryptoService>();
+builder.Services.AddScoped<IReservationService, ReservationService>();
 
 var jwtSecret = builder.Configuration["JwtToken:SecretKey"] ?? string.Empty;
 builder.Services
@@ -89,13 +97,11 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseCors("FitBookCors");
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
