@@ -1,13 +1,15 @@
 using FitBook.Common.Services.CryptoService;
+using FitBook.Model.Enums;
 using FitBook.Model.Exceptions;
 using FitBook.Model.Requests.UserAccounts;
 using FitBook.Model.Responses.UserAccounts;
 using FitBook.Model.SearchObjects;
 using FitBook.Services.Database;
 using FitBook.Services.Database.Entities;
-using Mapster;
+using FluentValidation;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace FitBook.Services;
 
@@ -15,15 +17,33 @@ public class UserAccountService
     : BaseCRUDService<UserAccount, UserAccountResponse, UserSearchObject, UserAccountInsertRequest, UserAccountUpdateRequest>,
       IUserAccountService
 {
-    private readonly ICryptoService _cryptoService;
+    private static readonly ReservationStatus[] ActiveReservationStatuses =
+    [
+        ReservationStatus.Pending,
+        ReservationStatus.Confirmed
+    ];
 
-    public UserAccountService(FitBookDbContext dbContext, IMapper mapper, ICryptoService cryptoService)
-        : base(dbContext, mapper)
+    private readonly ICryptoService _cryptoService;
+    private readonly IValidator<UserAccountChangeOwnPasswordRequest> _changeOwnPasswordValidator;
+    private readonly IValidator<UserAccountAdminPasswordResetRequest> _adminPasswordResetValidator;
+
+    public UserAccountService(
+        FitBookDbContext dbContext,
+        IMapper mapper,
+        ILoggerFactory loggerFactory,
+        ICryptoService cryptoService,
+        IValidator<UserAccountInsertRequest> insertValidator,
+        IValidator<UserAccountUpdateRequest> updateValidator,
+        IValidator<UserAccountChangeOwnPasswordRequest> changeOwnPasswordValidator,
+        IValidator<UserAccountAdminPasswordResetRequest> adminPasswordResetValidator)
+        : base(dbContext, mapper, loggerFactory, insertValidator, updateValidator)
     {
         _cryptoService = cryptoService;
+        _changeOwnPasswordValidator = changeOwnPasswordValidator;
+        _adminPasswordResetValidator = adminPasswordResetValidator;
     }
 
-    protected override IQueryable<UserAccount> AddFilter(IQueryable<UserAccount> query, UserSearchObject search)
+    protected override IQueryable<UserAccount> ApplyFilter(IQueryable<UserAccount> query, UserSearchObject search)
     {
         if (!search.IncludeDeleted)
         {
@@ -40,20 +60,75 @@ public class UserAccountService
             query = query.Where(user => user.IsActive == search.IsActive.Value);
         }
 
+        if (!string.IsNullOrWhiteSpace(search.Email))
+        {
+            var email = search.Email.Trim().ToLowerInvariant();
+            query = query.Where(user => user.Email.ToLower().Contains(email));
+        }
+
+        if (!string.IsNullOrWhiteSpace(search.Username))
+        {
+            var username = search.Username.Trim().ToLowerInvariant();
+            query = query.Where(user => user.Username.ToLower().Contains(username));
+        }
+
+        if (!string.IsNullOrWhiteSpace(search.Name))
+        {
+            var name = search.Name.Trim().ToLowerInvariant();
+            query = query.Where(user =>
+                user.FirstName.ToLower().Contains(name) ||
+                user.LastName.ToLower().Contains(name));
+        }
+
         return query;
     }
 
-    protected override IReadOnlyDictionary<string, string> BuildSortMappings()
+    protected override IQueryable<UserAccount> ApplySearch(IQueryable<UserAccount> query, UserSearchObject search)
     {
-        return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        if (string.IsNullOrWhiteSpace(search.Search))
         {
-            ["id"] = nameof(UserAccount.Id),
-            ["firstName"] = nameof(UserAccount.FirstName),
-            ["lastName"] = nameof(UserAccount.LastName),
-            ["email"] = nameof(UserAccount.Email),
-            ["username"] = nameof(UserAccount.Username),
-            ["role"] = nameof(UserAccount.Role),
-            ["createdAtUtc"] = nameof(UserAccount.CreatedAtUtc)
+            return query;
+        }
+
+        var term = search.Search.Trim().ToLowerInvariant();
+        return query.Where(user =>
+            user.Email.ToLower().Contains(term) ||
+            user.Username.ToLower().Contains(term) ||
+            user.FirstName.ToLower().Contains(term) ||
+            user.LastName.ToLower().Contains(term));
+    }
+
+    protected override IReadOnlyDictionary<string, Func<IQueryable<UserAccount>, bool, IQueryable<UserAccount>>> BuildSortMappings()
+    {
+        return new Dictionary<string, Func<IQueryable<UserAccount>, bool, IQueryable<UserAccount>>>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["id"] = (query, isDescending) => isDescending
+                ? query.OrderByDescending(user => user.Id)
+                : query.OrderBy(user => user.Id),
+            ["firstName"] = (query, isDescending) => isDescending
+                ? query.OrderByDescending(user => user.FirstName)
+                : query.OrderBy(user => user.FirstName),
+            ["lastName"] = (query, isDescending) => isDescending
+                ? query.OrderByDescending(user => user.LastName)
+                : query.OrderBy(user => user.LastName),
+            ["email"] = (query, isDescending) => isDescending
+                ? query.OrderByDescending(user => user.Email)
+                : query.OrderBy(user => user.Email),
+            ["username"] = (query, isDescending) => isDescending
+                ? query.OrderByDescending(user => user.Username)
+                : query.OrderBy(user => user.Username),
+            ["role"] = (query, isDescending) => isDescending
+                ? query.OrderByDescending(user => user.Role)
+                : query.OrderBy(user => user.Role),
+            ["isActive"] = (query, isDescending) => isDescending
+                ? query.OrderByDescending(user => user.IsActive)
+                : query.OrderBy(user => user.IsActive),
+            ["createdAtUtc"] = (query, isDescending) => isDescending
+                ? query.OrderByDescending(user => user.CreatedAtUtc)
+                : query.OrderBy(user => user.CreatedAtUtc),
+            ["updatedAtUtc"] = (query, isDescending) => isDescending
+                ? query.OrderByDescending(user => user.UpdatedAtUtc)
+                : query.OrderBy(user => user.UpdatedAtUtc)
         };
     }
 
@@ -65,6 +140,11 @@ public class UserAccountService
 
     protected override async Task ValidateUpdate(int id, UserAccountUpdateRequest request, UserAccount entity, CancellationToken cancellationToken)
     {
+        if (entity.IsDeleted)
+        {
+            throw new BusinessException("Deleted user account cannot be updated.");
+        }
+
         if (!string.IsNullOrWhiteSpace(request.Email))
         {
             await EnsureUniqueEmailAsync(request.Email, id, cancellationToken);
@@ -76,37 +156,86 @@ public class UserAccountService
         }
     }
 
+    protected override async Task ValidateDelete(int id, UserAccount entity, CancellationToken cancellationToken)
+    {
+        var hasActiveReservations = await _dbContext.Reservations
+            .AnyAsync(
+                reservation => reservation.UserAccountId == id &&
+                               ActiveReservationStatuses.Contains(reservation.Status),
+                cancellationToken);
+
+        if (hasActiveReservations)
+        {
+            throw new BusinessException("User account has active reservations and cannot be deleted.");
+        }
+
+        var hasActiveMembership = await _dbContext.UserMemberships
+            .AnyAsync(
+                membership => membership.UserAccountId == id &&
+                              membership.IsActive &&
+                              membership.Status == MembershipStatus.Active,
+                cancellationToken);
+
+        if (hasActiveMembership)
+        {
+            throw new BusinessException("User account has active membership and cannot be deleted.");
+        }
+    }
+
     protected override Task BeforeInsert(UserAccountInsertRequest request, UserAccount entity, CancellationToken cancellationToken)
     {
         entity.PasswordHash = _cryptoService.HashPassword(request.Password);
-        entity.CreatedAtUtc = DateTime.UtcNow;
-        entity.IsDeleted = false;
         return Task.CompletedTask;
     }
 
-    protected override Task BeforeUpdate(int id, UserAccountUpdateRequest request, UserAccount entity, CancellationToken cancellationToken)
+    public async Task ChangeOwnPasswordAsync(int userId, UserAccountChangeOwnPasswordRequest request, CancellationToken cancellationToken = default)
     {
-        entity.UpdatedAtUtc = DateTime.UtcNow;
+        await _changeOwnPasswordValidator.ValidateAndThrowAsync(request, cancellationToken);
 
-        if (!string.IsNullOrWhiteSpace(request.Password))
+        var user = await _dbContext.UserAccounts
+            .FirstOrDefaultAsync(x => x.Id == userId && !x.IsDeleted, cancellationToken);
+
+        if (user is null)
         {
-            entity.PasswordHash = _cryptoService.HashPassword(request.Password);
+            throw new NotFoundException($"UserAccount with id {userId} was not found.");
         }
 
-        return Task.CompletedTask;
+        if (!_cryptoService.VerifyPassword(request.CurrentPassword, user.PasswordHash))
+        {
+            throw new BusinessException("Current password is incorrect.");
+        }
+
+        user.PasswordHash = _cryptoService.HashPassword(request.NewPassword);
+        user.UpdatedAtUtc = DateTime.UtcNow;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation("User {UserId} changed own password successfully.", userId);
     }
 
-    protected override void MapUpdateToEntity(UserAccountUpdateRequest request, UserAccount entity)
+    public async Task AdminResetPasswordAsync(int userId, UserAccountAdminPasswordResetRequest request, CancellationToken cancellationToken = default)
     {
-        request.Adapt(entity);
+        await _adminPasswordResetValidator.ValidateAndThrowAsync(request, cancellationToken);
+
+        var user = await _dbContext.UserAccounts
+            .FirstOrDefaultAsync(x => x.Id == userId && !x.IsDeleted, cancellationToken);
+
+        if (user is null)
+        {
+            throw new NotFoundException($"UserAccount with id {userId} was not found.");
+        }
+
+        user.PasswordHash = _cryptoService.HashPassword(request.NewPassword);
+        user.UpdatedAtUtc = DateTime.UtcNow;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation("Admin reset password for user {UserId} successfully.", userId);
     }
 
     private async Task EnsureUniqueEmailAsync(string email, int? excludedUserId, CancellationToken cancellationToken)
     {
         var normalizedEmail = email.Trim().ToLowerInvariant();
-        var exists = await DbContext.UserAccounts
+        var exists = await _dbContext.UserAccounts
             .AnyAsync(
-                user => user.Email.ToLower() == normalizedEmail &&
+                user => !user.IsDeleted &&
+                        user.Email.ToLower() == normalizedEmail &&
                         (!excludedUserId.HasValue || user.Id != excludedUserId.Value),
                 cancellationToken);
 
@@ -119,9 +248,10 @@ public class UserAccountService
     private async Task EnsureUniqueUsernameAsync(string username, int? excludedUserId, CancellationToken cancellationToken)
     {
         var normalizedUsername = username.Trim().ToLowerInvariant();
-        var exists = await DbContext.UserAccounts
+        var exists = await _dbContext.UserAccounts
             .AnyAsync(
-                user => user.Username.ToLower() == normalizedUsername &&
+                user => !user.IsDeleted &&
+                        user.Username.ToLower() == normalizedUsername &&
                         (!excludedUserId.HasValue || user.Id != excludedUserId.Value),
                 cancellationToken);
 
