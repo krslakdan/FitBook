@@ -1,6 +1,6 @@
 namespace FitBook.Services.Database.Entities;
 
-public class UserAccount
+public class UserAccount : ISoftDeletable
 {
     public int Id { get; set; }
     public string FirstName { get; set; } = string.Empty;

@@ -1,3 +1,5 @@
+using FitBook.Model.Enums;
+
 namespace FitBook.Model.SearchObjects;
 
 public class BaseSearchObject
@@ -24,6 +26,7 @@ public class BaseSearchObject
         };
     }
 
-    public bool IncludeTotalCount { get; set; }
+    public string? Search { get; set; }
     public string? SortBy { get; set; }
+    public SortDirection SortDirection { get; set; } = SortDirection.Asc;
 }
