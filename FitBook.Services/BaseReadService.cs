@@ -4,6 +4,7 @@ using FitBook.Model.SearchObjects;
 using FitBook.Services.Database;
 using FitBook.Services.Database.Entities;
 using FitBook.Services.Interfaces;
+using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -30,16 +31,18 @@ public abstract class BaseReadService<TEntity, TResponse, TSearch> : IBaseReadSe
         var search = new TSearch();
         var query = ApplyQueryPipeline(BuildQuery(), search, applySearch: false);
 
-        var entity = await query
+        var response = await query
             .AsNoTracking()
-            .FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
+            .Where(entity => entity.Id == id)
+            .ProjectToType<TResponse>()
+            .FirstOrDefaultAsync(cancellationToken);
 
-        if (entity is null)
+        if (response is null)
         {
             throw new NotFoundException($"{typeof(TEntity).Name} with id {id} was not found.");
         }
 
-        return _mapper.Map<TResponse>(entity);
+        return response;
     }
 
     public virtual async Task<PageResult<TResponse>> GetAllAsync(TSearch? search = null, CancellationToken cancellationToken = default)
@@ -49,10 +52,11 @@ public abstract class BaseReadService<TEntity, TResponse, TSearch> : IBaseReadSe
         query = query.OrderBy(entity => entity.Id);
 
         var skip = (searchObject.Page - 1) * searchObject.PageSize;
-        var entities = await query
+        var items = await query
             .AsNoTracking()
             .Skip(skip)
             .Take(searchObject.PageSize)
+            .ProjectToType<TResponse>()
             .ToListAsync(cancellationToken);
 
         int? totalCount = null;
@@ -73,7 +77,7 @@ public abstract class BaseReadService<TEntity, TResponse, TSearch> : IBaseReadSe
             PageSize = searchObject.PageSize,
             TotalCount = totalCount,
             TotalPages = totalPages,
-            Items = entities.Select(entity => _mapper.Map<TResponse>(entity)).ToList()
+            Items = items
         };
     }
 
