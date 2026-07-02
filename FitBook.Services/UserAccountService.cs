@@ -106,11 +106,6 @@ public class UserAccountService
 
     protected override async Task ValidateUpdate(int id, UserAccountUpdateRequest request, UserAccount entity, CancellationToken cancellationToken)
     {
-        if (entity.IsDeleted)
-        {
-            throw new BusinessException("Deleted user account cannot be updated.");
-        }
-
         if (!string.IsNullOrWhiteSpace(request.Email))
         {
             await EnsureUniqueEmailAsync(request.Email, id, cancellationToken);

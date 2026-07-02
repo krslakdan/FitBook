@@ -131,11 +131,7 @@ public abstract class BaseCRUDService<TEntity, TResponse, TSearch, TInsertReques
 
     protected virtual void ApplyInsertDefaults(TEntity entity)
     {
-        if (entity.CreatedAtUtc == default)
-        {
-            entity.CreatedAtUtc = DateTime.UtcNow;
-        }
-
+        entity.CreatedAtUtc = DateTime.UtcNow;
         entity.UpdatedAtUtc = null;
 
         if (entity is ISoftDeletable softDeletableEntity)
