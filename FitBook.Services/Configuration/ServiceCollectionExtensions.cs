@@ -1,4 +1,7 @@
 using FitBook.Services.Mapping;
+using FitBook.Services.Validators;
+using FluentValidation;
+using FitBook.Model.Requests.UserAccounts;
 using Mapster;
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +20,10 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<IReservationService, ReservationService>();
         services.AddScoped<IUserAccountService, UserAccountService>();
+        services.AddScoped<IValidator<UserAccountInsertRequest>, UserAccountInsertRequestValidator>();
+        services.AddScoped<IValidator<UserAccountUpdateRequest>, UserAccountUpdateRequestValidator>();
+        services.AddScoped<IValidator<UserAccountChangeOwnPasswordRequest>, UserAccountChangeOwnPasswordRequestValidator>();
+        services.AddScoped<IValidator<UserAccountAdminPasswordResetRequest>, UserAccountAdminPasswordResetRequestValidator>();
 
         return services;
     }
