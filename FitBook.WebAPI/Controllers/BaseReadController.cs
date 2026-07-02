@@ -7,7 +7,7 @@ namespace FitBook.WebAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public abstract class BaseReadController<TResponse, TSearch, TService> : ControllerBase, IBaseReadController<TResponse, TSearch>
+public abstract class BaseReadController<TResponse, TSearch, TService> : ControllerBase
     where TSearch : BaseSearchObject, new()
     where TService : IBaseReadService<TResponse, TSearch>
 {
@@ -19,13 +19,16 @@ public abstract class BaseReadController<TResponse, TSearch, TService> : Control
     }
 
     [HttpGet]
-    public virtual async Task<ActionResult<PagedResult<TResponse>>> GetPaged([FromQuery] TSearch search, CancellationToken cancellationToken = default)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public virtual async Task<ActionResult<PageResult<TResponse>>> GetAll([FromQuery] TSearch search, CancellationToken cancellationToken = default)
     {
-        var result = await Service.GetPagedAsync(search, cancellationToken);
+        var result = await Service.GetAllAsync(search, cancellationToken);
         return Ok(result);
     }
 
     [HttpGet("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public virtual async Task<ActionResult<TResponse>> GetById(int id, CancellationToken cancellationToken = default)
     {
         var result = await Service.GetByIdAsync(id, cancellationToken);

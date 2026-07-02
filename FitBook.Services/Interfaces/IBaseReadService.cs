@@ -7,5 +7,5 @@ public interface IBaseReadService<TResponse, in TSearch>
     where TSearch : BaseSearchObject
 {
     Task<TResponse> GetByIdAsync(int id, CancellationToken cancellationToken = default);
-    Task<PagedResult<TResponse>> GetPagedAsync(TSearch? search = null, CancellationToken cancellationToken = default);
+    Task<PageResult<TResponse>> GetAllAsync(TSearch? search = null, CancellationToken cancellationToken = default);
 }
