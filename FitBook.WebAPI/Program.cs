@@ -21,7 +21,7 @@ builder.Services.AddDbContext<FitBookDbContext>(options =>
     options.UseSqlServer(connectionString));
 
 builder.Services.AddScoped<ICryptoService, CryptoService>();
-builder.Services.AddScoped<IReservationService, ReservationService>();
+builder.Services.AddFitBookServices();
 
 var jwtSecret = builder.Configuration["JwtToken:SecretKey"] ?? string.Empty;
 builder.Services
