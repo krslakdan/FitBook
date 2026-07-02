@@ -27,6 +27,7 @@ public class BaseSearchObject
     }
 
     public string? Search { get; set; }
+    public bool? IncludeTotalCount { get; set; } = false;
     public string? SortBy { get; set; }
     public SortDirection SortDirection { get; set; } = SortDirection.Asc;
 }

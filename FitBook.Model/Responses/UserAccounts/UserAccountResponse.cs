@@ -1,6 +1,6 @@
 namespace FitBook.Model.Responses.UserAccounts;
 
-public class UserAccountResponse
+public class UserAccountResponse : IEntityResponse
 {
     public int Id { get; set; }
     public string FirstName { get; set; } = string.Empty;
