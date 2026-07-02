@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace FitBook.Model.Requests.UserAccounts;
 
 public class UserAccountInsertRequest
