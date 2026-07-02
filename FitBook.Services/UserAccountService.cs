@@ -98,40 +98,6 @@ public class UserAccountService
             user.LastName.ToLower().Contains(term));
     }
 
-    protected override IReadOnlyDictionary<string, Func<IQueryable<UserAccount>, bool, IQueryable<UserAccount>>> BuildSortMappings()
-    {
-        return new Dictionary<string, Func<IQueryable<UserAccount>, bool, IQueryable<UserAccount>>>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["id"] = (query, isDescending) => isDescending
-                ? query.OrderByDescending(user => user.Id)
-                : query.OrderBy(user => user.Id),
-            ["firstName"] = (query, isDescending) => isDescending
-                ? query.OrderByDescending(user => user.FirstName)
-                : query.OrderBy(user => user.FirstName),
-            ["lastName"] = (query, isDescending) => isDescending
-                ? query.OrderByDescending(user => user.LastName)
-                : query.OrderBy(user => user.LastName),
-            ["email"] = (query, isDescending) => isDescending
-                ? query.OrderByDescending(user => user.Email)
-                : query.OrderBy(user => user.Email),
-            ["username"] = (query, isDescending) => isDescending
-                ? query.OrderByDescending(user => user.Username)
-                : query.OrderBy(user => user.Username),
-            ["role"] = (query, isDescending) => isDescending
-                ? query.OrderByDescending(user => user.Role)
-                : query.OrderBy(user => user.Role),
-            ["isActive"] = (query, isDescending) => isDescending
-                ? query.OrderByDescending(user => user.IsActive)
-                : query.OrderBy(user => user.IsActive),
-            ["createdAtUtc"] = (query, isDescending) => isDescending
-                ? query.OrderByDescending(user => user.CreatedAtUtc)
-                : query.OrderBy(user => user.CreatedAtUtc),
-            ["updatedAtUtc"] = (query, isDescending) => isDescending
-                ? query.OrderByDescending(user => user.UpdatedAtUtc)
-                : query.OrderBy(user => user.UpdatedAtUtc)
-        };
-    }
-
     protected override async Task ValidateInsert(UserAccountInsertRequest request, CancellationToken cancellationToken)
     {
         await EnsureUniqueEmailAsync(request.Email, null, cancellationToken);
