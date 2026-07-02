@@ -1,7 +1,5 @@
 namespace FitBook.Model.Responses;
 
-public class PageResult<T>
+public class PageResult<T> : PagedResult<T>
 {
-    public List<T> Items { get; set; } = [];
-    public int? TotalCount { get; set; }
 }
