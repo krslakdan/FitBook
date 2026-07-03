@@ -2,9 +2,8 @@ using FitBook.Model.Enums;
 
 namespace FitBook.Services.Database.Entities;
 
-public class ReservationStatusAudit
+public class ReservationStatusAudit : BaseEntity
 {
-    public int Id { get; set; }
     public ReservationStatus PreviousStatus { get; set; }
     public ReservationStatus NewStatus { get; set; }
     public DateTime ChangedAtUtc { get; set; }

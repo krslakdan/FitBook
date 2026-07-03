@@ -1,8 +1,7 @@
 namespace FitBook.Services.Database.Entities;
 
-public class TrainingEquipment
+public class TrainingEquipment : BaseEntity
 {
-    public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public bool IsRequired { get; set; }
     public string? Note { get; set; }

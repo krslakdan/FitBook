@@ -1,8 +1,7 @@
 namespace FitBook.Services.Database.Entities;
 
-public class NewsItem
+public class NewsItem : BaseEntity
 {
-    public int Id { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
     public string? ImageUrl { get; set; }

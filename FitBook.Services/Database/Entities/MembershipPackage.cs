@@ -1,6 +1,6 @@
 namespace FitBook.Services.Database.Entities;
 
-public class MembershipPackage : BaseEntity
+public class MembershipPackage : SoftDeletableEntity
 {
     public string Name { get; set; } = string.Empty;
     public int DurationDays { get; set; }
