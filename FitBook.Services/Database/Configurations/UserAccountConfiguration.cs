@@ -24,7 +24,12 @@ public class UserAccountConfiguration : IEntityTypeConfiguration<UserAccount>
         builder.Property(x => x.IsDeleted).IsRequired();
         builder.Property(x => x.CreatedAtUtc).IsRequired();
 
-        builder.HasIndex(x => x.Email).IsUnique();
-        builder.HasIndex(x => x.Username).IsUnique();
+        builder.HasIndex(x => x.Email)
+            .IsUnique()
+            .HasFilter("[IsDeleted] = 0");
+
+        builder.HasIndex(x => x.Username)
+            .IsUnique()
+            .HasFilter("[IsDeleted] = 0");
     }
 }
