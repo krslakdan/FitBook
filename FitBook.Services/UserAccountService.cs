@@ -141,6 +141,14 @@ public class UserAccountService
         {
             throw new BusinessException("User account has active membership and cannot be deleted.");
         }
+
+        var isTrainer = await _dbContext.Trainers
+            .AnyAsync(t => t.UserAccountId == id && t.IsActive, cancellationToken);
+
+        if (isTrainer)
+        {
+            throw new BusinessException("User account is linked to an active trainer profile and cannot be deleted.");
+        }
     }
 
     protected override Task BeforeInsert(UserAccountInsertRequest request, UserAccount entity, CancellationToken cancellationToken)
