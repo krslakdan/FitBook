@@ -20,6 +20,10 @@ public class UserMembershipConfiguration : IEntityTypeConfiguration<UserMembersh
 
         builder.HasIndex(x => new { x.UserAccountId, x.IsActive });
 
+        builder.HasIndex(x => x.UserAccountId)
+            .IsUnique()
+            .HasFilter("[IsActive] = 1");
+
         builder.HasOne(x => x.UserAccount)
             .WithMany(x => x.Memberships)
             .HasForeignKey(x => x.UserAccountId)

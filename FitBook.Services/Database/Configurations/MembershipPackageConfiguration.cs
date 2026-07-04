@@ -20,6 +20,8 @@ public class MembershipPackageConfiguration : IEntityTypeConfiguration<Membershi
         builder.Property(x => x.IsActive).IsRequired();
         builder.Property(x => x.CreatedAtUtc).IsRequired();
 
-        builder.HasIndex(x => x.Name).IsUnique();
+        builder.HasIndex(x => x.Name)
+               .IsUnique()
+               .HasFilter("[IsDeleted] = 0");
     }
 }

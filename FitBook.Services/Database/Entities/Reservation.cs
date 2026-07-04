@@ -2,9 +2,8 @@ using FitBook.Model.Enums;
 
 namespace FitBook.Services.Database.Entities;
 
-public class Reservation
+public class Reservation : BaseEntity
 {
-    public int Id { get; set; }
     public ReservationStatus Status { get; set; }
     public DateTime ReservedAtUtc { get; set; }
     public DateTime? ConfirmedAtUtc { get; set; }

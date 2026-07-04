@@ -2,12 +2,10 @@ using FitBook.Model.Enums;
 
 namespace FitBook.Services.Database.Entities;
 
-public class RecommendationSignal
+public class RecommendationSignal : BaseEntity
 {
-    public int Id { get; set; }
     public RecommendationSignalType SignalType { get; set; }
     public decimal Weight { get; set; }
-    public DateTime CreatedAtUtc { get; set; }
 
     public int UserAccountId { get; set; }
     public UserAccount? UserAccount { get; set; }

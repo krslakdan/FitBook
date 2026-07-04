@@ -1,8 +1,7 @@
 namespace FitBook.Services.Database.Entities;
 
-public class UserAccount
+public class UserAccount : SoftDeletableEntity
 {
-    public int Id { get; set; }
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
@@ -12,9 +11,6 @@ public class UserAccount
     public string Role { get; set; } = string.Empty;
     public string? ProfileImageUrl { get; set; }
     public bool IsActive { get; set; }
-    public bool IsDeleted { get; set; }
-    public DateTime CreatedAtUtc { get; set; }
-    public DateTime? UpdatedAtUtc { get; set; }
 
     public Trainer? Trainer { get; set; }
 

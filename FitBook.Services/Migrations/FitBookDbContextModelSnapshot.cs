@@ -30,6 +30,9 @@ namespace FitBook.Services.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -40,6 +43,9 @@ namespace FitBook.Services.Migrations
 
                     b.Property<int>("SortOrder")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -52,6 +58,7 @@ namespace FitBook.Services.Migrations
                         new
                         {
                             Id = 1,
+                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
                             Name = "Beginner",
                             SortOrder = 1
@@ -59,6 +66,7 @@ namespace FitBook.Services.Migrations
                         new
                         {
                             Id = 2,
+                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
                             Name = "Intermediate",
                             SortOrder = 2
@@ -66,6 +74,7 @@ namespace FitBook.Services.Migrations
                         new
                         {
                             Id = 3,
+                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
                             Name = "Advanced",
                             SortOrder = 3
@@ -83,6 +92,9 @@ namespace FitBook.Services.Migrations
                     b.Property<int>("Capacity")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -94,6 +106,9 @@ namespace FitBook.Services.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -107,6 +122,7 @@ namespace FitBook.Services.Migrations
                         {
                             Id = 1,
                             Capacity = 30,
+                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
                             LocationDescription = "Ground Floor, Zone A",
                             Name = "Main Gym Hall"
@@ -115,6 +131,7 @@ namespace FitBook.Services.Migrations
                         {
                             Id = 2,
                             Capacity = 15,
+                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
                             LocationDescription = "First Floor, Zone B",
                             Name = "Yoga & Pilates Studio"
@@ -123,6 +140,7 @@ namespace FitBook.Services.Migrations
                         {
                             Id = 3,
                             Capacity = 20,
+                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
                             LocationDescription = "First Floor, Zone C",
                             Name = "Spinning Room"
@@ -150,6 +168,9 @@ namespace FitBook.Services.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -167,7 +188,8 @@ namespace FitBook.Services.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Name")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("MembershipPackages", (string)null);
 
@@ -179,6 +201,7 @@ namespace FitBook.Services.Migrations
                             DurationDays = 30,
                             IncludedBenefits = "Access to main hall, 3 group trainings per week.",
                             IsActive = true,
+                            IsDeleted = false,
                             Name = "1 Month Basic",
                             Price = 50.00m,
                             SavingsAmount = 0.00m
@@ -190,6 +213,7 @@ namespace FitBook.Services.Migrations
                             DurationDays = 90,
                             IncludedBenefits = "Unlimited group trainings, sauna access, 1 free personal session.",
                             IsActive = true,
+                            IsDeleted = false,
                             Name = "3 Month Premium",
                             Price = 120.00m,
                             SavingsAmount = 30.00m
@@ -241,6 +265,9 @@ namespace FitBook.Services.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("UserAccountId")
                         .HasColumnType("int");
 
@@ -287,6 +314,9 @@ namespace FitBook.Services.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("ImageUrl")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -302,6 +332,9 @@ namespace FitBook.Services.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.HasIndex("PublishedAtUtc");
@@ -313,6 +346,7 @@ namespace FitBook.Services.Migrations
                         {
                             Id = 1,
                             Content = "We are thrilled to announce that our new premium Yoga & Pilates studio on the first floor is now open for bookings.",
+                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ImageUrl = "uploads/news/yoga_opening.jpg",
                             IsActive = true,
                             PublishedAtUtc = new DateTime(2026, 6, 15, 9, 0, 0, 0, DateTimeKind.Utc),
@@ -342,6 +376,9 @@ namespace FitBook.Services.Migrations
 
                     b.Property<int>("TrainingId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("UserAccountId")
                         .HasColumnType("int");
@@ -386,6 +423,47 @@ namespace FitBook.Services.Migrations
                         });
                 });
 
+            modelBuilder.Entity("FitBook.Services.Database.Entities.RefreshToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiresAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ReplacedByToken")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RevokedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshTokens");
+                });
+
             modelBuilder.Entity("FitBook.Services.Database.Entities.Reservation", b =>
                 {
                     b.Property<int>("Id")
@@ -407,6 +485,9 @@ namespace FitBook.Services.Migrations
                     b.Property<DateTime?>("ConfirmedAtUtc")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<int?>("LastStatusChangedByUserAccountId")
                         .HasColumnType("int");
 
@@ -419,6 +500,9 @@ namespace FitBook.Services.Migrations
                     b.Property<int>("TrainingTermId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("UserAccountId")
                         .HasColumnType("int");
 
@@ -428,7 +512,9 @@ namespace FitBook.Services.Migrations
 
                     b.HasIndex("TrainingTermId", "Status");
 
-                    b.HasIndex("UserAccountId", "TrainingTermId");
+                    b.HasIndex("UserAccountId", "TrainingTermId")
+                        .IsUnique()
+                        .HasFilter("[Status] IN (1, 2)");
 
                     b.ToTable("Reservations", (string)null);
 
@@ -438,6 +524,7 @@ namespace FitBook.Services.Migrations
                             Id = 1,
                             CompletedAtUtc = new DateTime(2026, 6, 25, 11, 0, 0, 0, DateTimeKind.Utc),
                             ConfirmedAtUtc = new DateTime(2026, 6, 21, 15, 10, 0, 0, DateTimeKind.Utc),
+                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ReservedAtUtc = new DateTime(2026, 6, 21, 15, 0, 0, 0, DateTimeKind.Utc),
                             Status = 4,
                             TrainingTermId = 1,
@@ -448,6 +535,7 @@ namespace FitBook.Services.Migrations
                             Id = 2,
                             CompletedAtUtc = new DateTime(2026, 6, 26, 13, 0, 0, 0, DateTimeKind.Utc),
                             ConfirmedAtUtc = new DateTime(2026, 6, 22, 16, 5, 0, 0, DateTimeKind.Utc),
+                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ReservedAtUtc = new DateTime(2026, 6, 22, 16, 0, 0, 0, DateTimeKind.Utc),
                             Status = 4,
                             TrainingTermId = 2,
@@ -457,6 +545,7 @@ namespace FitBook.Services.Migrations
                         {
                             Id = 3,
                             ConfirmedAtUtc = new DateTime(2026, 6, 23, 10, 15, 0, 0, DateTimeKind.Utc),
+                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ReservedAtUtc = new DateTime(2026, 6, 23, 10, 0, 0, 0, DateTimeKind.Utc),
                             Status = 2,
                             TrainingTermId = 3,
@@ -478,6 +567,9 @@ namespace FitBook.Services.Migrations
                     b.Property<int>("ChangedByUserAccountId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("NewStatus")
                         .HasColumnType("int");
 
@@ -490,6 +582,9 @@ namespace FitBook.Services.Migrations
 
                     b.Property<int>("ReservationId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -505,6 +600,7 @@ namespace FitBook.Services.Migrations
                             Id = 1,
                             ChangedAtUtc = new DateTime(2026, 6, 21, 15, 10, 0, 0, DateTimeKind.Utc),
                             ChangedByUserAccountId = 1,
+                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             NewStatus = 2,
                             PreviousStatus = 1,
                             Reason = "Auto-confirmed on successful payment and active membership check",
@@ -515,6 +611,7 @@ namespace FitBook.Services.Migrations
                             Id = 2,
                             ChangedAtUtc = new DateTime(2026, 6, 25, 11, 0, 0, 0, DateTimeKind.Utc),
                             ChangedByUserAccountId = 5,
+                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             NewStatus = 4,
                             PreviousStatus = 2,
                             Reason = "Marked as completed after class finish",
@@ -551,6 +648,9 @@ namespace FitBook.Services.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("UserAccountId")
                         .HasColumnType("int");
@@ -765,6 +865,9 @@ namespace FitBook.Services.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -777,6 +880,9 @@ namespace FitBook.Services.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("nvarchar(120)");
 
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Name")
@@ -788,6 +894,7 @@ namespace FitBook.Services.Migrations
                         new
                         {
                             Id = 1,
+                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "Workouts designed to improve heart health and stamina.",
                             IsActive = true,
                             Name = "Cardio"
@@ -795,6 +902,7 @@ namespace FitBook.Services.Migrations
                         new
                         {
                             Id = 2,
+                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "Resistance training designed to build muscle mass.",
                             IsActive = true,
                             Name = "Strength"
@@ -802,6 +910,7 @@ namespace FitBook.Services.Migrations
                         new
                         {
                             Id = 3,
+                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Description = "Yoga, stretching, and mindfulness practices.",
                             IsActive = true,
                             Name = "Mind & Body"
@@ -815,6 +924,9 @@ namespace FitBook.Services.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsRequired")
                         .HasColumnType("bit");
@@ -831,6 +943,9 @@ namespace FitBook.Services.Migrations
                     b.Property<int>("TrainingId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.HasIndex("TrainingId", "Name")
@@ -842,6 +957,7 @@ namespace FitBook.Services.Migrations
                         new
                         {
                             Id = 1,
+                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsRequired = true,
                             Name = "Kettlebell",
                             Note = "Recommended 8kg-16kg",
@@ -850,6 +966,7 @@ namespace FitBook.Services.Migrations
                         new
                         {
                             Id = 2,
+                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsRequired = true,
                             Name = "Barbell Set",
                             Note = "Belts provided in hall",
@@ -858,6 +975,7 @@ namespace FitBook.Services.Migrations
                         new
                         {
                             Id = 3,
+                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsRequired = false,
                             Name = "Yoga Mat",
                             Note = "Mats are available in studio, or bring your own",
@@ -1017,10 +1135,12 @@ namespace FitBook.Services.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.HasIndex("Username")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("UserAccounts", (string)null);
 
@@ -1134,6 +1254,9 @@ namespace FitBook.Services.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<int>("MembershipPackageId")
                         .HasColumnType("int");
 
@@ -1156,6 +1279,10 @@ namespace FitBook.Services.Migrations
 
                     b.HasIndex("MembershipPackageId");
 
+                    b.HasIndex("UserAccountId")
+                        .IsUnique()
+                        .HasFilter("[IsActive] = 1");
+
                     b.HasIndex("UserAccountId", "IsActive");
 
                     b.ToTable("UserMemberships", (string)null);
@@ -1167,6 +1294,7 @@ namespace FitBook.Services.Migrations
                             CreatedAtUtc = new DateTime(2026, 5, 30, 0, 0, 0, 0, DateTimeKind.Utc),
                             EndDateUtc = new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
+                            IsDeleted = false,
                             MembershipPackageId = 1,
                             NextPaymentDateUtc = new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             StartDateUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc),
@@ -1226,6 +1354,17 @@ namespace FitBook.Services.Migrations
                     b.Navigation("TrainingCategory");
 
                     b.Navigation("UserAccount");
+                });
+
+            modelBuilder.Entity("FitBook.Services.Database.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("FitBook.Services.Database.Entities.UserAccount", "User")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("FitBook.Services.Database.Entities.Reservation", b =>
@@ -1428,6 +1567,8 @@ namespace FitBook.Services.Migrations
                     b.Navigation("Payments");
 
                     b.Navigation("RecommendationSignals");
+
+                    b.Navigation("RefreshTokens");
 
                     b.Navigation("ReservationStatusAudits");
 

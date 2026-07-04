@@ -2,16 +2,13 @@ using FitBook.Model.Enums;
 
 namespace FitBook.Services.Database.Entities;
 
-public class UserMembership
+public class UserMembership : SoftDeletableEntity
 {
-    public int Id { get; set; }
     public DateTime StartDateUtc { get; set; }
     public DateTime EndDateUtc { get; set; }
     public DateTime? NextPaymentDateUtc { get; set; }
     public MembershipStatus Status { get; set; }
     public bool IsActive { get; set; }
-    public DateTime CreatedAtUtc { get; set; }
-    public DateTime? UpdatedAtUtc { get; set; }
 
     public int UserAccountId { get; set; }
     public UserAccount? UserAccount { get; set; }

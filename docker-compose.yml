@@ -37,6 +37,7 @@ services:
       - .env
     environment:
       ConnectionStrings__DefaultConnection: Server=fitbook-db;Database=${DB_NAME:-230163};User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False;
+      ASPNETCORE_URLS: http://+:5121
     ports:
       - "${API_HOST_PORT:-5121}:5121"
     depends_on:

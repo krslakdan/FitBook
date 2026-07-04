@@ -1,8 +1,7 @@
 namespace FitBook.Services.Database.Entities;
 
-public class TrainingCategory
+public class TrainingCategory : BaseEntity
 {
-    public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public bool IsActive { get; set; }
