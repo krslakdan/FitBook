@@ -16,7 +16,9 @@ public class ReservationConfiguration : IEntityTypeConfiguration<Reservation>
         builder.Property(x => x.ReservedAtUtc).IsRequired();
         builder.Property(x => x.CancellationReason).HasMaxLength(500);
 
-        builder.HasIndex(x => new { x.UserAccountId, x.TrainingTermId });
+        builder.HasIndex(x => new { x.UserAccountId, x.TrainingTermId })
+            .IsUnique()
+            .HasFilter("[Status] IN (1, 2)");
         builder.HasIndex(x => new { x.TrainingTermId, x.Status });
 
         builder.HasOne(x => x.UserAccount)
