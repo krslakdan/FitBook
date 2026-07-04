@@ -5,6 +5,8 @@ using FitBook.Model.Requests.UserAccounts;
 using Mapster;
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
+using FitBook.Services.Interfaces.Auth;
+using FitBook.Services.Auth;
 
 namespace FitBook.Services.Configuration;
 
@@ -24,6 +26,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IValidator<UserAccountUpdateRequest>, UserAccountUpdateRequestValidator>();
         services.AddScoped<IValidator<UserAccountChangeOwnPasswordRequest>, UserAccountChangeOwnPasswordRequestValidator>();
         services.AddScoped<IValidator<UserAccountAdminPasswordResetRequest>, UserAccountAdminPasswordResetRequestValidator>();
+
+        services.AddScoped<IJwtTokenService, JwtTokenService>();
+        services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+        services.AddScoped<IAuthService, AuthService>();
 
         return services;
     }
