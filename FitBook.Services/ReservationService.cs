@@ -1,6 +1,7 @@
 using FitBook.Model.Enums;
 using FitBook.Model.Exceptions;
 using FitBook.Services.Database;
+using FitBook.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace FitBook.Services;

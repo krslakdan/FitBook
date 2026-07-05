@@ -26,6 +26,7 @@ public partial class FitBookDbContext : DbContext
     public DbSet<TrainingTerm> TrainingTerms { get; set; }
     public DbSet<UserAccount> UserAccounts { get; set; }
     public DbSet<UserMembership> UserMemberships { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
