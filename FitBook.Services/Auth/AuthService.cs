@@ -5,6 +5,7 @@ using FitBook.Model.Requests.Auth;
 using FitBook.Model.Requests.UserAccounts;
 using FitBook.Model.Responses.Auth;
 using FitBook.Services.Database;
+using FitBook.Services.Interfaces;
 using FitBook.Services.Interfaces.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -39,7 +40,7 @@ public class AuthService : IAuthService
     public async Task<UserLoginResponse> LoginAsync(UserLoginRequest request, CancellationToken cancellationToken = default)
     {
         var user = await _context.UserAccounts
-            .SingleOrDefaultAsync(x => x.Username == request.Username && !x.IsDeleted, cancellationToken);
+            .SingleOrDefaultAsync(x => x.Username.ToLower() == request.Username.Trim().ToLower() && !x.IsDeleted, cancellationToken);
 
         if (user == null || !_cryptoService.VerifyPassword(request.Password, user.PasswordHash))
         {
@@ -68,12 +69,12 @@ public class AuthService : IAuthService
     {
         var insertRequest = new UserAccountInsertRequest
         {
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            Email = request.Email,
-            PhoneNumber = request.PhoneNumber,
-            Username = request.Username,
-            Password = request.Password,
+            FirstName = request.FirstName.Trim(),
+            LastName = request.LastName.Trim(),
+            Email = request.Email.Trim(),
+            PhoneNumber = request.PhoneNumber.Trim(),
+            Username = request.Username.Trim(),
+            Password = request.Password.Trim(),
             Role = Roles.User,
             IsActive = true
         };
@@ -83,7 +84,7 @@ public class AuthService : IAuthService
 
     public async Task<RefreshTokenResponse> RefreshTokenAsync(RefreshTokenRequest request, CancellationToken cancellationToken = default)
     {
-        var refreshToken = await _refreshTokenService.GetByTokenAsync(request.RefreshToken, cancellationToken);
+        var refreshToken = await _refreshTokenService.GetByTokenAsync(request.RefreshToken.Trim(), cancellationToken);
 
         if (refreshToken == null)
         {
@@ -121,13 +122,13 @@ public class AuthService : IAuthService
 
     public async Task LogoutAsync(int userId, LogoutRequest request, CancellationToken cancellationToken = default)
     {
-        var token = await _refreshTokenService.GetByTokenAsync(request.RefreshToken, cancellationToken);
+        var token = await _refreshTokenService.GetByTokenAsync(request.RefreshToken.Trim(), cancellationToken);
 
         if (token == null || token.UserId != userId)
         {
             throw new BusinessException("Invalid refresh token.");
         }
 
-        await _refreshTokenService.RevokeRefreshTokenAsync(request.RefreshToken, cancellationToken);
+        await _refreshTokenService.RevokeRefreshTokenAsync(request.RefreshToken.Trim(), cancellationToken);
     }
 }

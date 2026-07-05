@@ -6,6 +6,8 @@ using FitBook.Model.Responses.UserAccounts;
 using FitBook.Model.SearchObjects;
 using FitBook.Services.Database;
 using FitBook.Services.Database.Entities;
+using FitBook.Services.Interfaces;
+using FitBook.Services.Interfaces.Auth;
 using FluentValidation;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +25,7 @@ public class UserAccountService
         ReservationStatus.Confirmed
     ];
 
+    private readonly IRefreshTokenService _refreshTokenService;
     private readonly ICryptoService _cryptoService;
     private readonly IValidator<UserAccountChangeOwnPasswordRequest> _changeOwnPasswordValidator;
     private readonly IValidator<UserAccountAdminPasswordResetRequest> _adminPasswordResetValidator;
@@ -32,6 +35,7 @@ public class UserAccountService
         IMapper mapper,
         ILoggerFactory loggerFactory,
         ICryptoService cryptoService,
+        IRefreshTokenService refreshTokenService,
         IValidator<UserAccountInsertRequest> insertValidator,
         IValidator<UserAccountUpdateRequest> updateValidator,
         IValidator<UserAccountChangeOwnPasswordRequest> changeOwnPasswordValidator,
@@ -39,6 +43,7 @@ public class UserAccountService
         : base(dbContext, mapper, loggerFactory, insertValidator, updateValidator)
     {
         _cryptoService = cryptoService;
+        _refreshTokenService= refreshTokenService;
         _changeOwnPasswordValidator = changeOwnPasswordValidator;
         _adminPasswordResetValidator = adminPasswordResetValidator;
     }
@@ -100,20 +105,20 @@ public class UserAccountService
 
     protected override async Task ValidateInsert(UserAccountInsertRequest request, CancellationToken cancellationToken)
     {
-        await EnsureUniqueEmailAsync(request.Email, null, cancellationToken);
-        await EnsureUniqueUsernameAsync(request.Username, null, cancellationToken);
+        await EnsureUniqueEmailAsync(request.Email.Trim(), null, cancellationToken);
+        await EnsureUniqueUsernameAsync(request.Username.Trim(), null, cancellationToken);
     }
 
     protected override async Task ValidateUpdate(int id, UserAccountUpdateRequest request, UserAccount entity, CancellationToken cancellationToken)
     {
         if (!string.IsNullOrWhiteSpace(request.Email))
         {
-            await EnsureUniqueEmailAsync(request.Email, id, cancellationToken);
+            await EnsureUniqueEmailAsync(request.Email.Trim(), id, cancellationToken);
         }
 
         if (!string.IsNullOrWhiteSpace(request.Username))
         {
-            await EnsureUniqueUsernameAsync(request.Username, id, cancellationToken);
+            await EnsureUniqueUsernameAsync(request.Username.Trim(), id, cancellationToken);
         }
     }
 
@@ -177,6 +182,7 @@ public class UserAccountService
         user.PasswordHash = _cryptoService.HashPassword(request.NewPassword);
         user.UpdatedAtUtc = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync(cancellationToken);
+        await _refreshTokenService.RevokeAllUserRefreshTokensAsync(userId, cancellationToken);
         _logger.LogInformation("User {UserId} changed own password successfully.", userId);
     }
 
@@ -195,6 +201,7 @@ public class UserAccountService
         user.PasswordHash = _cryptoService.HashPassword(request.NewPassword);
         user.UpdatedAtUtc = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync(cancellationToken);
+        await _refreshTokenService.RevokeAllUserRefreshTokensAsync(userId, cancellationToken);
         _logger.LogInformation("Admin reset password for user {UserId} successfully.", userId);
     }
 
