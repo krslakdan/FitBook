@@ -1,12 +1,12 @@
+using FitBook.Common.Services.CryptoService;
+using FitBook.Model.Constants;
+using FitBook.Services.Configuration;
+using FitBook.Services.Database;
+using FitBook.WebAPI.Filters;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using FitBook.Common.Services.CryptoService;
-using FitBook.Services;
-using FitBook.Services.Configuration;
-using FitBook.Services.Database;
-using FitBook.WebAPI.Filters;
 using System.Text;
 
 EnvConfiguration.LoadDotEnv();
@@ -42,7 +42,9 @@ builder.Services
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ClockSkew = TimeSpan.Zero
+            ClockSkew = TimeSpan.Zero,
+            RoleClaimType = ClaimNames.Role,
+            NameClaimType = ClaimNames.Username
         };
     });
 

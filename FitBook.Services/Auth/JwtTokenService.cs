@@ -1,7 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
+using FitBook.Model.Constants;
 using FitBook.Services.Database.Entities;
 using FitBook.Services.Interfaces.Auth;
 using Microsoft.Extensions.Configuration;
@@ -22,13 +22,13 @@ public class JwtTokenService : IJwtTokenService
     {
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Name, user.Username),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.GivenName, user.FirstName),
-            new Claim(ClaimTypes.Surname, user.LastName),
-            new Claim(ClaimTypes.Role, user.Role),
-            new Claim("IsActive", user.IsActive.ToString())
+            new Claim(ClaimNames.Id, user.Id.ToString()),
+            new Claim(ClaimNames.Username, user.Username),
+            new Claim(ClaimNames.Email, user.Email),
+            new Claim(ClaimNames.FirstName, user.FirstName),
+            new Claim(ClaimNames.LastName, user.LastName),
+            new Claim(ClaimNames.Role, user.Role),
+            new Claim(ClaimNames.IsActive, user.IsActive.ToString())
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtToken:SecretKey"] ?? string.Empty));
