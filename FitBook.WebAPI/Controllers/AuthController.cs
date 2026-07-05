@@ -3,19 +3,22 @@ using FitBook.Model.Responses.Auth;
 using FitBook.Services.Interfaces.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using FitBook.Services.Interfaces;
 
 namespace FitBook.WebAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly ICurrentUserService _currentUserService;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, ICurrentUserService currentUserService)
     {
         _authService = authService;
+        _currentUserService = currentUserService;
     }
 
     [HttpPost("register")]
@@ -46,11 +49,7 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Logout([FromBody] LogoutRequest request, CancellationToken cancellationToken)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (!int.TryParse(userIdClaim, out var userId))
-        {
-            return Unauthorized();
-        }
+        var userId = _currentUserService.GetRequiredUserId();
 
         await _authService.LogoutAsync(userId, request, cancellationToken);
         return Ok();

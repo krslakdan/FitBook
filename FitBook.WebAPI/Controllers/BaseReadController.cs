@@ -1,12 +1,14 @@
 using FitBook.Model.Responses;
 using FitBook.Model.SearchObjects;
 using FitBook.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FitBook.WebAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public abstract class BaseReadController<TResponse, TSearch, TService> : ControllerBase
     where TSearch : BaseSearchObject, new()
     where TService : IBaseReadService<TResponse, TSearch>
