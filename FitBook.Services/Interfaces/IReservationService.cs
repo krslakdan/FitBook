@@ -1,4 +1,4 @@
-namespace FitBook.Services;
+namespace FitBook.Services.Interfaces;
 
 public interface IReservationService
 {
