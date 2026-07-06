@@ -11,7 +11,7 @@ public partial class FitBookDbContext
     {
         SeedDifficultyLevels(modelBuilder);
         SeedHalls(modelBuilder);
-        SeedUserAccounts(modelBuilder); // POMJERENO IZNAD: Prvo seedamo UserAccounts zbog stranih ključeva u Trainers
+        SeedUserAccounts(modelBuilder);
         SeedTrainers(modelBuilder);
         SeedTrainingCategories(modelBuilder);
         SeedTrainings(modelBuilder);
@@ -78,7 +78,7 @@ public partial class FitBookDbContext
                 IsDeleted = false,
                 CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
             },
-            // KORISNIČKI NALOZI ZA TRENERE (Sinhronizovani sa tabelom Trainers)
+            
             new UserAccount
             {
                 Id = 3,
@@ -156,7 +156,7 @@ public partial class FitBookDbContext
                 IsAvailable = true,
                 IsActive = true,
                 CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                UserAccountId = 3 // <--- VEZA sa UserAccount Id = 3
+                UserAccountId = 3
             },
             new Trainer
             {
@@ -169,7 +169,7 @@ public partial class FitBookDbContext
                 IsAvailable = true,
                 IsActive = true,
                 CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                UserAccountId = 4 // <--- VEZA sa UserAccount Id = 4
+                UserAccountId = 4
             },
             new Trainer
             {
@@ -182,7 +182,7 @@ public partial class FitBookDbContext
                 IsAvailable = true,
                 IsActive = true,
                 CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                UserAccountId = 5 // <--- VEZA sa UserAccount Id = 5
+                UserAccountId = 5
             }
         );
     }
@@ -260,7 +260,7 @@ public partial class FitBookDbContext
                 IsActive = true,
                 CreatedAtUtc = new DateTime(2026, 6, 20, 0, 0, 0, DateTimeKind.Utc),
                 TrainingId = 1,
-                TrainerId = 3, // Mike Jones
+                TrainerId = 3,
                 HallId = 3
             },
             new TrainingTerm
@@ -273,7 +273,7 @@ public partial class FitBookDbContext
                 IsActive = true,
                 CreatedAtUtc = new DateTime(2026, 6, 20, 0, 0, 0, DateTimeKind.Utc),
                 TrainingId = 2,
-                TrainerId = 1, // John Doe
+                TrainerId = 1,
                 HallId = 1
             },
             new TrainingTerm
@@ -286,7 +286,7 @@ public partial class FitBookDbContext
                 IsActive = true,
                 CreatedAtUtc = new DateTime(2026, 6, 20, 0, 0, 0, DateTimeKind.Utc),
                 TrainingId = 3,
-                TrainerId = 2, // Jane Smith
+                TrainerId = 2,
                 HallId = 2
             }
         );
@@ -404,7 +404,7 @@ public partial class FitBookDbContext
                 ChangedAtUtc = new DateTime(2026, 6, 21, 15, 10, 0, DateTimeKind.Utc),
                 Reason = "Auto-confirmed on successful payment and active membership check",
                 ReservationId = 1,
-                ChangedByUserAccountId = 1 // Admin
+                ChangedByUserAccountId = 1
             },
             new ReservationStatusAudit
             {
@@ -414,7 +414,7 @@ public partial class FitBookDbContext
                 ChangedAtUtc = new DateTime(2026, 6, 25, 11, 0, 0, DateTimeKind.Utc),
                 Reason = "Marked as completed after class finish",
                 ReservationId = 1,
-                ChangedByUserAccountId = 5 // Mike Jones (Trainer za termin 1)
+                ChangedByUserAccountId = 5
             }
         );
     }
@@ -443,7 +443,7 @@ public partial class FitBookDbContext
                 Id = 1,
                 Title = "Grand Opening of our Yoga Studio!",
                 Content = "We are thrilled to announce that our new premium Yoga & Pilates studio on the first floor is now open for bookings.",
-                ImageUrl = "uploads/news/yoga_opening.jpg", // POPRAVLJENA DOSLJEDNOST PUTANJE
+                ImageUrl = "uploads/news/yoga_opening.jpg",
                 PublishedAtUtc = new DateTime(2026, 6, 15, 9, 0, 0, DateTimeKind.Utc),
                 IsActive = true
             }
