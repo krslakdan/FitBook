@@ -1,5 +1,4 @@
 using FitBook.Model.Enums;
-using FitBook.Model.Responses;
 
 namespace FitBook.Model.Responses.Reservations;
 
