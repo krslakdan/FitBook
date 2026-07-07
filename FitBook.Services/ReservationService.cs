@@ -1,3 +1,4 @@
+using FitBook.Model.Constants;
 using FitBook.Model.Enums;
 using FitBook.Model.Exceptions;
 using FitBook.Model.Requests.Reservations;
@@ -7,7 +8,6 @@ using FitBook.Services.Database;
 using FitBook.Services.Database.Entities;
 using FitBook.Services.Interfaces;
 using FluentValidation;
-using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -20,7 +20,7 @@ public class ReservationService
 {
     private static readonly Dictionary<ReservationStatus, ReservationStatus[]> _allowedTransitions = new()
     {
-        [ReservationStatus.Pending]   = [ReservationStatus.Confirmed, ReservationStatus.Cancelled],
+        [ReservationStatus.Pending] = [ReservationStatus.Confirmed, ReservationStatus.Cancelled],
         [ReservationStatus.Confirmed] = [ReservationStatus.Cancelled, ReservationStatus.Completed],
         [ReservationStatus.Cancelled] = [],
         [ReservationStatus.Completed] = [],
@@ -54,7 +54,15 @@ public class ReservationService
         if (!_currentUserService.IsAdmin())
         {
             var currentUserId = _currentUserService.GetRequiredUserId();
-            query = query.Where(r => r.UserAccountId == currentUserId);
+            if (_currentUserService.IsInRole(Roles.Trainer))
+            {
+                query = query.Where(r => r.UserAccountId == currentUserId ||
+                                         (r.TrainingTerm != null && r.TrainingTerm.Trainer != null && r.TrainingTerm.Trainer.UserAccountId == currentUserId));
+            }
+            else
+            {
+                query = query.Where(r => r.UserAccountId == currentUserId);
+            }
         }
         else if (search.UserAccountId.HasValue)
         {
@@ -88,8 +96,28 @@ public class ReservationService
     {
         var currentUserId = _currentUserService.GetRequiredUserId();
 
+        var user = await _dbContext.UserAccounts.FirstOrDefaultAsync(u => u.Id == currentUserId, cancellationToken);
+        if (user == null || !user.IsActive || user.IsDeleted)
+        {
+            throw new BusinessException("Korisnički račun nije aktivan.");
+        }
+
+        var hasActiveMembership = await _dbContext.UserMemberships
+            .AnyAsync(
+             m => m.UserAccountId == currentUserId &&
+             m.IsActive &&
+             m.Status == MembershipStatus.Active &&
+             m.EndDateUtc >= DateTime.UtcNow,
+             cancellationToken);
+
+        if (!hasActiveMembership)
+        {
+            throw new BusinessException("Potrebna je aktivna članarina za rezervaciju treninga.");
+        }
+
         var term = await _dbContext.TrainingTerms
             .Include(t => t.Training)
+            .Include(t => t.Trainer)
             .FirstOrDefaultAsync(t => t.Id == request.TrainingTermId, cancellationToken);
 
         if (term is null)
@@ -107,6 +135,21 @@ public class ReservationService
             throw new BusinessException("Ovaj trening termin je otkazan.");
         }
 
+        if (term.Status == TrainingTermStatus.Completed)
+        {
+            throw new BusinessException("Ne možete rezervisati završeni trening.");
+        }
+
+        if (term.StartTimeUtc <= DateTime.UtcNow)
+        {
+            throw new BusinessException("Ne možete rezervisati trening koji je već počeo.");
+        }
+
+        if (term.Trainer != null && term.Trainer.UserAccountId == currentUserId)
+        {
+            throw new BusinessException("Trener ne može rezervisati vlastiti trening.");
+        }
+
         var activeCount = await _dbContext.Reservations
             .CountAsync(
                 r => r.TrainingTermId == request.TrainingTermId
@@ -117,7 +160,7 @@ public class ReservationService
         {
             throw new BusinessException("Nema slobodnih mjesta za ovaj trening termin.");
         }
-
+        await EnsureNoOverlappingReservationAsync(currentUserId, request.TrainingTermId, term.StartTimeUtc, term.EndTimeUtc, cancellationToken);
         await EnsureNoActiveReservationForTermAsync(currentUserId, request.TrainingTermId, cancellationToken);
     }
 
@@ -143,7 +186,20 @@ public class ReservationService
     {
         var reservation = await FindTrackedReservationAsync(id, cancellationToken);
 
+        var currentUserId = _currentUserService.GetRequiredUserId();
+        bool isTrainer = _currentUserService.IsInRole(Roles.Trainer) && reservation.TrainingTerm?.Trainer?.UserAccountId == currentUserId;
+
+        if (!_currentUserService.IsAdmin() && !isTrainer)
+        {
+            throw new BusinessException("Nemate pravo potvrditi ovu rezervaciju.");
+        }
+
         EnsureValidTransition(reservation.Status, ReservationStatus.Confirmed);
+
+        if (reservation.TrainingTerm is not null && reservation.TrainingTerm.EndTimeUtc < DateTime.UtcNow)
+        {
+            throw new BusinessException("Ne možete potvrditi rezervaciju za završeni trening termin.");
+        }
 
         var previousStatus = reservation.Status;
         reservation.Status = ReservationStatus.Confirmed;
@@ -152,6 +208,20 @@ public class ReservationService
         reservation.LastStatusChangedByUserAccountId = _currentUserService.GetRequiredUserId();
 
         AddStatusAudit(reservation, previousStatus, ReservationStatus.Confirmed, reason: null);
+
+        var termStartFormatted = reservation.TrainingTerm is not null
+            ? reservation.TrainingTerm.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC"
+            : $"termin #{reservation.TrainingTermId}";
+
+        _dbContext.SystemNotifications.Add(new SystemNotification
+        {
+            UserAccountId = reservation.UserAccountId,
+            NotificationType = NotificationType.ReservationConfirmed,
+            Title = "Vaša rezervacija je potvrđena",
+            Content = $"Vaša rezervacija za {termStartFormatted} je uspješno potvrđena.",
+            IsRead = false,
+            CreatedAtUtc = DateTime.UtcNow,
+        });
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -169,7 +239,11 @@ public class ReservationService
 
         var reservation = await FindTrackedReservationAsync(id, cancellationToken);
 
-        if (!_currentUserService.IsAdmin() && reservation.UserAccountId != _currentUserService.GetRequiredUserId())
+        var currentUserId = _currentUserService.GetRequiredUserId();
+        bool isOwner = reservation.UserAccountId == currentUserId;
+        bool isTrainer = _currentUserService.IsInRole(Roles.Trainer) && reservation.TrainingTerm?.Trainer?.UserAccountId == currentUserId;
+
+        if (!_currentUserService.IsAdmin() && !isOwner && !isTrainer)
         {
             throw new BusinessException("Nemate pravo otkazati ovu rezervaciju.");
         }
@@ -214,6 +288,14 @@ public class ReservationService
     {
         var reservation = await FindTrackedReservationAsync(id, cancellationToken);
 
+        var currentUserId = _currentUserService.GetRequiredUserId();
+        bool isTrainer = _currentUserService.IsInRole(Roles.Trainer) && reservation.TrainingTerm?.Trainer?.UserAccountId == currentUserId;
+
+        if (!_currentUserService.IsAdmin() && !isTrainer)
+        {
+            throw new BusinessException("Nemate pravo završiti ovu rezervaciju.");
+        }
+
         EnsureValidTransition(reservation.Status, ReservationStatus.Completed);
 
         if (reservation.TrainingTerm is not null && reservation.TrainingTerm.EndTimeUtc > DateTime.UtcNow)
@@ -229,6 +311,20 @@ public class ReservationService
 
         AddStatusAudit(reservation, previousStatus, ReservationStatus.Completed, reason: null);
 
+        var termStartFormatted = reservation.TrainingTerm is not null
+            ? reservation.TrainingTerm.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC"
+            : $"termin #{reservation.TrainingTermId}";
+
+        _dbContext.SystemNotifications.Add(new SystemNotification
+        {
+            UserAccountId = reservation.UserAccountId,
+            NotificationType = NotificationType.ReservationCompleted,
+            Title = "Trening je završen",
+            Content = $"Vaš trening za {termStartFormatted} je uspješno završen. Hvala na dolasku!",
+            IsRead = false,
+            CreatedAtUtc = DateTime.UtcNow,
+        });
+
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
@@ -237,6 +333,24 @@ public class ReservationService
             _currentUserService.GetRequiredUserId());
 
         return await GetByIdAsync(id, cancellationToken);
+    }
+
+    public async Task EnsureNoOverlappingReservationAsync(int userAccountId, int trainingTermId, DateTime newTermStartUtc, DateTime newTermEndUtc, CancellationToken cancellationToken = default)
+    {
+        var hasOverlap = await _dbContext.Reservations
+        .Where(r => r.UserAccountId == userAccountId
+                    && r.TrainingTermId != trainingTermId
+                    && _activeStatuses.Contains(r.Status))
+        .AnyAsync(
+            r => r.TrainingTerm != null
+                 && r.TrainingTerm.StartTimeUtc < newTermEndUtc
+                 && newTermStartUtc < r.TrainingTerm.EndTimeUtc,
+            cancellationToken);
+
+        if (hasOverlap)
+        {
+            throw new BusinessException("Već imate rezervaciju za drugi trening termin koji se vremenski preklapa sa ovim.");
+        }
     }
 
     public async Task EnsureNoActiveReservationForTermAsync(
@@ -270,6 +384,7 @@ public class ReservationService
     {
         var reservation = await _dbContext.Reservations
             .Include(r => r.TrainingTerm)
+                .ThenInclude(t => t!.Trainer)
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
 
         if (reservation is null)
@@ -278,6 +393,24 @@ public class ReservationService
         }
 
         return reservation;
+    }
+
+    protected override async Task AfterInsert(Reservation entity, CancellationToken cancellationToken)
+    {
+        var term = await _dbContext.TrainingTerms.FindAsync(new object[] { entity.TrainingTermId }, cancellationToken);
+        var termStartFormatted = term is not null ? term.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC" : $"termin #{entity.TrainingTermId}";
+
+        _dbContext.SystemNotifications.Add(new SystemNotification
+        {
+            UserAccountId = entity.UserAccountId,
+            NotificationType = NotificationType.ReservationCreated,
+            Title = "Rezervacija je kreirana",
+            Content = $"Vaša rezervacija za {termStartFormatted} je uspješno kreirana i čeka potvrdu.",
+            IsRead = false,
+            CreatedAtUtc = DateTime.UtcNow,
+        });
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
     private void AddStatusAudit(
