@@ -33,6 +33,7 @@ public class UserAccountsController
     }
 
     [HttpGet("{id:int}")]
+    [Authorize(Roles = Roles.Admin + "," + Roles.Trainer + "," + Roles.User)]
     public override async Task<ActionResult<UserAccountResponse>> GetById(int id, CancellationToken cancellationToken = default)
     {
         var currentUserId = _currentUserService.GetRequiredUserId();
@@ -51,13 +52,23 @@ public class UserAccountsController
     }
 
     [HttpPut("{id:int}")]
+    [Authorize(Roles = Roles.Admin + "," + Roles.Trainer + "," + Roles.User)]
     public override async Task<ActionResult<UserAccountResponse>> Update(int id, [FromBody] UserAccountUpdateRequest request, CancellationToken cancellationToken = default)
     {
         var currentUserId = _currentUserService.GetRequiredUserId();
-        if (!_currentUserService.IsAdmin() && currentUserId != id)
+        var isAdmin = _currentUserService.IsAdmin();
+        
+        if (!isAdmin && currentUserId != id)
         {
             return Forbid();
         }
+
+        if (!isAdmin)
+        {
+            request.Role = null;
+            request.IsActive = null;
+        }
+
         return await base.Update(id, request, cancellationToken);
     }
 
@@ -80,7 +91,7 @@ public class UserAccountsController
     }
 
     [HttpPut("me/password")]
-    [Authorize]
+    [Authorize(Roles = Roles.Admin + "," + Roles.Trainer + "," + Roles.User)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
