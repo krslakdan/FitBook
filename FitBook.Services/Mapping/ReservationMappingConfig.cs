@@ -38,7 +38,7 @@ public class ReservationMappingConfig : IRegister
                 source => source.UserAccount != null 
                 ? source.UserAccount.Email : string.Empty);
 
-
+#pragma warning disable CS8603
         config.NewConfig<ReservationInsertRequest, Reservation>()
             .Ignore(destination => destination.Id)
             .Ignore(destination => destination.Status)
@@ -56,6 +56,6 @@ public class ReservationMappingConfig : IRegister
             .Ignore(destination => destination.RecommendationSignals)
             .Ignore(destination => destination.CreatedAtUtc)
             .Ignore(destination => destination.UpdatedAtUtc);
-
+#pragma warning restore CS8603
     }
 }
