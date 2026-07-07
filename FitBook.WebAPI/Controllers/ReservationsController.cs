@@ -50,6 +50,7 @@ public class ReservationsController
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public override Task<ActionResult<ReservationResponse>> Insert(
         [FromBody] ReservationInsertRequest request,
         CancellationToken cancellationToken = default)
