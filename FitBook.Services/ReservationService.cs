@@ -51,6 +51,11 @@ public class ReservationService
 
     protected override IQueryable<Reservation> ApplyFilter(IQueryable<Reservation> query, ReservationSearchObject search)
     {
+        if (!_currentUserService.IsAuthenticated())
+        {
+            throw new ForbiddenException("Nemate pravo pristupa ovom resursu. Prijavite se.");
+        }
+
         if (!_currentUserService.IsAdmin())
         {
             var currentUserId = _currentUserService.GetRequiredUserId();
@@ -170,6 +175,46 @@ public class ReservationService
         entity.Status = ReservationStatus.Pending;
         entity.ReservedAtUtc = DateTime.UtcNow;
         return Task.CompletedTask;
+    }
+
+    public override async Task<ReservationResponse> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+    {
+        if (!_currentUserService.IsAuthenticated())
+        {
+            throw new ForbiddenException("Nemate pravo pristupa ovom resursu. Prijavite se.");
+        }
+
+        if (!_currentUserService.IsAdmin())
+        {
+            var currentUserId = _currentUserService.GetRequiredUserId();
+
+            var exists = await _dbContext.Reservations.AnyAsync(r => r.Id == id, cancellationToken);
+            if (exists)
+            {
+                bool hasAccess;
+                if (_currentUserService.IsInRole(Roles.Trainer))
+                {
+                    hasAccess = await _dbContext.Reservations
+                        .AnyAsync(r => r.Id == id &&
+                                       (r.UserAccountId == currentUserId ||
+                                        (r.TrainingTerm != null && r.TrainingTerm.Trainer != null &&
+                                         r.TrainingTerm.Trainer.UserAccountId == currentUserId)),
+                                  cancellationToken);
+                }
+                else
+                {
+                    hasAccess = await _dbContext.Reservations
+                        .AnyAsync(r => r.Id == id && r.UserAccountId == currentUserId, cancellationToken);
+                }
+
+                if (!hasAccess)
+                {
+                    throw new ForbiddenException("Nemate pravo pristupa ovoj rezervaciji.");
+                }
+            }
+        }
+
+        return await base.GetByIdAsync(id, cancellationToken);
     }
 
     public override Task<ReservationResponse> UpdateAsync(int id, ReservationUpdateRequest request, CancellationToken cancellationToken = default)
