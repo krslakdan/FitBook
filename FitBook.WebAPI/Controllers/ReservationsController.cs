@@ -23,7 +23,7 @@ public class ReservationsController
     }
 
     [HttpGet]
-    [Authorize]
+    [Authorize(Roles = Roles.Admin + "," + Roles.Trainer + "," + Roles.User)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -35,7 +35,7 @@ public class ReservationsController
     }
 
     [HttpGet("{id:int}")]
-    [Authorize]
+    [Authorize(Roles = Roles.Admin + "," + Roles.Trainer + "," + Roles.User)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -46,7 +46,7 @@ public class ReservationsController
     }
 
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = Roles.Admin + "," + Roles.Trainer + "," + Roles.User)]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -72,7 +72,7 @@ public class ReservationsController
     }
 
     [HttpPost("{id:int}/cancel")]
-    [Authorize]
+    [Authorize(Roles = Roles.Admin + "," + Roles.Trainer + "," + Roles.User)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
