@@ -2,6 +2,7 @@ using FitBook.Services.Mapping;
 using FitBook.Services.Validators;
 using FluentValidation;
 using FitBook.Model.Requests.UserAccounts;
+using FitBook.Model.Requests.Reservations;
 using Mapster;
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +22,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton(mapsterConfig);
         services.AddScoped<IMapper, ServiceMapper>();
 
+        // Domain services
         services.AddScoped<IReservationService, ReservationService>();
         services.AddScoped<IUserAccountService, UserAccountService>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
@@ -28,10 +30,16 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 
+        // UserAccount validators
         services.AddScoped<IValidator<UserAccountInsertRequest>, UserAccountInsertRequestValidator>();
         services.AddScoped<IValidator<UserAccountUpdateRequest>, UserAccountUpdateRequestValidator>();
         services.AddScoped<IValidator<UserAccountChangeOwnPasswordRequest>, UserAccountChangeOwnPasswordRequestValidator>();
         services.AddScoped<IValidator<UserAccountAdminPasswordResetRequest>, UserAccountAdminPasswordResetRequestValidator>();
+
+        // Reservation validators
+        services.AddScoped<IValidator<ReservationInsertRequest>, ReservationInsertRequestValidator>();
+        services.AddScoped<IValidator<ReservationUpdateRequest>, NullReservationUpdateRequestValidator>();
+        services.AddScoped<IValidator<ReservationCancelRequest>, ReservationCancelRequestValidator>();
 
         return services;
     }
