@@ -17,12 +17,9 @@ public class ReservationsController
         ReservationUpdateRequest,
         IReservationService>
 {
-    private readonly ICurrentUserService _currentUserService;
-
-    public ReservationsController(IReservationService service, ICurrentUserService currentUserService)
+    public ReservationsController(IReservationService service)
         : base(service)
     {
-        _currentUserService = currentUserService;
     }
 
     [HttpGet]
@@ -58,31 +55,8 @@ public class ReservationsController
         return base.Insert(request, cancellationToken);
     }
 
-    [HttpPut("{id:int}")]
-    [Authorize]
-    [ProducesResponseType(StatusCodes.Status405MethodNotAllowed)]
-    public override Task<ActionResult<ReservationResponse>> Update(
-        int id,
-        [FromBody] ReservationUpdateRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult<ActionResult<ReservationResponse>>(
-            StatusCode(StatusCodes.Status405MethodNotAllowed,
-                "Generički update rezervacije nije dozvoljen. Koristite /confirm, /cancel ili /complete."));
-    }
-
-    [HttpDelete("{id:int}")]
-    [Authorize]
-    [ProducesResponseType(StatusCodes.Status405MethodNotAllowed)]
-    public override Task<IActionResult> Delete(int id, CancellationToken cancellationToken = default)
-    {
-        return Task.FromResult<IActionResult>(
-            StatusCode(StatusCodes.Status405MethodNotAllowed,
-                "Rezervacije se ne brišu. Status se mijenja kroz namjenske endpointe."));
-    }
-
     [HttpPost("{id:int}/confirm")]
-    [Authorize(Roles = Roles.Admin)]
+    [Authorize(Roles = Roles.Admin + "," + Roles.Trainer)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -103,7 +77,7 @@ public class ReservationsController
     }
 
     [HttpPost("{id:int}/complete")]
-    [Authorize(Roles = Roles.Admin)]
+    [Authorize(Roles = Roles.Admin + "," + Roles.Trainer)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
