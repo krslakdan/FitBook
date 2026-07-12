@@ -47,13 +47,6 @@ public sealed class ExceptionFilter : ExceptionFilterAttribute
                 _logger.LogWarning("Business rule failed: {Message}", businessException.Message);
                 break;
 
-            case ForbiddenException forbiddenException:
-                statusCode = HttpStatusCode.Forbidden;
-                message = forbiddenException.Message;
-                errors["forbidden"] = [forbiddenException.Message];
-                _logger.LogWarning("Forbidden access: {Message}", forbiddenException.Message);
-                break;
-
             case NotFoundException notFoundException:
                 statusCode = HttpStatusCode.NotFound;
                 message = notFoundException.Message;

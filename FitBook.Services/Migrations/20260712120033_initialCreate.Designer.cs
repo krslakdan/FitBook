@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FitBook.Services.Migrations
 {
     [DbContext(typeof(FitBookDbContext))]
-    [Migration("20260704145413_AddNewUniqueColumnsReservationUserMembership")]
-    partial class AddNewUniqueColumnsReservationUserMembership
+    [Migration("20260712120033_initialCreate")]
+    partial class initialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -441,7 +441,8 @@ namespace FitBook.Services.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ReplacedByToken")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateTime?>("RevokedAtUtc")
                         .HasColumnType("datetime2");
@@ -1222,21 +1223,6 @@ namespace FitBook.Services.Migrations
                             ProfileImageUrl = "uploads/trainers/trainer3.jpg",
                             Role = "Trainer",
                             Username = "mikejones"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Email = "guest@fitbook.com",
-                            FirstName = "Guest",
-                            IsActive = true,
-                            IsDeleted = false,
-                            LastName = "User",
-                            PasswordHash = "$2a$11$absRakK74SEnr3k6jdjqHeTmEa7SE2m2/0J09n4aSg/kLY1jGVW46",
-                            PhoneNumber = "+38761777888",
-                            ProfileImageUrl = "uploads/users/guest.jpg",
-                            Role = "Guest",
-                            Username = "guest_user"
                         });
                 });
 
