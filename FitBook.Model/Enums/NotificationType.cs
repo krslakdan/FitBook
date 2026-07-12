@@ -8,5 +8,7 @@ public enum NotificationType
     ReservationCompleted = 4,
     MembershipPaid = 5,
     MembershipExpiringSoon = 6,
-    NewsPublished = 7
+    NewsPublished = 7,
+    MembershipCancelled = 8,
+    MembershipExpired = 9
 }
