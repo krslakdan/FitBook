@@ -33,7 +33,7 @@ public class UserAccountsController
     }
 
     [HttpGet("{id:int}")]
-    [Authorize(Roles = Roles.Admin + "," + Roles.Trainer + "," + Roles.User)]
+    [Authorize]
     public override async Task<ActionResult<UserAccountResponse>> GetById(int id, CancellationToken cancellationToken = default)
     {
         var currentUserId = _currentUserService.GetRequiredUserId();
@@ -52,7 +52,7 @@ public class UserAccountsController
     }
 
     [HttpPut("{id:int}")]
-    [Authorize(Roles = Roles.Admin + "," + Roles.Trainer + "," + Roles.User)]
+    [Authorize]
     public override async Task<ActionResult<UserAccountResponse>> Update(int id, [FromBody] UserAccountUpdateRequest request, CancellationToken cancellationToken = default)
     {
         var currentUserId = _currentUserService.GetRequiredUserId();
@@ -91,7 +91,7 @@ public class UserAccountsController
     }
 
     [HttpPut("me/password")]
-    [Authorize(Roles = Roles.Admin + "," + Roles.Trainer + "," + Roles.User)]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

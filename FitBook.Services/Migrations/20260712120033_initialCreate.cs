@@ -21,7 +21,9 @@ namespace FitBook.Services.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     SortOrder = table.Column<int>(type: "int", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false)
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -37,7 +39,9 @@ namespace FitBook.Services.Migrations
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Capacity = table.Column<int>(type: "int", nullable: false),
                     LocationDescription = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: true),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false)
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -57,7 +61,8 @@ namespace FitBook.Services.Migrations
                     IncludedBenefits = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -74,7 +79,9 @@ namespace FitBook.Services.Migrations
                     Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ImageUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     PublishedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false)
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -89,7 +96,9 @@ namespace FitBook.Services.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(120)", maxLength: 120, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false)
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -111,9 +120,9 @@ namespace FitBook.Services.Migrations
                     Role = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     ProfileImageUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -131,10 +140,10 @@ namespace FitBook.Services.Migrations
                     DurationMinutes = table.Column<int>(type: "int", nullable: false),
                     MaxParticipants = table.Column<int>(type: "int", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
                     TrainingCategoryId = table.Column<int>(type: "int", nullable: false),
-                    DifficultyLevelId = table.Column<int>(type: "int", nullable: false)
+                    DifficultyLevelId = table.Column<int>(type: "int", nullable: false),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -154,6 +163,31 @@ namespace FitBook.Services.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "RefreshTokens",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Token = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    ExpiresAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    RevokedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ReplacedByToken = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RefreshTokens", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_RefreshTokens_UserAccounts_UserId",
+                        column: x => x.UserId,
+                        principalTable: "UserAccounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "SystemNotifications",
                 columns: table => new
                 {
@@ -162,10 +196,11 @@ namespace FitBook.Services.Migrations
                     Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Content = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
                     IsRead = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ReadAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
                     NotificationType = table.Column<int>(type: "int", nullable: false),
-                    UserAccountId = table.Column<int>(type: "int", nullable: false)
+                    UserAccountId = table.Column<int>(type: "int", nullable: false),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -191,9 +226,9 @@ namespace FitBook.Services.Migrations
                     ImageUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     IsAvailable = table.Column<bool>(type: "bit", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    UserAccountId = table.Column<int>(type: "int", nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    UserAccountId = table.Column<int>(type: "int", nullable: false)
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -217,10 +252,11 @@ namespace FitBook.Services.Migrations
                     NextPaymentDateUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Status = table.Column<int>(type: "int", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    UserAccountId = table.Column<int>(type: "int", nullable: false),
+                    MembershipPackageId = table.Column<int>(type: "int", nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    UserAccountId = table.Column<int>(type: "int", nullable: false),
-                    MembershipPackageId = table.Column<int>(type: "int", nullable: false)
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -248,7 +284,9 @@ namespace FitBook.Services.Migrations
                     Name = table.Column<string>(type: "nvarchar(120)", maxLength: 120, nullable: false),
                     IsRequired = table.Column<bool>(type: "bit", nullable: false),
                     Note = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: true),
-                    TrainingId = table.Column<int>(type: "int", nullable: false)
+                    TrainingId = table.Column<int>(type: "int", nullable: false),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -272,11 +310,11 @@ namespace FitBook.Services.Migrations
                     MaxParticipants = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
                     TrainingId = table.Column<int>(type: "int", nullable: false),
                     TrainerId = table.Column<int>(type: "int", nullable: false),
-                    HallId = table.Column<int>(type: "int", nullable: false)
+                    HallId = table.Column<int>(type: "int", nullable: false),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -313,12 +351,13 @@ namespace FitBook.Services.Migrations
                     PaymentIntentId = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     TransactionReference = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
                     Status = table.Column<int>(type: "int", nullable: false),
-                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
                     PaidAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
                     RefundedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
                     RefundAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     UserMembershipId = table.Column<int>(type: "int", nullable: false),
-                    UserAccountId = table.Column<int>(type: "int", nullable: false)
+                    UserAccountId = table.Column<int>(type: "int", nullable: false),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -351,7 +390,9 @@ namespace FitBook.Services.Migrations
                     CancellationReason = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     UserAccountId = table.Column<int>(type: "int", nullable: false),
                     TrainingTermId = table.Column<int>(type: "int", nullable: false),
-                    LastStatusChangedByUserAccountId = table.Column<int>(type: "int", nullable: true)
+                    LastStatusChangedByUserAccountId = table.Column<int>(type: "int", nullable: true),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -384,11 +425,12 @@ namespace FitBook.Services.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     SignalType = table.Column<int>(type: "int", nullable: false),
                     Weight = table.Column<decimal>(type: "decimal(9,4)", nullable: false),
-                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UserAccountId = table.Column<int>(type: "int", nullable: false),
                     TrainingId = table.Column<int>(type: "int", nullable: false),
                     TrainingCategoryId = table.Column<int>(type: "int", nullable: false),
-                    ReservationId = table.Column<int>(type: "int", nullable: true)
+                    ReservationId = table.Column<int>(type: "int", nullable: true),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -430,7 +472,9 @@ namespace FitBook.Services.Migrations
                     ChangedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Reason = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     ReservationId = table.Column<int>(type: "int", nullable: false),
-                    ChangedByUserAccountId = table.Column<int>(type: "int", nullable: false)
+                    ChangedByUserAccountId = table.Column<int>(type: "int", nullable: false),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -451,46 +495,46 @@ namespace FitBook.Services.Migrations
 
             migrationBuilder.InsertData(
                 table: "DifficultyLevels",
-                columns: new[] { "Id", "IsActive", "Name", "SortOrder" },
+                columns: new[] { "Id", "CreatedAtUtc", "IsActive", "Name", "SortOrder", "UpdatedAtUtc" },
                 values: new object[,]
                 {
-                    { 1, true, "Beginner", 1 },
-                    { 2, true, "Intermediate", 2 },
-                    { 3, true, "Advanced", 3 }
+                    { 1, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "Beginner", 1, null },
+                    { 2, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "Intermediate", 2, null },
+                    { 3, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "Advanced", 3, null }
                 });
 
             migrationBuilder.InsertData(
                 table: "Halls",
-                columns: new[] { "Id", "Capacity", "IsActive", "LocationDescription", "Name" },
+                columns: new[] { "Id", "Capacity", "CreatedAtUtc", "IsActive", "LocationDescription", "Name", "UpdatedAtUtc" },
                 values: new object[,]
                 {
-                    { 1, 30, true, "Ground Floor, Zone A", "Main Gym Hall" },
-                    { 2, 15, true, "First Floor, Zone B", "Yoga & Pilates Studio" },
-                    { 3, 20, true, "First Floor, Zone C", "Spinning Room" }
+                    { 1, 30, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "Ground Floor, Zone A", "Main Gym Hall", null },
+                    { 2, 15, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "First Floor, Zone B", "Yoga & Pilates Studio", null },
+                    { 3, 20, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "First Floor, Zone C", "Spinning Room", null }
                 });
 
             migrationBuilder.InsertData(
                 table: "MembershipPackages",
-                columns: new[] { "Id", "CreatedAtUtc", "DurationDays", "IncludedBenefits", "IsActive", "Name", "Price", "SavingsAmount", "UpdatedAtUtc" },
+                columns: new[] { "Id", "CreatedAtUtc", "DurationDays", "IncludedBenefits", "IsActive", "IsDeleted", "Name", "Price", "SavingsAmount", "UpdatedAtUtc" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 30, "Access to main hall, 3 group trainings per week.", true, "1 Month Basic", 50.00m, 0.00m, null },
-                    { 2, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 90, "Unlimited group trainings, sauna access, 1 free personal session.", true, "3 Month Premium", 120.00m, 30.00m, null }
+                    { 1, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 30, "Access to main hall, 3 group trainings per week.", true, false, "1 Month Basic", 50.00m, 0.00m, null },
+                    { 2, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), 90, "Unlimited group trainings, sauna access, 1 free personal session.", true, false, "3 Month Premium", 120.00m, 30.00m, null }
                 });
 
             migrationBuilder.InsertData(
                 table: "NewsItems",
-                columns: new[] { "Id", "Content", "ImageUrl", "IsActive", "PublishedAtUtc", "Title" },
-                values: new object[] { 1, "We are thrilled to announce that our new premium Yoga & Pilates studio on the first floor is now open for bookings.", "uploads/news/yoga_opening.jpg", true, new DateTime(2026, 6, 15, 9, 0, 0, 0, DateTimeKind.Utc), "Grand Opening of our Yoga Studio!" });
+                columns: new[] { "Id", "Content", "CreatedAtUtc", "ImageUrl", "IsActive", "PublishedAtUtc", "Title", "UpdatedAtUtc" },
+                values: new object[] { 1, "We are thrilled to announce that our new premium Yoga & Pilates studio on the first floor is now open for bookings.", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "uploads/news/yoga_opening.jpg", true, new DateTime(2026, 6, 15, 9, 0, 0, 0, DateTimeKind.Utc), "Grand Opening of our Yoga Studio!", null });
 
             migrationBuilder.InsertData(
                 table: "TrainingCategories",
-                columns: new[] { "Id", "Description", "IsActive", "Name" },
+                columns: new[] { "Id", "CreatedAtUtc", "Description", "IsActive", "Name", "UpdatedAtUtc" },
                 values: new object[,]
                 {
-                    { 1, "Workouts designed to improve heart health and stamina.", true, "Cardio" },
-                    { 2, "Resistance training designed to build muscle mass.", true, "Strength" },
-                    { 3, "Yoga, stretching, and mindfulness practices.", true, "Mind & Body" }
+                    { 1, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Workouts designed to improve heart health and stamina.", true, "Cardio", null },
+                    { 2, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Resistance training designed to build muscle mass.", true, "Strength", null },
+                    { 3, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Yoga, stretching, and mindfulness practices.", true, "Mind & Body", null }
                 });
 
             migrationBuilder.InsertData(
@@ -502,14 +546,13 @@ namespace FitBook.Services.Migrations
                     { 2, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "user@fitbook.com", "John", true, false, "Client", "$2a$11$absRakK74SEnr3k6jdjqHeTmEa7SE2m2/0J09n4aSg/kLY1jGVW46", "+38761333444", "uploads/users/john.jpg", "User", null, "mobile" },
                     { 3, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "johndoe@fitbook.com", "John", true, false, "Doe", "$2a$11$absRakK74SEnr3k6jdjqHeTmEa7SE2m2/0J09n4aSg/kLY1jGVW46", "+38761555001", "uploads/trainers/trainer1.jpg", "Trainer", null, "johndoe" },
                     { 4, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "janesmith@fitbook.com", "Jane", true, false, "Smith", "$2a$11$absRakK74SEnr3k6jdjqHeTmEa7SE2m2/0J09n4aSg/kLY1jGVW46", "+38761555002", "uploads/trainers/trainer2.jpg", "Trainer", null, "janesmith" },
-                    { 5, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "mikejones@fitbook.com", "Mike", true, false, "Jones", "$2a$11$absRakK74SEnr3k6jdjqHeTmEa7SE2m2/0J09n4aSg/kLY1jGVW46", "+38761555003", "uploads/trainers/trainer3.jpg", "Trainer", null, "mikejones" },
-                    { 6, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "guest@fitbook.com", "Guest", true, false, "User", "$2a$11$absRakK74SEnr3k6jdjqHeTmEa7SE2m2/0J09n4aSg/kLY1jGVW46", "+38761777888", "uploads/users/guest.jpg", "Guest", null, "guest_user" }
+                    { 5, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "mikejones@fitbook.com", "Mike", true, false, "Jones", "$2a$11$absRakK74SEnr3k6jdjqHeTmEa7SE2m2/0J09n4aSg/kLY1jGVW46", "+38761555003", "uploads/trainers/trainer3.jpg", "Trainer", null, "mikejones" }
                 });
 
             migrationBuilder.InsertData(
                 table: "SystemNotifications",
-                columns: new[] { "Id", "Content", "CreatedAtUtc", "IsRead", "NotificationType", "ReadAtUtc", "Title", "UserAccountId" },
-                values: new object[] { 1, "Your reservation for Vinyasa Yoga has been successfully confirmed.", new DateTime(2026, 6, 23, 10, 15, 0, 0, DateTimeKind.Utc), false, 2, null, "Reservation Confirmed", 2 });
+                columns: new[] { "Id", "Content", "CreatedAtUtc", "IsRead", "NotificationType", "ReadAtUtc", "Title", "UpdatedAtUtc", "UserAccountId" },
+                values: new object[] { 1, "Your reservation for Vinyasa Yoga has been successfully confirmed.", new DateTime(2026, 6, 23, 10, 15, 0, 0, DateTimeKind.Utc), false, 2, null, "Reservation Confirmed", null, 2 });
 
             migrationBuilder.InsertData(
                 table: "Trainers",
@@ -533,22 +576,22 @@ namespace FitBook.Services.Migrations
 
             migrationBuilder.InsertData(
                 table: "UserMemberships",
-                columns: new[] { "Id", "CreatedAtUtc", "EndDateUtc", "IsActive", "MembershipPackageId", "NextPaymentDateUtc", "StartDateUtc", "Status", "UpdatedAtUtc", "UserAccountId" },
-                values: new object[] { 1, new DateTime(2026, 5, 30, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc), 2, null, 2 });
+                columns: new[] { "Id", "CreatedAtUtc", "EndDateUtc", "IsActive", "IsDeleted", "MembershipPackageId", "NextPaymentDateUtc", "StartDateUtc", "Status", "UpdatedAtUtc", "UserAccountId" },
+                values: new object[] { 1, new DateTime(2026, 5, 30, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc), true, false, 1, new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc), 2, null, 2 });
 
             migrationBuilder.InsertData(
                 table: "MembershipPayments",
-                columns: new[] { "Id", "Amount", "CreatedAtUtc", "Currency", "PaidAtUtc", "PaymentIntentId", "PaymentProvider", "RefundAmount", "RefundedAtUtc", "Status", "TransactionReference", "UserAccountId", "UserMembershipId" },
-                values: new object[] { 1, 50.00m, new DateTime(2026, 5, 30, 10, 0, 0, 0, DateTimeKind.Utc), "BAM", new DateTime(2026, 5, 30, 10, 5, 0, 0, DateTimeKind.Utc), "pi_1234567890", "Stripe", null, null, 2, "tx_998877", 2, 1 });
+                columns: new[] { "Id", "Amount", "CreatedAtUtc", "Currency", "PaidAtUtc", "PaymentIntentId", "PaymentProvider", "RefundAmount", "RefundedAtUtc", "Status", "TransactionReference", "UpdatedAtUtc", "UserAccountId", "UserMembershipId" },
+                values: new object[] { 1, 50.00m, new DateTime(2026, 5, 30, 10, 0, 0, 0, DateTimeKind.Utc), "BAM", new DateTime(2026, 5, 30, 10, 5, 0, 0, DateTimeKind.Utc), "pi_1234567890", "Stripe", null, null, 2, "tx_998877", null, 2, 1 });
 
             migrationBuilder.InsertData(
                 table: "TrainingEquipment",
-                columns: new[] { "Id", "IsRequired", "Name", "Note", "TrainingId" },
+                columns: new[] { "Id", "CreatedAtUtc", "IsRequired", "Name", "Note", "TrainingId", "UpdatedAtUtc" },
                 values: new object[,]
                 {
-                    { 1, true, "Kettlebell", "Recommended 8kg-16kg", 1 },
-                    { 2, true, "Barbell Set", "Belts provided in hall", 2 },
-                    { 3, false, "Yoga Mat", "Mats are available in studio, or bring your own", 3 }
+                    { 1, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "Kettlebell", "Recommended 8kg-16kg", 1, null },
+                    { 2, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), true, "Barbell Set", "Belts provided in hall", 2, null },
+                    { 3, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "Yoga Mat", "Mats are available in studio, or bring your own", 3, null }
                 });
 
             migrationBuilder.InsertData(
@@ -563,30 +606,30 @@ namespace FitBook.Services.Migrations
 
             migrationBuilder.InsertData(
                 table: "Reservations",
-                columns: new[] { "Id", "CancellationReason", "CancelledAtUtc", "CompletedAtUtc", "ConfirmedAtUtc", "LastStatusChangedByUserAccountId", "ReservedAtUtc", "Status", "TrainingTermId", "UserAccountId" },
+                columns: new[] { "Id", "CancellationReason", "CancelledAtUtc", "CompletedAtUtc", "ConfirmedAtUtc", "CreatedAtUtc", "LastStatusChangedByUserAccountId", "ReservedAtUtc", "Status", "TrainingTermId", "UpdatedAtUtc", "UserAccountId" },
                 values: new object[,]
                 {
-                    { 1, null, null, new DateTime(2026, 6, 25, 11, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 6, 21, 15, 10, 0, 0, DateTimeKind.Utc), null, new DateTime(2026, 6, 21, 15, 0, 0, 0, DateTimeKind.Utc), 4, 1, 2 },
-                    { 2, null, null, new DateTime(2026, 6, 26, 13, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 6, 22, 16, 5, 0, 0, DateTimeKind.Utc), null, new DateTime(2026, 6, 22, 16, 0, 0, 0, DateTimeKind.Utc), 4, 2, 2 },
-                    { 3, null, null, null, new DateTime(2026, 6, 23, 10, 15, 0, 0, DateTimeKind.Utc), null, new DateTime(2026, 6, 23, 10, 0, 0, 0, DateTimeKind.Utc), 2, 3, 2 }
+                    { 1, null, null, new DateTime(2026, 6, 25, 11, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 6, 21, 15, 10, 0, 0, DateTimeKind.Utc), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2026, 6, 21, 15, 0, 0, 0, DateTimeKind.Utc), 4, 1, null, 2 },
+                    { 2, null, null, new DateTime(2026, 6, 26, 13, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 6, 22, 16, 5, 0, 0, DateTimeKind.Utc), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2026, 6, 22, 16, 0, 0, 0, DateTimeKind.Utc), 4, 2, null, 2 },
+                    { 3, null, null, null, new DateTime(2026, 6, 23, 10, 15, 0, 0, DateTimeKind.Utc), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null, new DateTime(2026, 6, 23, 10, 0, 0, 0, DateTimeKind.Utc), 2, 3, null, 2 }
                 });
 
             migrationBuilder.InsertData(
                 table: "RecommendationSignals",
-                columns: new[] { "Id", "CreatedAtUtc", "ReservationId", "SignalType", "TrainingCategoryId", "TrainingId", "UserAccountId", "Weight" },
+                columns: new[] { "Id", "CreatedAtUtc", "ReservationId", "SignalType", "TrainingCategoryId", "TrainingId", "UpdatedAtUtc", "UserAccountId", "Weight" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2026, 6, 25, 11, 0, 0, 0, DateTimeKind.Utc), 1, 4, 1, 1, 2, 1.0m },
-                    { 2, new DateTime(2026, 6, 26, 13, 0, 0, 0, DateTimeKind.Utc), 2, 4, 2, 2, 2, 1.0m }
+                    { 1, new DateTime(2026, 6, 25, 11, 0, 0, 0, DateTimeKind.Utc), 1, 4, 1, 1, null, 2, 1.0m },
+                    { 2, new DateTime(2026, 6, 26, 13, 0, 0, 0, DateTimeKind.Utc), 2, 4, 2, 2, null, 2, 1.0m }
                 });
 
             migrationBuilder.InsertData(
                 table: "ReservationStatusAudits",
-                columns: new[] { "Id", "ChangedAtUtc", "ChangedByUserAccountId", "NewStatus", "PreviousStatus", "Reason", "ReservationId" },
+                columns: new[] { "Id", "ChangedAtUtc", "ChangedByUserAccountId", "CreatedAtUtc", "NewStatus", "PreviousStatus", "Reason", "ReservationId", "UpdatedAtUtc" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2026, 6, 21, 15, 10, 0, 0, DateTimeKind.Utc), 1, 2, 1, "Auto-confirmed on successful payment and active membership check", 1 },
-                    { 2, new DateTime(2026, 6, 25, 11, 0, 0, 0, DateTimeKind.Utc), 5, 4, 2, "Marked as completed after class finish", 1 }
+                    { 1, new DateTime(2026, 6, 21, 15, 10, 0, 0, DateTimeKind.Utc), 1, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), 2, 1, "Auto-confirmed on successful payment and active membership check", 1, null },
+                    { 2, new DateTime(2026, 6, 25, 11, 0, 0, 0, DateTimeKind.Utc), 5, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), 4, 2, "Marked as completed after class finish", 1, null }
                 });
 
             migrationBuilder.CreateIndex(
@@ -605,7 +648,8 @@ namespace FitBook.Services.Migrations
                 name: "IX_MembershipPackages_Name",
                 table: "MembershipPackages",
                 column: "Name",
-                unique: true);
+                unique: true,
+                filter: "[IsDeleted] = 0");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MembershipPayments_PaymentIntentId",
@@ -649,6 +693,17 @@ namespace FitBook.Services.Migrations
                 columns: new[] { "UserAccountId", "SignalType" });
 
             migrationBuilder.CreateIndex(
+                name: "IX_RefreshTokens_Token",
+                table: "RefreshTokens",
+                column: "Token",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RefreshTokens_UserId",
+                table: "RefreshTokens",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Reservations_LastStatusChangedByUserAccountId",
                 table: "Reservations",
                 column: "LastStatusChangedByUserAccountId");
@@ -661,7 +716,9 @@ namespace FitBook.Services.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Reservations_UserAccountId_TrainingTermId",
                 table: "Reservations",
-                columns: new[] { "UserAccountId", "TrainingTermId" });
+                columns: new[] { "UserAccountId", "TrainingTermId" },
+                unique: true,
+                filter: "[Status] IN (1, 2)");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ReservationStatusAudits_ChangedByUserAccountId",
@@ -730,18 +787,27 @@ namespace FitBook.Services.Migrations
                 name: "IX_UserAccounts_Email",
                 table: "UserAccounts",
                 column: "Email",
-                unique: true);
+                unique: true,
+                filter: "[IsDeleted] = 0");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserAccounts_Username",
                 table: "UserAccounts",
                 column: "Username",
-                unique: true);
+                unique: true,
+                filter: "[IsDeleted] = 0");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserMemberships_MembershipPackageId",
                 table: "UserMemberships",
                 column: "MembershipPackageId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserMemberships_UserAccountId",
+                table: "UserMemberships",
+                column: "UserAccountId",
+                unique: true,
+                filter: "[IsActive] = 1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserMemberships_UserAccountId_IsActive",
@@ -760,6 +826,9 @@ namespace FitBook.Services.Migrations
 
             migrationBuilder.DropTable(
                 name: "RecommendationSignals");
+
+            migrationBuilder.DropTable(
+                name: "RefreshTokens");
 
             migrationBuilder.DropTable(
                 name: "ReservationStatusAudits");

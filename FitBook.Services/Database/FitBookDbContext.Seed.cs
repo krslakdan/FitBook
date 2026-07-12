@@ -123,21 +123,6 @@ public partial class FitBookDbContext
                 IsActive = true,
                 IsDeleted = false,
                 CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-            },
-            new UserAccount
-            {
-                Id = 6,
-                FirstName = "Guest",
-                LastName = "User",
-                Email = "guest@fitbook.com",
-                PhoneNumber = "+38761777888",
-                Username = "guest_user",
-                PasswordHash = SeedData.TestPasswordHash,
-                Role = Roles.Guest,
-                ProfileImageUrl = "uploads/users/guest.jpg",
-                IsActive = true,
-                IsDeleted = false,
-                CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
             }
         );
     }

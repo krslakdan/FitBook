@@ -23,10 +23,9 @@ public class ReservationsController
     }
 
     [HttpGet]
-    [Authorize(Roles = Roles.Admin + "," + Roles.Trainer + "," + Roles.User)]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public override Task<ActionResult<PageResult<ReservationResponse>>> GetAll(
         [FromQuery] ReservationSearchObject search,
         CancellationToken cancellationToken = default)
@@ -35,10 +34,9 @@ public class ReservationsController
     }
 
     [HttpGet("{id:int}")]
-    [Authorize(Roles = Roles.Admin + "," + Roles.Trainer + "," + Roles.User)]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public override Task<ActionResult<ReservationResponse>> GetById(int id, CancellationToken cancellationToken = default)
     {
@@ -46,11 +44,10 @@ public class ReservationsController
     }
 
     [HttpPost]
-    [Authorize(Roles = Roles.Admin + "," + Roles.Trainer + "," + Roles.User)]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public override Task<ActionResult<ReservationResponse>> Insert(
         [FromBody] ReservationInsertRequest request,
         CancellationToken cancellationToken = default)
@@ -63,7 +60,6 @@ public class ReservationsController
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ReservationResponse>> Confirm(int id, CancellationToken cancellationToken = default)
     {
@@ -72,11 +68,10 @@ public class ReservationsController
     }
 
     [HttpPost("{id:int}/cancel")]
-    [Authorize(Roles = Roles.Admin + "," + Roles.Trainer + "," + Roles.User)]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ReservationResponse>> Cancel(int id, [FromBody] ReservationCancelRequest request, CancellationToken cancellationToken = default)
     {
@@ -89,7 +84,6 @@ public class ReservationsController
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ReservationResponse>> Complete(int id, CancellationToken cancellationToken = default)
     {
