@@ -57,5 +57,4 @@ public class TrainingEquipmentService
             throw new NotFoundException($"Training with id {request.TrainingId} was not found.");
         }
     }
-    // No ValidateDelete needed — TrainingEquipment is cascade-deleted with Training and nothing further references it
 }

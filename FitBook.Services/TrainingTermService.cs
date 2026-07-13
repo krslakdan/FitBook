@@ -102,7 +102,6 @@ public class TrainingTermService
             throw new BusinessException($"Maksimalan broj učesnika ({request.MaxParticipants}) ne može biti manji od broja postojećih aktivnih rezervacija ({activeReservationCount}) za ovaj termin.");
         }
 
-        // Block time/trainer changes if there are active reservations
         bool timeOrTrainerChanged =
             entity.StartTimeUtc != request.StartTimeUtc ||
             entity.EndTimeUtc != request.EndTimeUtc ||
@@ -160,7 +159,6 @@ public class TrainingTermService
         term.IsActive = false;
         term.UpdatedAtUtc = DateTime.UtcNow;
 
-        // Cascade cancel all active reservations for this term
         await _reservationService.CancelAllForTrainingTermAsync(
             term.Id,
             request.Reason ?? "Termin treninga je otkazan od strane administratora.",
