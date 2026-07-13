@@ -47,7 +47,7 @@ public class PaymentsController : ControllerBase
             if (stripeEvent.Type == "payment_intent.succeeded")
             {
                 var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
-                await _userMembershipService.MarkPaymentSuccessfulAsync(paymentIntent!.Id);
+                await _userMembershipService.MarkPaymentSuccessfulAsync(paymentIntent!.Id, cancellationToken);
             }
 
             return Ok();
