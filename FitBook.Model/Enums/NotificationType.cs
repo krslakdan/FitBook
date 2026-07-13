@@ -11,5 +11,6 @@ public enum NotificationType
     NewsPublished = 7,
     MembershipCancelled = 8,
     MembershipExpired = 9,
-    TrainingTermCancelled = 10
+    TrainingTermCancelled = 10,
+    MembershipPaymentFailed = 11
 }

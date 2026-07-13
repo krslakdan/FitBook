@@ -272,6 +272,8 @@ public class UserMembershipService
         }
 
         var existingActivePayment = membership.Payments.FirstOrDefault(p => p.Status == PaymentStatus.Pending || p.Status == PaymentStatus.Completed);
+        MembershipPayment? paymentToMarkFailed = null;
+
         if (existingActivePayment != null)
         {
             if (existingActivePayment.Status == PaymentStatus.Completed)
@@ -287,10 +289,9 @@ public class UserMembershipService
             }
             else if (existingIntent.Status == "canceled")
             {
-                existingActivePayment.Status = PaymentStatus.Failed;
-                existingActivePayment.UpdatedAtUtc = DateTime.UtcNow;
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                // Fall through to create new intent
+                // Defer persisting this until after the new intent is created below,
+                // so the whole operation commits with a single SaveChangesAsync call.
+                paymentToMarkFailed = existingActivePayment;
             }
             else
             {
@@ -302,16 +303,21 @@ public class UserMembershipService
             }
         }
 
-        
         var amountToPay = membership.MembershipPackage!.Price;
         var idempotencyKey = Guid.NewGuid().ToString();
 
-        var intent = await _stripePaymentService.CreatePaymentIntentAsync(amountToPay, "usd", idempotencyKey, cancellationToken);
+        var intent = await _stripePaymentService.CreatePaymentIntentAsync(amountToPay, PaymentConstants.Currency, idempotencyKey, cancellationToken);
+
+        if (paymentToMarkFailed != null)
+        {
+            paymentToMarkFailed.Status = PaymentStatus.Failed;
+            paymentToMarkFailed.UpdatedAtUtc = DateTime.UtcNow;
+        }
 
         var payment = new MembershipPayment
         {
             Amount = amountToPay,
-            Currency = "USD",
+            Currency = PaymentConstants.Currency.ToUpperInvariant(),
             PaymentProvider = "Stripe",
             PaymentIntentId = intent.Id,
             Status = PaymentStatus.Pending,
@@ -321,7 +327,20 @@ public class UserMembershipService
         };
 
         _dbContext.MembershipPayments.Add(payment);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            if (await HasActivePaymentAsync(id, payment.Id, cancellationToken))
+            {
+                throw new BusinessException("Za ovu članarinu je upravo kreirano plaćanje u drugom zahtjevu. Osvježite stranicu i pokušajte ponovo.");
+            }
+
+            throw;
+        }
 
         _logger.LogInformation(
             "PaymentIntent created for Membership {MembershipId} by user {UserId}. PaymentIntentId: {PaymentIntentId}",
@@ -334,6 +353,15 @@ public class UserMembershipService
             ClientSecret = intent.ClientSecret,
             PaymentId = payment.Id
         };
+    }
+
+    private async Task<bool> HasActivePaymentAsync(int userMembershipId, int excludePaymentId, CancellationToken cancellationToken)
+    {
+        return await _dbContext.MembershipPayments.AsNoTracking().AnyAsync(
+            p => p.UserMembershipId == userMembershipId &&
+                 p.Id != excludePaymentId &&
+                 (p.Status == PaymentStatus.Pending || p.Status == PaymentStatus.Completed),
+            cancellationToken);
     }
 
     public async Task MarkPaymentSuccessfulAsync(string paymentIntentId, CancellationToken cancellationToken = default)
@@ -399,6 +427,44 @@ public class UserMembershipService
 
         await _dbContext.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Payment {PaymentId} marked as Completed. Membership {MembershipId} processed.", payment.Id, membership.Id);
+    }
+
+    public async Task MarkPaymentFailedAsync(string paymentIntentId, CancellationToken cancellationToken = default)
+    {
+        var payment = await _dbContext.MembershipPayments
+            .FirstOrDefaultAsync(x => x.PaymentIntentId == paymentIntentId, cancellationToken);
+
+        if (payment == null)
+        {
+            _logger.LogWarning("PaymentIntentFailed for unknown PaymentIntentId: {Id}", paymentIntentId);
+            return;
+        }
+
+        if (payment.Status != PaymentStatus.Pending)
+        {
+            _logger.LogInformation(
+                "Webhook idempotency: Payment {PaymentId} is already {Status}, ignoring payment_intent.payment_failed.",
+                payment.Id,
+                payment.Status);
+            return;
+        }
+
+        payment.Status = PaymentStatus.Failed;
+        payment.UpdatedAtUtc = DateTime.UtcNow;
+
+        _dbContext.SystemNotifications.Add(new SystemNotification
+        {
+            UserAccountId = payment.UserAccountId,
+            NotificationType = NotificationType.MembershipPaymentFailed,
+            Title = "Plaćanje članarine nije uspjelo",
+            Content = "Vaše plaćanje članarine nije uspjelo. Molimo pokušajte ponovo.",
+            IsRead = false,
+            CreatedAtUtc = DateTime.UtcNow
+        });
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Payment {PaymentId} marked as Failed via webhook.", payment.Id);
     }
 
     private void EnsureValidTransition(MembershipStatus from, MembershipStatus to)
