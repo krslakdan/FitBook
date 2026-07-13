@@ -9,7 +9,7 @@ public class StripePaymentService : IStripePaymentService
     {
         var options = new PaymentIntentCreateOptions
         {
-            Amount = (long)(amount * 100),
+            Amount = ToSmallestCurrencyUnit(amount),
             Currency = currency,
             PaymentMethodTypes = ["card"]
         };
@@ -34,7 +34,7 @@ public class StripePaymentService : IStripePaymentService
         var options = new RefundCreateOptions
         {
             PaymentIntent = paymentIntentId,
-            Amount = (long)(amount * 100)
+            Amount = ToSmallestCurrencyUnit(amount)
         };
 
         var service = new RefundService();
@@ -45,4 +45,7 @@ public class StripePaymentService : IStripePaymentService
     {
         return EventUtility.ConstructEvent(payload, signatureHeader, secret);
     }
+
+    private static long ToSmallestCurrencyUnit(decimal amount) =>
+        (long)Math.Round(amount * 100, 0, MidpointRounding.AwayFromZero);
 }
