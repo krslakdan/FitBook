@@ -1,6 +1,5 @@
 using FitBook.Model.Enums;
 using FitBook.Model.Exceptions;
-using FitBook.Model.Requests.Reservations;
 using FitBook.Model.Requests.TrainingTerms;
 using FitBook.Model.Responses.TrainingTerms;
 using FitBook.Model.SearchObjects;
@@ -26,6 +25,7 @@ public class TrainingTermService
 
     private readonly ICurrentUserService _currentUserService;
     private readonly IValidator<TrainingTermCancelRequest> _cancelValidator;
+    private readonly IReservationService _reservationService;
 
     public TrainingTermService(
         FitBookDbContext dbContext,
@@ -34,11 +34,13 @@ public class TrainingTermService
         IValidator<TrainingTermInsertRequest> insertValidator,
         IValidator<TrainingTermUpdateRequest> updateValidator,
         IValidator<TrainingTermCancelRequest> cancelValidator,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        IReservationService reservationService)
         : base(dbContext, mapper, loggerFactory, insertValidator, updateValidator)
     {
         _cancelValidator = cancelValidator;
         _currentUserService = currentUserService;
+        _reservationService = reservationService;
     }
 
     protected override IQueryable<TrainingTerm> ApplyFilter(IQueryable<TrainingTerm> query, TrainingTermSearchObject search)
@@ -159,7 +161,10 @@ public class TrainingTermService
         term.UpdatedAtUtc = DateTime.UtcNow;
 
         // Cascade cancel all active reservations for this term
-        await CancelAllActiveReservationsForTermAsync(term, request.Reason, cancellationToken);
+        await _reservationService.CancelAllForTrainingTermAsync(
+            term.Id,
+            request.Reason ?? "Termin treninga je otkazan od strane administratora.",
+            cancellationToken);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -204,53 +209,6 @@ public class TrainingTermService
         _logger.LogInformation("TrainingTerm {TermId} marked as completed.", id);
 
         return await GetByIdAsync(id, cancellationToken);
-    }
-
-    private async Task CancelAllActiveReservationsForTermAsync(TrainingTerm term, string? reason, CancellationToken cancellationToken)
-    {
-        var activeReservations = await _dbContext.Reservations
-            .Where(r => r.TrainingTermId == term.Id && _activeReservationStatuses.Contains(r.Status))
-            .ToListAsync(cancellationToken);
-
-        var termStartFormatted = term.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC";
-
-        var currentUserId = _currentUserService.GetRequiredUserId();
-
-        foreach (var reservation in activeReservations)
-        {
-            var previousStatus = reservation.Status;
-            reservation.Status = ReservationStatus.Cancelled;
-            reservation.CancelledAtUtc = DateTime.UtcNow;
-            reservation.CancellationReason = reason ?? "Termin treninga je otkazan od strane administratora.";
-            reservation.UpdatedAtUtc = DateTime.UtcNow;
-
-            _dbContext.ReservationStatusAudits.Add(new ReservationStatusAudit
-            {
-                ReservationId = reservation.Id,
-                PreviousStatus = previousStatus,
-                NewStatus = ReservationStatus.Cancelled,
-                ChangedAtUtc = DateTime.UtcNow,
-                Reason = reservation.CancellationReason,
-                CreatedAtUtc = DateTime.UtcNow,
-                ChangedByUserAccountId = currentUserId,
-            });
-
-            _dbContext.SystemNotifications.Add(new SystemNotification
-            {
-                UserAccountId = reservation.UserAccountId,
-                NotificationType = NotificationType.TrainingTermCancelled,
-                Title = "Termin treninga je otkazan",
-                Content = $"Termin treninga zakazan za {termStartFormatted} je otkazan. Vaša rezervacija je automatski otkazana." +
-                          (string.IsNullOrWhiteSpace(reason) ? string.Empty : $" Razlog: {reason}"),
-                IsRead = false,
-                CreatedAtUtc = DateTime.UtcNow,
-            });
-        }
-
-        _logger.LogInformation(
-            "Cancelled {Count} active reservations for TrainingTerm {TermId}.",
-            activeReservations.Count,
-            term.Id);
     }
 
     private async Task ValidateForeignKeys(int trainingId, int trainerId, int hallId, int maxParticipants, CancellationToken cancellationToken)
