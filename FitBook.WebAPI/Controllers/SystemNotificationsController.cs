@@ -1,14 +1,10 @@
 using FitBook.Model.Responses.SystemNotifications;
 using FitBook.Model.SearchObjects;
 using FitBook.Services.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FitBook.WebAPI.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-[Authorize]
 public class SystemNotificationsController : BaseReadController<SystemNotificationResponse, SystemNotificationSearchObject, ISystemNotificationService>
 {
     private readonly ISystemNotificationService _systemNotificationService;

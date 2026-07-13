@@ -8,9 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FitBook.WebAPI.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-[Authorize]
 public class HallsController : BaseCRUDController<HallResponse, HallSearchObject, HallInsertRequest, HallUpdateRequest, IHallService>
 {
     public HallsController(IHallService service) : base(service)

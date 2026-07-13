@@ -8,9 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FitBook.WebAPI.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-[Authorize]
 public class DifficultyLevelsController : BaseCRUDController<DifficultyLevelResponse, DifficultyLevelSearchObject, DifficultyLevelInsertRequest, DifficultyLevelUpdateRequest, IDifficultyLevelService>
 {
     public DifficultyLevelsController(IDifficultyLevelService service) : base(service)

@@ -8,9 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FitBook.WebAPI.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-[Authorize]
 public class NewsItemsController : BaseCRUDController<NewsItemResponse, NewsItemSearchObject, NewsItemInsertRequest, NewsItemUpdateRequest, INewsItemService>
 {
     public NewsItemsController(INewsItemService service) : base(service)

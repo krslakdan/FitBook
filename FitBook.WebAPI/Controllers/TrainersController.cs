@@ -8,9 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FitBook.WebAPI.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-[Authorize]
 public class TrainersController : BaseCRUDController<TrainerResponse, TrainerSearchObject, TrainerInsertRequest, TrainerUpdateRequest, ITrainerService>
 {
     public TrainersController(ITrainerService service) : base(service)
