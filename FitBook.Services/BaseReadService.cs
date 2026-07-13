@@ -49,7 +49,7 @@ public abstract class BaseReadService<TEntity, TResponse, TSearch> : IBaseReadSe
     {
         var searchObject = search ?? new TSearch();
         var query = ApplyQueryPipeline(BuildQuery(), searchObject, applySearch: true);
-        query = query.OrderBy(entity => entity.Id);
+        query = ApplyOrdering(query, searchObject);
 
         var skip = (searchObject.Page - 1) * searchObject.PageSize;
         var items = await query
@@ -84,6 +84,11 @@ public abstract class BaseReadService<TEntity, TResponse, TSearch> : IBaseReadSe
     protected virtual IQueryable<TEntity> BuildQuery()
     {
         return _dbContext.Set<TEntity>().AsQueryable();
+    }
+
+    protected virtual IOrderedQueryable<TEntity> ApplyOrdering(IQueryable<TEntity> query, TSearch search)
+    {
+        return query.OrderBy(entity => entity.Id);
     }
 
     protected IQueryable<TEntity> ApplyQueryPipeline(
