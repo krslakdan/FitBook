@@ -31,7 +31,13 @@ public class JwtTokenService : IJwtTokenService
             new Claim(ClaimNames.IsActive, user.IsActive.ToString())
         };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtToken:SecretKey"] ?? string.Empty));
+        var secretKey = _configuration["JwtToken:SecretKey"];
+        if (string.IsNullOrWhiteSpace(secretKey))
+        {
+            throw new InvalidOperationException("JwtToken:SecretKey configuration value is required but was not provided.");
+        }
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var expirationMinutes = int.Parse(_configuration["JwtToken:ExpirationMinutes"] ?? "15");
