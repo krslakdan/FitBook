@@ -1,0 +1,33 @@
+using FitBook.Model.Requests.Trainers;
+using FluentValidation;
+
+namespace FitBook.Services.Validators;
+
+public class TrainerInsertRequestValidator : AbstractValidator<TrainerInsertRequest>
+{
+    public TrainerInsertRequestValidator()
+    {
+        RuleFor(x => x.FirstName)
+            .NotEmpty().WithMessage("Ime trenera je obavezno.")
+            .MaximumLength(100).WithMessage("Ime trenera ne smije biti duže od 100 karaktera.");
+
+        RuleFor(x => x.LastName)
+            .NotEmpty().WithMessage("Prezime trenera je obavezno.")
+            .MaximumLength(100).WithMessage("Prezime trenera ne smije biti duže od 100 karaktera.");
+
+        RuleFor(x => x.Specialization)
+            .NotEmpty().WithMessage("Specijalizacija trenera je obavezna.")
+            .MaximumLength(150).WithMessage("Specijalizacija trenera ne smije biti duža od 150 karaktera.");
+
+        RuleFor(x => x.Biography)
+            .MaximumLength(2000).WithMessage("Biografija ne smije biti duža od 2000 karaktera.")
+            .When(x => x.Biography is not null);
+
+        RuleFor(x => x.ImageUrl)
+            .MaximumLength(500).WithMessage("URL slike ne smije biti duži od 500 karaktera.")
+            .When(x => x.ImageUrl is not null);
+
+        RuleFor(x => x.UserAccountId)
+            .GreaterThan(0).WithMessage("UserAccountId mora biti pozitivan broj.");
+    }
+}

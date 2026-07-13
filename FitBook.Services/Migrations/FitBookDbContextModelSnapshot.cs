@@ -281,6 +281,11 @@ namespace FitBook.Services.Migrations
 
                     b.HasIndex("UserAccountId");
 
+                    b.HasIndex("UserMembershipId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_MembershipPayments_UserMembershipId_ActiveOnly")
+                        .HasFilter("[Status] IN (1, 2)");
+
                     b.HasIndex("UserMembershipId", "Status");
 
                     b.ToTable("MembershipPayments", (string)null);
@@ -318,6 +323,7 @@ namespace FitBook.Services.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ImageUrl")
+                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 

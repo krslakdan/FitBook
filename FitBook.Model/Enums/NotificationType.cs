@@ -10,5 +10,7 @@ public enum NotificationType
     MembershipExpiringSoon = 6,
     NewsPublished = 7,
     MembershipCancelled = 8,
-    MembershipExpired = 9
+    MembershipExpired = 9,
+    TrainingTermCancelled = 10,
+    MembershipPaymentFailed = 11
 }

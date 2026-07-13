@@ -27,7 +27,13 @@ builder.Services.AddDbContext<FitBookDbContext>(options =>
 builder.Services.AddScoped<ICryptoService, CryptoService>();
 builder.Services.AddFitBookServices();
 
-var jwtSecret = builder.Configuration["JwtToken:SecretKey"] ?? string.Empty;
+var jwtSecret = builder.Configuration["JwtToken:SecretKey"];
+if (string.IsNullOrWhiteSpace(jwtSecret))
+{
+    throw new InvalidOperationException(
+        "JwtToken:SecretKey configuration value is required but was not provided. Set it via the JwtToken__SecretKey environment variable (.env).");
+}
+
 builder.Services
     .AddAuthentication(options =>
     {

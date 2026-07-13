@@ -14,7 +14,7 @@ public class NewsItemConfiguration : IEntityTypeConfiguration<NewsItem>
 
         builder.Property(x => x.Title).HasMaxLength(200).IsRequired();
         builder.Property(x => x.Content).HasColumnType("nvarchar(max)").IsRequired();
-        builder.Property(x => x.ImageUrl).HasMaxLength(500);
+        builder.Property(x => x.ImageUrl).HasMaxLength(500).IsRequired();
         builder.Property(x => x.PublishedAtUtc).IsRequired();
         builder.Property(x => x.IsActive).IsRequired();
 
