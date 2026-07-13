@@ -9,9 +9,13 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 
+using Stripe;
+
 EnvConfiguration.LoadDotEnv();
 
 var builder = WebApplication.CreateBuilder(args);
+
+StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers(options => options.Filters.Add<ExceptionFilter>());

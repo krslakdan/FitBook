@@ -5,7 +5,7 @@ namespace FitBook.Services.Database.Entities;
 public class MembershipPayment : BaseEntity
 {
     public decimal Amount { get; set; }
-    public string Currency { get; set; } = "BAM";
+    public string Currency { get; set; } = "USD";
     public string PaymentProvider { get; set; } = "Stripe";
     public string PaymentIntentId { get; set; } = string.Empty;
     public string? TransactionReference { get; set; }
