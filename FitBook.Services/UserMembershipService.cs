@@ -289,8 +289,6 @@ public class UserMembershipService
             }
             else if (existingIntent.Status == "canceled")
             {
-                // Defer persisting this until after the new intent is created below,
-                // so the whole operation commits with a single SaveChangesAsync call.
                 paymentToMarkFailed = existingActivePayment;
             }
             else
@@ -404,8 +402,6 @@ public class UserMembershipService
 
             membership.Status = MembershipStatus.Active;
             membership.IsActive = true;
-            
-            // Recalculate dates so user gets full duration starting from payment moment!
             membership.StartDateUtc = DateTime.UtcNow;
             if (membership.MembershipPackage != null)
             {

@@ -250,28 +250,7 @@ public class ReservationService
 
         EnsureValidTransition(reservation.Status, ReservationStatus.Cancelled);
 
-        var previousStatus = reservation.Status;
-        reservation.Status = ReservationStatus.Cancelled;
-        reservation.CancelledAtUtc = DateTime.UtcNow;
-        reservation.CancellationReason = request.Reason;
-        reservation.UpdatedAtUtc = DateTime.UtcNow;
-        reservation.LastStatusChangedByUserAccountId = _currentUserService.GetRequiredUserId();
-
-        AddStatusAudit(reservation, previousStatus, ReservationStatus.Cancelled, reason: request.Reason);
-
-        var termStartFormatted = reservation.TrainingTerm is not null
-            ? reservation.TrainingTerm.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC"
-            : $"termin #{reservation.TrainingTermId}";
-
-        _dbContext.SystemNotifications.Add(new SystemNotification
-        {
-            UserAccountId = reservation.UserAccountId,
-            NotificationType = NotificationType.ReservationCancelled,
-            Title = "Vaša rezervacija je otkazana",
-            Content = $"Vaša rezervacija za {termStartFormatted} je otkazana. Razlog: {request.Reason}",
-            IsRead = false,
-            CreatedAtUtc = DateTime.UtcNow,
-        });
+        ApplyCancellation(reservation, request.Reason);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -282,6 +261,53 @@ public class ReservationService
             request.Reason);
 
         return await GetByIdAsync(id, cancellationToken);
+    }
+
+    public async Task CancelAllForTrainingTermAsync(int trainingTermId, string reason, CancellationToken cancellationToken = default)
+    {
+        var reservations = await _dbContext.Reservations
+            .Include(r => r.TrainingTerm)
+            .Where(r => r.TrainingTermId == trainingTermId && _activeStatuses.Contains(r.Status))
+            .ToListAsync(cancellationToken);
+
+        foreach (var reservation in reservations)
+        {
+            EnsureValidTransition(reservation.Status, ReservationStatus.Cancelled);
+            ApplyCancellation(reservation, reason);
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Cancelled {Count} reservations for TrainingTerm {TermId}.",
+            reservations.Count,
+            trainingTermId);
+    }
+
+    private void ApplyCancellation(Reservation reservation, string? reason)
+    {
+        var previousStatus = reservation.Status;
+        reservation.Status = ReservationStatus.Cancelled;
+        reservation.CancelledAtUtc = DateTime.UtcNow;
+        reservation.CancellationReason = reason;
+        reservation.UpdatedAtUtc = DateTime.UtcNow;
+        reservation.LastStatusChangedByUserAccountId = _currentUserService.GetRequiredUserId();
+
+        AddStatusAudit(reservation, previousStatus, ReservationStatus.Cancelled, reason: reason);
+
+        var termStartFormatted = reservation.TrainingTerm is not null
+            ? reservation.TrainingTerm.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC"
+            : $"termin #{reservation.TrainingTermId}";
+
+        _dbContext.SystemNotifications.Add(new SystemNotification
+        {
+            UserAccountId = reservation.UserAccountId,
+            NotificationType = NotificationType.ReservationCancelled,
+            Title = "Vaša rezervacija je otkazana",
+            Content = $"Vaša rezervacija za {termStartFormatted} je otkazana. Razlog: {reason}",
+            IsRead = false,
+            CreatedAtUtc = DateTime.UtcNow,
+        });
     }
 
     public async Task<ReservationResponse> CompleteAsync(int id, CancellationToken cancellationToken = default)

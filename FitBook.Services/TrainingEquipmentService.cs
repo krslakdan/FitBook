@@ -36,26 +36,20 @@ public class TrainingEquipmentService
         return query;
     }
 
-    protected override async Task ValidateInsert(TrainingEquipmentInsertRequest request, CancellationToken cancellationToken)
+    protected override Task ValidateInsert(TrainingEquipmentInsertRequest request, CancellationToken cancellationToken)
+        => EnsureTrainingExistsAsync(request.TrainingId, cancellationToken);
+
+    protected override Task ValidateUpdate(int id, TrainingEquipmentUpdateRequest request, TrainingEquipmentEntity entity, CancellationToken cancellationToken)
+        => EnsureTrainingExistsAsync(request.TrainingId, cancellationToken);
+
+    private async Task EnsureTrainingExistsAsync(int trainingId, CancellationToken cancellationToken)
     {
         var trainingExists = await _dbContext.Trainings
-            .AnyAsync(t => t.Id == request.TrainingId, cancellationToken);
+            .AnyAsync(t => t.Id == trainingId, cancellationToken);
 
         if (!trainingExists)
         {
-            throw new NotFoundException($"Training with id {request.TrainingId} was not found.");
+            throw new NotFoundException($"Training with id {trainingId} was not found.");
         }
     }
-
-    protected override async Task ValidateUpdate(int id, TrainingEquipmentUpdateRequest request, TrainingEquipmentEntity entity, CancellationToken cancellationToken)
-    {
-        var trainingExists = await _dbContext.Trainings
-            .AnyAsync(t => t.Id == request.TrainingId, cancellationToken);
-
-        if (!trainingExists)
-        {
-            throw new NotFoundException($"Training with id {request.TrainingId} was not found.");
-        }
-    }
-    // No ValidateDelete needed — TrainingEquipment is cascade-deleted with Training and nothing further references it
 }

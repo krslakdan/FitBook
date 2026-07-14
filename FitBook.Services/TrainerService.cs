@@ -58,7 +58,6 @@ public class TrainerService
 
     protected override async Task ValidateInsert(TrainerInsertRequest request, CancellationToken cancellationToken)
     {
-        // Verify the UserAccount exists and has the Trainer role
         var userAccount = await _dbContext.UserAccounts
             .FirstOrDefaultAsync(u => u.Id == request.UserAccountId && !u.IsDeleted, cancellationToken);
 
@@ -72,7 +71,6 @@ public class TrainerService
             throw new BusinessException($"Korisnički račun s id {request.UserAccountId} nema ulogu Trenera. Dodijelite korisniku ulogu Trenera prije kreiranja trenerskog profila.");
         }
 
-        // Verify no duplicate Trainer record for this UserAccount
         var duplicateExists = await _dbContext.Trainers
             .AnyAsync(t => t.UserAccountId == request.UserAccountId, cancellationToken);
 

@@ -32,10 +32,8 @@ public partial class FitBookDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Apply all configurations from this assembly automatically
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(FitBookDbContext).Assembly);
 
-        // Seed initial database records
         CreateSeed(modelBuilder);
     }
 }

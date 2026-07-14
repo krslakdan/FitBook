@@ -166,23 +166,14 @@ public class UserAccountService
     {
         await _changeOwnPasswordValidator.ValidateAndThrowAsync(request, cancellationToken);
 
-        var user = await _dbContext.UserAccounts
-            .FirstOrDefaultAsync(x => x.Id == userId && !x.IsDeleted, cancellationToken);
-
-        if (user is null)
-        {
-            throw new NotFoundException($"UserAccount with id {userId} was not found.");
-        }
+        var user = await GetUserForPasswordChangeAsync(userId, cancellationToken);
 
         if (!_cryptoService.VerifyPassword(request.CurrentPassword, user.PasswordHash))
         {
             throw new BusinessException("Current password is incorrect.");
         }
 
-        user.PasswordHash = _cryptoService.HashPassword(request.NewPassword);
-        user.UpdatedAtUtc = DateTime.UtcNow;
-        await _dbContext.SaveChangesAsync(cancellationToken);
-        await _refreshTokenService.RevokeAllUserRefreshTokensAsync(userId, cancellationToken);
+        await SetPasswordAndRevokeTokensAsync(user, request.NewPassword, cancellationToken);
         _logger.LogInformation("User {UserId} changed own password successfully.", userId);
     }
 
@@ -190,6 +181,14 @@ public class UserAccountService
     {
         await _adminPasswordResetValidator.ValidateAndThrowAsync(request, cancellationToken);
 
+        var user = await GetUserForPasswordChangeAsync(userId, cancellationToken);
+
+        await SetPasswordAndRevokeTokensAsync(user, request.NewPassword, cancellationToken);
+        _logger.LogInformation("Admin reset password for user {UserId} successfully.", userId);
+    }
+
+    private async Task<UserAccount> GetUserForPasswordChangeAsync(int userId, CancellationToken cancellationToken)
+    {
         var user = await _dbContext.UserAccounts
             .FirstOrDefaultAsync(x => x.Id == userId && !x.IsDeleted, cancellationToken);
 
@@ -198,11 +197,15 @@ public class UserAccountService
             throw new NotFoundException($"UserAccount with id {userId} was not found.");
         }
 
-        user.PasswordHash = _cryptoService.HashPassword(request.NewPassword);
+        return user;
+    }
+
+    private async Task SetPasswordAndRevokeTokensAsync(UserAccount user, string newPassword, CancellationToken cancellationToken)
+    {
+        user.PasswordHash = _cryptoService.HashPassword(newPassword);
         user.UpdatedAtUtc = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync(cancellationToken);
-        await _refreshTokenService.RevokeAllUserRefreshTokensAsync(userId, cancellationToken);
-        _logger.LogInformation("Admin reset password for user {UserId} successfully.", userId);
+        await _refreshTokenService.RevokeAllUserRefreshTokensAsync(user.Id, cancellationToken);
     }
 
     private async Task EnsureUniqueEmailAsync(string email, int? excludedUserId, CancellationToken cancellationToken)

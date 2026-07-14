@@ -24,8 +24,6 @@ public class MembershipPaymentConfiguration : IEntityTypeConfiguration<Membershi
         builder.HasIndex(x => x.PaymentIntentId).IsUnique();
         builder.HasIndex(x => new { x.UserMembershipId, x.Status });
 
-        // At most one Pending or Completed payment per membership at any time —
-        // closes the race window where two concurrent requests could both create a payment intent.
         builder.HasIndex(x => x.UserMembershipId)
             .IsUnique()
             .HasFilter("[Status] IN (1, 2)")

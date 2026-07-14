@@ -1,6 +1,5 @@
 using FitBook.Model.Enums;
 using FitBook.Model.Exceptions;
-using FitBook.Model.Requests.Reservations;
 using FitBook.Model.Requests.TrainingTerms;
 using FitBook.Model.Responses.TrainingTerms;
 using FitBook.Model.SearchObjects;
@@ -11,6 +10,7 @@ using FluentValidation;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Linq.Expressions;
 
 namespace FitBook.Services;
 
@@ -26,6 +26,7 @@ public class TrainingTermService
 
     private readonly ICurrentUserService _currentUserService;
     private readonly IValidator<TrainingTermCancelRequest> _cancelValidator;
+    private readonly IReservationService _reservationService;
 
     public TrainingTermService(
         FitBookDbContext dbContext,
@@ -34,11 +35,13 @@ public class TrainingTermService
         IValidator<TrainingTermInsertRequest> insertValidator,
         IValidator<TrainingTermUpdateRequest> updateValidator,
         IValidator<TrainingTermCancelRequest> cancelValidator,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        IReservationService reservationService)
         : base(dbContext, mapper, loggerFactory, insertValidator, updateValidator)
     {
         _cancelValidator = cancelValidator;
         _currentUserService = currentUserService;
+        _reservationService = reservationService;
     }
 
     protected override IQueryable<TrainingTerm> ApplyFilter(IQueryable<TrainingTerm> query, TrainingTermSearchObject search)
@@ -100,7 +103,6 @@ public class TrainingTermService
             throw new BusinessException($"Maksimalan broj učesnika ({request.MaxParticipants}) ne može biti manji od broja postojećih aktivnih rezervacija ({activeReservationCount}) za ovaj termin.");
         }
 
-        // Block time/trainer changes if there are active reservations
         bool timeOrTrainerChanged =
             entity.StartTimeUtc != request.StartTimeUtc ||
             entity.EndTimeUtc != request.EndTimeUtc ||
@@ -158,8 +160,10 @@ public class TrainingTermService
         term.IsActive = false;
         term.UpdatedAtUtc = DateTime.UtcNow;
 
-        // Cascade cancel all active reservations for this term
-        await CancelAllActiveReservationsForTermAsync(term, request.Reason, cancellationToken);
+        await _reservationService.CancelAllForTrainingTermAsync(
+            term.Id,
+            request.Reason ?? "Termin treninga je otkazan od strane administratora.",
+            cancellationToken);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -204,53 +208,6 @@ public class TrainingTermService
         _logger.LogInformation("TrainingTerm {TermId} marked as completed.", id);
 
         return await GetByIdAsync(id, cancellationToken);
-    }
-
-    private async Task CancelAllActiveReservationsForTermAsync(TrainingTerm term, string? reason, CancellationToken cancellationToken)
-    {
-        var activeReservations = await _dbContext.Reservations
-            .Where(r => r.TrainingTermId == term.Id && _activeReservationStatuses.Contains(r.Status))
-            .ToListAsync(cancellationToken);
-
-        var termStartFormatted = term.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC";
-
-        var currentUserId = _currentUserService.GetRequiredUserId();
-
-        foreach (var reservation in activeReservations)
-        {
-            var previousStatus = reservation.Status;
-            reservation.Status = ReservationStatus.Cancelled;
-            reservation.CancelledAtUtc = DateTime.UtcNow;
-            reservation.CancellationReason = reason ?? "Termin treninga je otkazan od strane administratora.";
-            reservation.UpdatedAtUtc = DateTime.UtcNow;
-
-            _dbContext.ReservationStatusAudits.Add(new ReservationStatusAudit
-            {
-                ReservationId = reservation.Id,
-                PreviousStatus = previousStatus,
-                NewStatus = ReservationStatus.Cancelled,
-                ChangedAtUtc = DateTime.UtcNow,
-                Reason = reservation.CancellationReason,
-                CreatedAtUtc = DateTime.UtcNow,
-                ChangedByUserAccountId = currentUserId,
-            });
-
-            _dbContext.SystemNotifications.Add(new SystemNotification
-            {
-                UserAccountId = reservation.UserAccountId,
-                NotificationType = NotificationType.TrainingTermCancelled,
-                Title = "Termin treninga je otkazan",
-                Content = $"Termin treninga zakazan za {termStartFormatted} je otkazan. Vaša rezervacija je automatski otkazana." +
-                          (string.IsNullOrWhiteSpace(reason) ? string.Empty : $" Razlog: {reason}"),
-                IsRead = false,
-                CreatedAtUtc = DateTime.UtcNow,
-            });
-        }
-
-        _logger.LogInformation(
-            "Cancelled {Count} active reservations for TrainingTerm {TermId}.",
-            activeReservations.Count,
-            term.Id);
     }
 
     private async Task ValidateForeignKeys(int trainingId, int trainerId, int hallId, int maxParticipants, CancellationToken cancellationToken)
@@ -310,11 +267,35 @@ public class TrainingTermService
         }
     }
 
-    private async Task CheckTrainerOverlap(int trainerId, int? excludeTermId, DateTime startUtc, DateTime endUtc, CancellationToken cancellationToken)
+    private Task CheckTrainerOverlap(int trainerId, int? excludeTermId, DateTime startUtc, DateTime endUtc, CancellationToken cancellationToken)
+        => CheckOverlapAsync(
+            t => t.TrainerId == trainerId,
+            excludeTermId,
+            startUtc,
+            endUtc,
+            "Trener već ima zakazan termin koji se vremenski preklapa sa ovim terminom.",
+            cancellationToken);
+
+    private Task CheckHallOverlap(int hallId, int? excludeTermId, DateTime startUtc, DateTime endUtc, CancellationToken cancellationToken)
+        => CheckOverlapAsync(
+            t => t.HallId == hallId,
+            excludeTermId,
+            startUtc,
+            endUtc,
+            "U odabranoj sali već postoji termin treninga koji se vremenski preklapa sa ovim terminom.",
+            cancellationToken);
+
+    private async Task CheckOverlapAsync(
+        Expression<Func<TrainingTerm, bool>> resourceFilter,
+        int? excludeTermId,
+        DateTime startUtc,
+        DateTime endUtc,
+        string errorMessage,
+        CancellationToken cancellationToken)
     {
         var query = _dbContext.TrainingTerms
-            .Where(t => t.TrainerId == trainerId
-                        && t.Status != TrainingTermStatus.Cancelled
+            .Where(resourceFilter)
+            .Where(t => t.Status != TrainingTermStatus.Cancelled
                         && t.StartTimeUtc < endUtc
                         && startUtc < t.EndTimeUtc);
 
@@ -327,28 +308,7 @@ public class TrainingTermService
 
         if (hasOverlap)
         {
-            throw new BusinessException("Trener već ima zakazan termin koji se vremenski preklapa sa ovim terminom.");
-        }
-    }
-
-    private async Task CheckHallOverlap(int hallId, int? excludeTermId, DateTime startUtc, DateTime endUtc, CancellationToken cancellationToken)
-    {
-        var query = _dbContext.TrainingTerms
-            .Where(t => t.HallId == hallId
-                        && t.Status != TrainingTermStatus.Cancelled
-                        && t.StartTimeUtc < endUtc
-                        && startUtc < t.EndTimeUtc);
-
-        if (excludeTermId.HasValue)
-        {
-            query = query.Where(t => t.Id != excludeTermId.Value);
-        }
-
-        var hasOverlap = await query.AnyAsync(cancellationToken);
-
-        if (hasOverlap)
-        {
-            throw new BusinessException("U odabranoj sali već postoji termin treninga koji se vremenski preklapa sa ovim terminom.");
+            throw new BusinessException(errorMessage);
         }
     }
 }
