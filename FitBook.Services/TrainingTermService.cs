@@ -10,6 +10,7 @@ using FluentValidation;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Linq.Expressions;
 
 namespace FitBook.Services;
 
@@ -266,11 +267,35 @@ public class TrainingTermService
         }
     }
 
-    private async Task CheckTrainerOverlap(int trainerId, int? excludeTermId, DateTime startUtc, DateTime endUtc, CancellationToken cancellationToken)
+    private Task CheckTrainerOverlap(int trainerId, int? excludeTermId, DateTime startUtc, DateTime endUtc, CancellationToken cancellationToken)
+        => CheckOverlapAsync(
+            t => t.TrainerId == trainerId,
+            excludeTermId,
+            startUtc,
+            endUtc,
+            "Trener već ima zakazan termin koji se vremenski preklapa sa ovim terminom.",
+            cancellationToken);
+
+    private Task CheckHallOverlap(int hallId, int? excludeTermId, DateTime startUtc, DateTime endUtc, CancellationToken cancellationToken)
+        => CheckOverlapAsync(
+            t => t.HallId == hallId,
+            excludeTermId,
+            startUtc,
+            endUtc,
+            "U odabranoj sali već postoji termin treninga koji se vremenski preklapa sa ovim terminom.",
+            cancellationToken);
+
+    private async Task CheckOverlapAsync(
+        Expression<Func<TrainingTerm, bool>> resourceFilter,
+        int? excludeTermId,
+        DateTime startUtc,
+        DateTime endUtc,
+        string errorMessage,
+        CancellationToken cancellationToken)
     {
         var query = _dbContext.TrainingTerms
-            .Where(t => t.TrainerId == trainerId
-                        && t.Status != TrainingTermStatus.Cancelled
+            .Where(resourceFilter)
+            .Where(t => t.Status != TrainingTermStatus.Cancelled
                         && t.StartTimeUtc < endUtc
                         && startUtc < t.EndTimeUtc);
 
@@ -283,28 +308,7 @@ public class TrainingTermService
 
         if (hasOverlap)
         {
-            throw new BusinessException("Trener već ima zakazan termin koji se vremenski preklapa sa ovim terminom.");
-        }
-    }
-
-    private async Task CheckHallOverlap(int hallId, int? excludeTermId, DateTime startUtc, DateTime endUtc, CancellationToken cancellationToken)
-    {
-        var query = _dbContext.TrainingTerms
-            .Where(t => t.HallId == hallId
-                        && t.Status != TrainingTermStatus.Cancelled
-                        && t.StartTimeUtc < endUtc
-                        && startUtc < t.EndTimeUtc);
-
-        if (excludeTermId.HasValue)
-        {
-            query = query.Where(t => t.Id != excludeTermId.Value);
-        }
-
-        var hasOverlap = await query.AnyAsync(cancellationToken);
-
-        if (hasOverlap)
-        {
-            throw new BusinessException("U odabranoj sali već postoji termin treninga koji se vremenski preklapa sa ovim terminom.");
+            throw new BusinessException(errorMessage);
         }
     }
 }
