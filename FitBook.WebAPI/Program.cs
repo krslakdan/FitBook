@@ -10,8 +10,10 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 
 using Stripe;
+using QuestPDF.Infrastructure;
 
 EnvConfiguration.LoadDotEnv();
+QuestPDF.Settings.License = LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
 

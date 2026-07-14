@@ -13,6 +13,7 @@ using FitBook.Model.Requests.Trainers;
 using FitBook.Model.Requests.Trainings;
 using FitBook.Model.Requests.TrainingTerms;
 using FitBook.Model.Requests.NewsItems;
+using FitBook.Model.Requests.Reports;
 using Mapster;
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,6 +21,7 @@ using FitBook.Services.Interfaces.Auth;
 using FitBook.Services.Auth;
 using FitBook.Services.Interfaces;
 using FitBook.Services.Payments;
+using FitBook.Services.Reports;
 
 namespace FitBook.Services.Configuration;
 
@@ -53,6 +55,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<INewsItemService, NewsItemService>();
         services.AddScoped<ISystemNotificationService, SystemNotificationService>();
         services.AddScoped<IRecommendationService, RecommendationService>();
+        services.AddScoped<IReportService, ReportService>();
 
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
@@ -111,6 +114,8 @@ public static class ServiceCollectionExtensions
         // NewsItem validators
         services.AddScoped<IValidator<NewsItemInsertRequest>, NewsItemInsertRequestValidator>();
         services.AddScoped<IValidator<NewsItemUpdateRequest>, NewsItemUpdateRequestValidator>();
+
+        services.AddScoped<IValidator<ReservationsReportRequest>, ReservationsReportRequestValidator>();
 
         return services;
     }
