@@ -52,6 +52,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITrainingTermService, TrainingTermService>();
         services.AddScoped<INewsItemService, NewsItemService>();
         services.AddScoped<ISystemNotificationService, SystemNotificationService>();
+        services.AddScoped<IRecommendationService, RecommendationService>();
 
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();

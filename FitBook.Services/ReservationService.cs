@@ -32,6 +32,10 @@ public class ReservationService
         ReservationStatus.Confirmed,
     ];
 
+    private const decimal ReservationCreatedSignalWeight = 0.3m;
+    private const decimal ReservationConfirmedSignalWeight = 0.5m;
+    private const decimal ReservationCompletedSignalWeight = 1.0m;
+
     private readonly ICurrentUserService _currentUserService;
     private readonly IValidator<ReservationCancelRequest> _cancelValidator;
 
@@ -223,6 +227,20 @@ public class ReservationService
             CreatedAtUtc = DateTime.UtcNow,
         });
 
+        if (reservation.TrainingTerm?.Training is not null)
+        {
+            _dbContext.RecommendationSignals.Add(new RecommendationSignal
+            {
+                SignalType = RecommendationSignalType.ReservationConfirmed,
+                Weight = ReservationConfirmedSignalWeight,
+                UserAccountId = reservation.UserAccountId,
+                TrainingId = reservation.TrainingTerm.TrainingId,
+                TrainingCategoryId = reservation.TrainingTerm.Training.TrainingCategoryId,
+                ReservationId = reservation.Id,
+                CreatedAtUtc = DateTime.UtcNow,
+            });
+        }
+
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
@@ -351,6 +369,20 @@ public class ReservationService
             CreatedAtUtc = DateTime.UtcNow,
         });
 
+        if (reservation.TrainingTerm?.Training is not null)
+        {
+            _dbContext.RecommendationSignals.Add(new RecommendationSignal
+            {
+                SignalType = RecommendationSignalType.ReservationCompleted,
+                Weight = ReservationCompletedSignalWeight,
+                UserAccountId = reservation.UserAccountId,
+                TrainingId = reservation.TrainingTerm.TrainingId,
+                TrainingCategoryId = reservation.TrainingTerm.Training.TrainingCategoryId,
+                ReservationId = reservation.Id,
+                CreatedAtUtc = DateTime.UtcNow,
+            });
+        }
+
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
@@ -411,6 +443,8 @@ public class ReservationService
         var reservation = await _dbContext.Reservations
             .Include(r => r.TrainingTerm)
                 .ThenInclude(t => t!.Trainer)
+            .Include(r => r.TrainingTerm)
+                .ThenInclude(t => t!.Training)
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
 
         if (reservation is null)
@@ -423,7 +457,9 @@ public class ReservationService
 
     protected override async Task AfterInsert(Reservation entity, CancellationToken cancellationToken)
     {
-        var term = await _dbContext.TrainingTerms.FindAsync(new object[] { entity.TrainingTermId }, cancellationToken);
+        var term = await _dbContext.TrainingTerms
+            .Include(t => t.Training)
+            .FirstOrDefaultAsync(t => t.Id == entity.TrainingTermId, cancellationToken);
         var termStartFormatted = term is not null ? term.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC" : $"termin #{entity.TrainingTermId}";
 
         _dbContext.SystemNotifications.Add(new SystemNotification
@@ -435,6 +471,20 @@ public class ReservationService
             IsRead = false,
             CreatedAtUtc = DateTime.UtcNow,
         });
+
+        if (term?.Training is not null)
+        {
+            _dbContext.RecommendationSignals.Add(new RecommendationSignal
+            {
+                SignalType = RecommendationSignalType.ReservationCreated,
+                Weight = ReservationCreatedSignalWeight,
+                UserAccountId = entity.UserAccountId,
+                TrainingId = term.TrainingId,
+                TrainingCategoryId = term.Training.TrainingCategoryId,
+                ReservationId = entity.Id,
+                CreatedAtUtc = DateTime.UtcNow,
+            });
+        }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
