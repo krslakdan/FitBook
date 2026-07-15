@@ -1,4 +1,4 @@
-namespace FitBook.Services.Configuration;
+namespace FitBook.Common.Services.Configuration;
 
 public static class EnvConfiguration
 {
