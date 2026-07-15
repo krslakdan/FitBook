@@ -156,16 +156,21 @@ public class TrainingTermService
             throw new BusinessException("Nije moguće otkazati završeni termin treninga.");
         }
 
-        term.Status = TrainingTermStatus.Cancelled;
-        term.IsActive = false;
-        term.UpdatedAtUtc = DateTime.UtcNow;
+        await using (var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken))
+        {
+            term.Status = TrainingTermStatus.Cancelled;
+            term.IsActive = false;
+            term.UpdatedAtUtc = DateTime.UtcNow;
 
-        await _reservationService.CancelAllForTrainingTermAsync(
-            term.Id,
-            request.Reason ?? "Termin treninga je otkazan od strane administratora.",
-            cancellationToken);
+            await _reservationService.CancelAllForTrainingTermAsync(
+                term.Id,
+                request.Reason ?? "Termin treninga je otkazan od strane administratora.",
+                cancellationToken);
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
+        }
 
         _logger.LogInformation(
             "TrainingTerm {TermId} cancelled. Reason: {Reason}",

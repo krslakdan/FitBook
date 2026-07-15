@@ -215,10 +215,14 @@ public class UserAccountService
 
     private async Task SetPasswordAndRevokeTokensAsync(UserAccount user, string newPassword, CancellationToken cancellationToken)
     {
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+
         user.PasswordHash = _cryptoService.HashPassword(newPassword);
         user.UpdatedAtUtc = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync(cancellationToken);
         await _refreshTokenService.RevokeAllUserRefreshTokensAsync(user.Id, cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
     }
 
     private async Task EnsureUniqueEmailAsync(string email, int? excludedUserId, CancellationToken cancellationToken)
