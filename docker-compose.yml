@@ -40,6 +40,7 @@ services:
       - .env
     environment:
       ConnectionStrings__DefaultConnection: Server=fitbook-db;Database=${DB_NAME:-230163};User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False;
+      RabbitMQ__Host: fitbook-rabbitmq
       ASPNETCORE_URLS: http://+:5121
     ports:
       - "${API_HOST_PORT:-5121}:5121"
@@ -57,6 +58,8 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment:
+      RabbitMQ__Host: fitbook-rabbitmq
     depends_on:
       - fitbook-rabbitmq
     networks:
