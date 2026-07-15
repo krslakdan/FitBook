@@ -330,7 +330,7 @@ public partial class FitBookDbContext
             {
                 Id = 1,
                 Amount = 50.00m,
-                Currency = "BAM",
+                Currency = "USD",
                 PaymentProvider = "Stripe",
                 PaymentIntentId = "pi_1234567890",
                 TransactionReference = "tx_998877",
