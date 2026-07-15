@@ -1,6 +1,7 @@
 using FitBook.Common.Services.CryptoService;
 using FitBook.Model.Enums;
 using FitBook.Model.Exceptions;
+using FitBook.Model.Messages;
 using FitBook.Model.Requests.UserAccounts;
 using FitBook.Model.Responses.UserAccounts;
 using FitBook.Model.SearchObjects;
@@ -8,6 +9,7 @@ using FitBook.Services.Database;
 using FitBook.Services.Database.Entities;
 using FitBook.Services.Interfaces;
 using FitBook.Services.Interfaces.Auth;
+using FitBook.Services.Messaging;
 using FluentValidation;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
@@ -29,6 +31,7 @@ public class UserAccountService
     private readonly ICryptoService _cryptoService;
     private readonly IValidator<UserAccountChangeOwnPasswordRequest> _changeOwnPasswordValidator;
     private readonly IValidator<UserAccountAdminPasswordResetRequest> _adminPasswordResetValidator;
+    private readonly IEmailNotificationPublisher _emailNotificationPublisher;
 
     public UserAccountService(
         FitBookDbContext dbContext,
@@ -39,13 +42,15 @@ public class UserAccountService
         IValidator<UserAccountInsertRequest> insertValidator,
         IValidator<UserAccountUpdateRequest> updateValidator,
         IValidator<UserAccountChangeOwnPasswordRequest> changeOwnPasswordValidator,
-        IValidator<UserAccountAdminPasswordResetRequest> adminPasswordResetValidator)
+        IValidator<UserAccountAdminPasswordResetRequest> adminPasswordResetValidator,
+        IEmailNotificationPublisher emailNotificationPublisher)
         : base(dbContext, mapper, loggerFactory, insertValidator, updateValidator)
     {
         _cryptoService = cryptoService;
         _refreshTokenService= refreshTokenService;
         _changeOwnPasswordValidator = changeOwnPasswordValidator;
         _adminPasswordResetValidator = adminPasswordResetValidator;
+        _emailNotificationPublisher = emailNotificationPublisher;
     }
 
     protected override IQueryable<UserAccount> ApplyFilter(IQueryable<UserAccount> query, UserSearchObject search)
@@ -185,6 +190,14 @@ public class UserAccountService
 
         await SetPasswordAndRevokeTokensAsync(user, request.NewPassword, cancellationToken);
         _logger.LogInformation("Admin reset password for user {UserId} successfully.", userId);
+
+        await _emailNotificationPublisher.PublishAsync(new EmailNotificationMessage
+        {
+            ToEmail = user.Email,
+            ToName = $"{user.FirstName} {user.LastName}",
+            Subject = "Vaša lozinka je promijenjena",
+            Body = $"Poštovani {user.FirstName}, Vaša lozinka za FitBook nalog je upravo promijenjena od strane administratora. Ako niste vi zatražili ovu izmjenu, odmah kontaktirajte podršku.",
+        }, cancellationToken);
     }
 
     private async Task<UserAccount> GetUserForPasswordChangeAsync(int userId, CancellationToken cancellationToken)

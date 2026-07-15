@@ -1,12 +1,14 @@
 using FitBook.Common.Services.CryptoService;
 using FitBook.Model.Constants;
 using FitBook.Model.Exceptions;
+using FitBook.Model.Messages;
 using FitBook.Model.Requests.Auth;
 using FitBook.Model.Requests.UserAccounts;
 using FitBook.Model.Responses.Auth;
 using FitBook.Services.Database;
 using FitBook.Services.Interfaces;
 using FitBook.Services.Interfaces.Auth;
+using FitBook.Services.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -19,6 +21,7 @@ public class AuthService : IAuthService
     private readonly IRefreshTokenService _refreshTokenService;
     private readonly IUserAccountService _userAccountService;
     private readonly ICryptoService _cryptoService;
+    private readonly IEmailNotificationPublisher _emailNotificationPublisher;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
@@ -27,6 +30,7 @@ public class AuthService : IAuthService
         IRefreshTokenService refreshTokenService,
         IUserAccountService userAccountService,
         ICryptoService cryptoService,
+        IEmailNotificationPublisher emailNotificationPublisher,
         ILogger<AuthService> logger)
     {
         _context = context;
@@ -34,6 +38,7 @@ public class AuthService : IAuthService
         _refreshTokenService = refreshTokenService;
         _userAccountService = userAccountService;
         _cryptoService = cryptoService;
+        _emailNotificationPublisher = emailNotificationPublisher;
         _logger = logger;
     }
 
@@ -80,6 +85,14 @@ public class AuthService : IAuthService
         };
 
         await _userAccountService.InsertAsync(insertRequest, cancellationToken);
+
+        await _emailNotificationPublisher.PublishAsync(new EmailNotificationMessage
+        {
+            ToEmail = insertRequest.Email,
+            ToName = $"{insertRequest.FirstName} {insertRequest.LastName}",
+            Subject = "Dobrodošli u FitBook",
+            Body = $"Poštovani {insertRequest.FirstName}, Vaš FitBook nalog je uspješno kreiran. Dobrodošli!",
+        }, cancellationToken);
     }
 
     public async Task<RefreshTokenResponse> RefreshTokenAsync(RefreshTokenRequest request, CancellationToken cancellationToken = default)
