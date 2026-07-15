@@ -1,4 +1,4 @@
-using FitBook.Services.Configuration;
+using FitBook.Common.Services.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 

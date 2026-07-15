@@ -1,7 +1,9 @@
+using FitBook.Common.Services.Configuration;
 using FitBook.Common.Services.CryptoService;
 using FitBook.Model.Constants;
 using FitBook.Services.Configuration;
 using FitBook.Services.Database;
+using FitBook.WebAPI.BackgroundServices;
 using FitBook.WebAPI.Filters;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +29,8 @@ builder.Services.AddDbContext<FitBookDbContext>(options =>
     options.UseSqlServer(connectionString));
 
 builder.Services.AddScoped<ICryptoService, CryptoService>();
-builder.Services.AddFitBookServices();
+builder.Services.AddFitBookServices(builder.Configuration);
+builder.Services.AddHostedService<ReservationReminderBackgroundService>();
 
 var jwtSecret = builder.Configuration["JwtToken:SecretKey"];
 if (string.IsNullOrWhiteSpace(jwtSecret))

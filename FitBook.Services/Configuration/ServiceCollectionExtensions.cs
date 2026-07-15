@@ -16,10 +16,12 @@ using FitBook.Model.Requests.NewsItems;
 using FitBook.Model.Requests.Reports;
 using Mapster;
 using MapsterMapper;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using FitBook.Services.Interfaces.Auth;
 using FitBook.Services.Auth;
 using FitBook.Services.Interfaces;
+using FitBook.Services.Messaging;
 using FitBook.Services.Payments;
 using FitBook.Services.Reports;
 
@@ -27,7 +29,7 @@ namespace FitBook.Services.Configuration;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddFitBookServices(this IServiceCollection services)
+    public static IServiceCollection AddFitBookServices(this IServiceCollection services, IConfiguration configuration)
     {
         var mapsterConfig = TypeAdapterConfig.GlobalSettings;
         mapsterConfig.Scan(typeof(UserAccountMappingConfig).Assembly);
@@ -56,6 +58,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISystemNotificationService, SystemNotificationService>();
         services.AddScoped<IRecommendationService, RecommendationService>();
         services.AddScoped<IReportService, ReportService>();
+
+        services.Configure<RabbitMqOptions>(configuration.GetSection("RabbitMQ"));
+        services.AddSingleton<IEmailNotificationPublisher, RabbitMqEmailNotificationPublisher>();
 
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
