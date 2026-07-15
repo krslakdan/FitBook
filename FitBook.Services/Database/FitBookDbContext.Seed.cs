@@ -123,6 +123,51 @@ public partial class FitBookDbContext
                 IsActive = true,
                 IsDeleted = false,
                 CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new UserAccount
+            {
+                Id = 6,
+                FirstName = "Amina",
+                LastName = "Hodžić",
+                Email = "amina@fitbook.com",
+                PhoneNumber = "+38761555010",
+                Username = "amina",
+                PasswordHash = SeedData.TestPasswordHash,
+                Role = Roles.User,
+                ProfileImageUrl = "uploads/users/guest.jpg",
+                IsActive = true,
+                IsDeleted = false,
+                CreatedAtUtc = new DateTime(2026, 1, 5, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new UserAccount
+            {
+                Id = 7,
+                FirstName = "Emir",
+                LastName = "Halilović",
+                Email = "emir@fitbook.com",
+                PhoneNumber = "+38761555011",
+                Username = "emir",
+                PasswordHash = SeedData.TestPasswordHash,
+                Role = Roles.User,
+                ProfileImageUrl = "uploads/users/john.jpg",
+                IsActive = true,
+                IsDeleted = false,
+                CreatedAtUtc = new DateTime(2026, 1, 5, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new UserAccount
+            {
+                Id = 8,
+                FirstName = "Lejla",
+                LastName = "Bećirović",
+                Email = "lejla@fitbook.com",
+                PhoneNumber = "+38761555012",
+                Username = "lejla",
+                PasswordHash = SeedData.TestPasswordHash,
+                Role = Roles.User,
+                ProfileImageUrl = "uploads/users/jane.jpg",
+                IsActive = true,
+                IsDeleted = false,
+                CreatedAtUtc = new DateTime(2026, 1, 5, 0, 0, 0, DateTimeKind.Utc)
             }
         );
     }
@@ -177,7 +222,9 @@ public partial class FitBookDbContext
         modelBuilder.Entity<TrainingCategory>().HasData(
             new TrainingCategory { Id = 1, Name = "Cardio", Description = "Workouts designed to improve heart health and stamina.", IsActive = true },
             new TrainingCategory { Id = 2, Name = "Strength", Description = "Resistance training designed to build muscle mass.", IsActive = true },
-            new TrainingCategory { Id = 3, Name = "Mind & Body", Description = "Yoga, stretching, and mindfulness practices.", IsActive = true }
+            new TrainingCategory { Id = 3, Name = "Mind & Body", Description = "Yoga, stretching, and mindfulness practices.", IsActive = true },
+            new TrainingCategory { Id = 4, Name = "Recovery & Mobility", Description = "Low-impact recovery, stretching, and mobility work.", IsActive = true },
+            new TrainingCategory { Id = 5, Name = "Combat Sports", Description = "Boxing and martial-arts inspired conditioning.", IsActive = true }
         );
     }
 
@@ -219,6 +266,54 @@ public partial class FitBookDbContext
                 CreatedAtUtc = new DateTime(2026, 1, 10, 0, 0, 0, DateTimeKind.Utc),
                 TrainingCategoryId = 3,
                 DifficultyLevelId = 1
+            },
+            new Training
+            {
+                Id = 4,
+                Name = "Foam Rolling & Mobility",
+                Description = "Guided self-myofascial release and joint mobility drills.",
+                DurationMinutes = 30,
+                MaxParticipants = 12,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc),
+                TrainingCategoryId = 4,
+                DifficultyLevelId = 1
+            },
+            new Training
+            {
+                Id = 5,
+                Name = "Boxing Fundamentals",
+                Description = "Footwork, combinations, and pad work for beginners and intermediates.",
+                DurationMinutes = 50,
+                MaxParticipants = 14,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc),
+                TrainingCategoryId = 5,
+                DifficultyLevelId = 2
+            },
+            new Training
+            {
+                Id = 6,
+                Name = "Morning Run Club",
+                Description = "Coached outdoor interval running session to start the day.",
+                DurationMinutes = 40,
+                MaxParticipants = 25,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc),
+                TrainingCategoryId = 1,
+                DifficultyLevelId = 1
+            },
+            new Training
+            {
+                Id = 7,
+                Name = "Deadlift Technique",
+                Description = "Barbell deadlift form clinic for lifters ready to add weight safely.",
+                DurationMinutes = 60,
+                MaxParticipants = 8,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc),
+                TrainingCategoryId = 2,
+                DifficultyLevelId = 3
             }
         );
     }
@@ -228,7 +323,9 @@ public partial class FitBookDbContext
         modelBuilder.Entity<TrainingEquipment>().HasData(
             new TrainingEquipment { Id = 1, Name = "Kettlebell", IsRequired = true, Note = "Recommended 8kg-16kg", TrainingId = 1 },
             new TrainingEquipment { Id = 2, Name = "Barbell Set", IsRequired = true, Note = "Belts provided in hall", TrainingId = 2 },
-            new TrainingEquipment { Id = 3, Name = "Yoga Mat", IsRequired = false, Note = "Mats are available in studio, or bring your own", TrainingId = 3 }
+            new TrainingEquipment { Id = 3, Name = "Yoga Mat", IsRequired = false, Note = "Mats are available in studio, or bring your own", TrainingId = 3 },
+            new TrainingEquipment { Id = 4, Name = "Foam Roller", IsRequired = true, Note = "Provided in studio", TrainingId = 4 },
+            new TrainingEquipment { Id = 5, Name = "Boxing Gloves", IsRequired = true, Note = "Bring your own or rent at front desk", TrainingId = 5 }
         );
     }
 
@@ -267,12 +364,38 @@ public partial class FitBookDbContext
                 StartTimeUtc = new DateTime(2026, 7, 5, 8, 0, 0, DateTimeKind.Utc),
                 EndTimeUtc = new DateTime(2026, 7, 5, 9, 0, 0, DateTimeKind.Utc),
                 MaxParticipants = 15,
-                Status = TrainingTermStatus.Scheduled,
+                Status = TrainingTermStatus.Completed,
                 IsActive = true,
                 CreatedAtUtc = new DateTime(2026, 6, 20, 0, 0, 0, DateTimeKind.Utc),
                 TrainingId = 3,
                 TrainerId = 2,
                 HallId = 2
+            },
+            new TrainingTerm
+            {
+                Id = 4,
+                StartTimeUtc = new DateTime(2026, 6, 28, 9, 0, 0, DateTimeKind.Utc),
+                EndTimeUtc = new DateTime(2026, 6, 28, 9, 40, 0, DateTimeKind.Utc),
+                MaxParticipants = 25,
+                Status = TrainingTermStatus.Completed,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 6, 21, 0, 0, 0, DateTimeKind.Utc),
+                TrainingId = 6,
+                TrainerId = 3,
+                HallId = 1
+            },
+            new TrainingTerm
+            {
+                Id = 5,
+                StartTimeUtc = new DateTime(2026, 7, 2, 18, 0, 0, DateTimeKind.Utc),
+                EndTimeUtc = new DateTime(2026, 7, 2, 18, 50, 0, DateTimeKind.Utc),
+                MaxParticipants = 14,
+                Status = TrainingTermStatus.Completed,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 6, 25, 0, 0, 0, DateTimeKind.Utc),
+                TrainingId = 5,
+                TrainerId = 1,
+                HallId = 1
             }
         );
     }
@@ -301,6 +424,17 @@ public partial class FitBookDbContext
                 IncludedBenefits = "Unlimited group trainings, sauna access, 1 free personal session.",
                 IsActive = true,
                 CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new MembershipPackage
+            {
+                Id = 3,
+                Name = "1 Year VIP",
+                DurationDays = 365,
+                Price = 400.00m,
+                SavingsAmount = 200.00m,
+                IncludedBenefits = "Unlimited group trainings, sauna access, 4 free personal sessions, priority booking.",
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
             }
         );
     }
@@ -319,6 +453,42 @@ public partial class FitBookDbContext
                 CreatedAtUtc = new DateTime(2026, 5, 30, 0, 0, 0, DateTimeKind.Utc),
                 UserAccountId = 2,
                 MembershipPackageId = 1
+            },
+            new UserMembership
+            {
+                Id = 2,
+                StartDateUtc = new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc),
+                EndDateUtc = new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc),
+                NextPaymentDateUtc = null,
+                Status = MembershipStatus.Expired,
+                IsActive = false,
+                CreatedAtUtc = new DateTime(2026, 3, 30, 0, 0, 0, DateTimeKind.Utc),
+                UserAccountId = 6,
+                MembershipPackageId = 1
+            },
+            new UserMembership
+            {
+                Id = 3,
+                StartDateUtc = new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc),
+                EndDateUtc = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc),
+                NextPaymentDateUtc = null,
+                Status = MembershipStatus.Cancelled,
+                IsActive = false,
+                CreatedAtUtc = new DateTime(2026, 4, 28, 0, 0, 0, DateTimeKind.Utc),
+                UserAccountId = 7,
+                MembershipPackageId = 2
+            },
+            new UserMembership
+            {
+                Id = 4,
+                StartDateUtc = new DateTime(2026, 7, 10, 0, 0, 0, DateTimeKind.Utc),
+                EndDateUtc = new DateTime(2026, 7, 10, 0, 0, 0, DateTimeKind.Utc),
+                NextPaymentDateUtc = null,
+                Status = MembershipStatus.Pending,
+                IsActive = false,
+                CreatedAtUtc = new DateTime(2026, 7, 10, 0, 0, 0, DateTimeKind.Utc),
+                UserAccountId = 8,
+                MembershipPackageId = 3
             }
         );
     }
@@ -339,6 +509,22 @@ public partial class FitBookDbContext
                 PaidAtUtc = new DateTime(2026, 5, 30, 10, 5, 0, DateTimeKind.Utc),
                 UserMembershipId = 1,
                 UserAccountId = 2
+            },
+            new MembershipPayment
+            {
+                Id = 2,
+                Amount = 120.00m,
+                Currency = "USD",
+                PaymentProvider = "Stripe",
+                PaymentIntentId = "pi_seed_0000000002",
+                TransactionReference = "tx_998878",
+                Status = PaymentStatus.Refunded,
+                CreatedAtUtc = new DateTime(2026, 5, 1, 9, 0, 0, DateTimeKind.Utc),
+                PaidAtUtc = new DateTime(2026, 5, 1, 9, 5, 0, DateTimeKind.Utc),
+                RefundedAtUtc = new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc),
+                RefundAmount = 120.00m,
+                UserMembershipId = 3,
+                UserAccountId = 7
             }
         );
     }
@@ -369,11 +555,42 @@ public partial class FitBookDbContext
             new Reservation
             {
                 Id = 3,
-                Status = ReservationStatus.Confirmed,
+                Status = ReservationStatus.Completed,
                 ReservedAtUtc = new DateTime(2026, 6, 23, 10, 0, 0, DateTimeKind.Utc),
                 ConfirmedAtUtc = new DateTime(2026, 6, 23, 10, 15, 0, DateTimeKind.Utc),
+                CompletedAtUtc = new DateTime(2026, 7, 5, 9, 5, 0, DateTimeKind.Utc),
                 UserAccountId = 2,
                 TrainingTermId = 3
+            },
+            new Reservation
+            {
+                Id = 4,
+                Status = ReservationStatus.Completed,
+                ReservedAtUtc = new DateTime(2026, 6, 27, 8, 0, 0, DateTimeKind.Utc),
+                ConfirmedAtUtc = new DateTime(2026, 6, 27, 8, 10, 0, DateTimeKind.Utc),
+                CompletedAtUtc = new DateTime(2026, 6, 28, 9, 40, 0, DateTimeKind.Utc),
+                UserAccountId = 6,
+                TrainingTermId = 4
+            },
+            new Reservation
+            {
+                Id = 5,
+                Status = ReservationStatus.Completed,
+                ReservedAtUtc = new DateTime(2026, 7, 1, 12, 0, 0, DateTimeKind.Utc),
+                ConfirmedAtUtc = new DateTime(2026, 7, 1, 12, 5, 0, DateTimeKind.Utc),
+                CompletedAtUtc = new DateTime(2026, 7, 2, 18, 50, 0, DateTimeKind.Utc),
+                UserAccountId = 7,
+                TrainingTermId = 5
+            },
+            new Reservation
+            {
+                Id = 6,
+                Status = ReservationStatus.Cancelled,
+                ReservedAtUtc = new DateTime(2026, 6, 26, 14, 0, 0, DateTimeKind.Utc),
+                CancelledAtUtc = new DateTime(2026, 6, 27, 9, 0, 0, DateTimeKind.Utc),
+                CancellationReason = "Promjena rasporeda korisnika.",
+                UserAccountId = 8,
+                TrainingTermId = 4
             }
         );
     }
@@ -400,6 +617,46 @@ public partial class FitBookDbContext
                 Reason = "Marked as completed after class finish",
                 ReservationId = 1,
                 ChangedByUserAccountId = 5
+            },
+            new ReservationStatusAudit
+            {
+                Id = 3,
+                PreviousStatus = ReservationStatus.Confirmed,
+                NewStatus = ReservationStatus.Completed,
+                ChangedAtUtc = new DateTime(2026, 7, 5, 9, 5, 0, DateTimeKind.Utc),
+                Reason = "Marked as completed after class finish",
+                ReservationId = 3,
+                ChangedByUserAccountId = 4
+            },
+            new ReservationStatusAudit
+            {
+                Id = 4,
+                PreviousStatus = ReservationStatus.Confirmed,
+                NewStatus = ReservationStatus.Completed,
+                ChangedAtUtc = new DateTime(2026, 6, 28, 9, 40, 0, DateTimeKind.Utc),
+                Reason = "Marked as completed after class finish",
+                ReservationId = 4,
+                ChangedByUserAccountId = 5
+            },
+            new ReservationStatusAudit
+            {
+                Id = 5,
+                PreviousStatus = ReservationStatus.Confirmed,
+                NewStatus = ReservationStatus.Completed,
+                ChangedAtUtc = new DateTime(2026, 7, 2, 18, 50, 0, DateTimeKind.Utc),
+                Reason = "Marked as completed after class finish",
+                ReservationId = 5,
+                ChangedByUserAccountId = 3
+            },
+            new ReservationStatusAudit
+            {
+                Id = 6,
+                PreviousStatus = ReservationStatus.Pending,
+                NewStatus = ReservationStatus.Cancelled,
+                ChangedAtUtc = new DateTime(2026, 6, 27, 9, 0, 0, DateTimeKind.Utc),
+                Reason = "Promjena rasporeda korisnika.",
+                ReservationId = 6,
+                ChangedByUserAccountId = 8
             }
         );
     }
@@ -416,6 +673,68 @@ public partial class FitBookDbContext
                 CreatedAtUtc = new DateTime(2026, 6, 23, 10, 15, 0, DateTimeKind.Utc),
                 NotificationType = NotificationType.ReservationConfirmed,
                 UserAccountId = 2
+            },
+            new SystemNotification
+            {
+                Id = 2,
+                Title = "Plaćanje članarine uspješno",
+                Content = "Vaša članarina je uspješno plaćena i sada je aktivna.",
+                IsRead = true,
+                ReadAtUtc = new DateTime(2026, 5, 30, 11, 0, 0, DateTimeKind.Utc),
+                CreatedAtUtc = new DateTime(2026, 5, 30, 10, 5, 0, DateTimeKind.Utc),
+                NotificationType = NotificationType.MembershipPaid,
+                UserAccountId = 2
+            },
+            new SystemNotification
+            {
+                Id = 3,
+                Title = "Članarina je istekla",
+                Content = "Vaša članarina je istekla.",
+                IsRead = false,
+                CreatedAtUtc = new DateTime(2026, 5, 1, 0, 5, 0, DateTimeKind.Utc),
+                NotificationType = NotificationType.MembershipExpired,
+                UserAccountId = 6
+            },
+            new SystemNotification
+            {
+                Id = 4,
+                Title = "Članarina je otkazana",
+                Content = "Vaša članarina je otkazana. Izvršen je povrat sredstava.",
+                IsRead = false,
+                CreatedAtUtc = new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc),
+                NotificationType = NotificationType.MembershipCancelled,
+                UserAccountId = 7
+            },
+            new SystemNotification
+            {
+                Id = 5,
+                Title = "Trening je završen",
+                Content = "Vaš trening za Morning Run Club je uspješno završen. Hvala na dolasku!",
+                IsRead = true,
+                ReadAtUtc = new DateTime(2026, 6, 28, 12, 0, 0, DateTimeKind.Utc),
+                CreatedAtUtc = new DateTime(2026, 6, 28, 9, 40, 0, DateTimeKind.Utc),
+                NotificationType = NotificationType.ReservationCompleted,
+                UserAccountId = 6
+            },
+            new SystemNotification
+            {
+                Id = 6,
+                Title = "Trening je završen",
+                Content = "Vaš trening za Boxing Fundamentals je uspješno završen. Hvala na dolasku!",
+                IsRead = false,
+                CreatedAtUtc = new DateTime(2026, 7, 2, 18, 50, 0, DateTimeKind.Utc),
+                NotificationType = NotificationType.ReservationCompleted,
+                UserAccountId = 7
+            },
+            new SystemNotification
+            {
+                Id = 7,
+                Title = "Vaša rezervacija je otkazana",
+                Content = "Vaša rezervacija za Morning Run Club je otkazana. Razlog: Promjena rasporeda korisnika.",
+                IsRead = false,
+                CreatedAtUtc = new DateTime(2026, 6, 27, 9, 0, 0, DateTimeKind.Utc),
+                NotificationType = NotificationType.ReservationCancelled,
+                UserAccountId = 8
             }
         );
     }
@@ -430,6 +749,24 @@ public partial class FitBookDbContext
                 Content = "We are thrilled to announce that our new premium Yoga & Pilates studio on the first floor is now open for bookings.",
                 ImageUrl = "uploads/news/yoga_opening.jpg",
                 PublishedAtUtc = new DateTime(2026, 6, 15, 9, 0, 0, DateTimeKind.Utc),
+                IsActive = true
+            },
+            new NewsItem
+            {
+                Id = 2,
+                Title = "Nova oprema za snagu je stigla!",
+                Content = "Prošireni smo novim setovima utega i spravama za trening snage u glavnoj dvorani. Dođite isprobati!",
+                ImageUrl = "uploads/news/new_equipment.jpg",
+                PublishedAtUtc = new DateTime(2026, 6, 10, 9, 0, 0, DateTimeKind.Utc),
+                IsActive = true
+            },
+            new NewsItem
+            {
+                Id = 3,
+                Title = "Uvodimo Boxing Fundamentals i Morning Run Club!",
+                Content = "Od ovog mjeseca u ponudi su dva nova programa: Boxing Fundamentals za sve nivoe i Morning Run Club za ljubitelje trčanja. Rezervišite svoje mjesto već danas.",
+                ImageUrl = "uploads/news/yoga_opening.jpg",
+                PublishedAtUtc = new DateTime(2026, 6, 20, 9, 0, 0, DateTimeKind.Utc),
                 IsActive = true
             }
         );
@@ -459,6 +796,39 @@ public partial class FitBookDbContext
                 TrainingId = 2,
                 TrainingCategoryId = 2,
                 ReservationId = 2
+            },
+            new RecommendationSignal
+            {
+                Id = 3,
+                SignalType = RecommendationSignalType.ReservationCompleted,
+                Weight = 1.0m,
+                CreatedAtUtc = new DateTime(2026, 7, 5, 9, 5, 0, DateTimeKind.Utc),
+                UserAccountId = 2,
+                TrainingId = 3,
+                TrainingCategoryId = 3,
+                ReservationId = 3
+            },
+            new RecommendationSignal
+            {
+                Id = 4,
+                SignalType = RecommendationSignalType.ReservationCompleted,
+                Weight = 1.0m,
+                CreatedAtUtc = new DateTime(2026, 6, 28, 9, 40, 0, DateTimeKind.Utc),
+                UserAccountId = 6,
+                TrainingId = 6,
+                TrainingCategoryId = 1,
+                ReservationId = 4
+            },
+            new RecommendationSignal
+            {
+                Id = 5,
+                SignalType = RecommendationSignalType.ReservationCompleted,
+                Weight = 1.0m,
+                CreatedAtUtc = new DateTime(2026, 7, 2, 18, 50, 0, DateTimeKind.Utc),
+                UserAccountId = 7,
+                TrainingId = 5,
+                TrainingCategoryId = 5,
+                ReservationId = 5
             }
         );
     }
