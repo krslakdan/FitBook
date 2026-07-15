@@ -4,6 +4,7 @@ using FitBook.Services.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FitBook.Services.Migrations
 {
     [DbContext(typeof(FitBookDbContext))]
-    partial class FitBookDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260715104558_AddReservationReminderSentAtUtc")]
+    partial class AddReservationReminderSentAtUtc
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
