@@ -4,6 +4,7 @@ using FitBook.Services.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FitBook.Services.Migrations
 {
     [DbContext(typeof(FitBookDbContext))]
-    partial class FitBookDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260715115527_FixSeedPaymentCurrency")]
+    partial class FixSeedPaymentCurrency
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -217,18 +220,6 @@ namespace FitBook.Services.Migrations
                             Name = "3 Month Premium",
                             Price = 120.00m,
                             SavingsAmount = 30.00m
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            DurationDays = 365,
-                            IncludedBenefits = "Unlimited group trainings, sauna access, 4 free personal sessions, priority booking.",
-                            IsActive = true,
-                            IsDeleted = false,
-                            Name = "1 Year VIP",
-                            Price = 400.00m,
-                            SavingsAmount = 200.00m
                         });
                 });
 
@@ -316,22 +307,6 @@ namespace FitBook.Services.Migrations
                             TransactionReference = "tx_998877",
                             UserAccountId = 2,
                             UserMembershipId = 1
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Amount = 120.00m,
-                            CreatedAtUtc = new DateTime(2026, 5, 1, 9, 0, 0, 0, DateTimeKind.Utc),
-                            Currency = "USD",
-                            PaidAtUtc = new DateTime(2026, 5, 1, 9, 5, 0, 0, DateTimeKind.Utc),
-                            PaymentIntentId = "pi_seed_0000000002",
-                            PaymentProvider = "Stripe",
-                            RefundAmount = 120.00m,
-                            RefundedAtUtc = new DateTime(2026, 6, 1, 12, 0, 0, 0, DateTimeKind.Utc),
-                            Status = 4,
-                            TransactionReference = "tx_998878",
-                            UserAccountId = 7,
-                            UserMembershipId = 3
                         });
                 });
 
@@ -385,26 +360,6 @@ namespace FitBook.Services.Migrations
                             IsActive = true,
                             PublishedAtUtc = new DateTime(2026, 6, 15, 9, 0, 0, 0, DateTimeKind.Utc),
                             Title = "Grand Opening of our Yoga Studio!"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Content = "Prošireni smo novim setovima utega i spravama za trening snage u glavnoj dvorani. Dođite isprobati!",
-                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            ImageUrl = "uploads/news/new_equipment.jpg",
-                            IsActive = true,
-                            PublishedAtUtc = new DateTime(2026, 6, 10, 9, 0, 0, 0, DateTimeKind.Utc),
-                            Title = "Nova oprema za snagu je stigla!"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Content = "Od ovog mjeseca u ponudi su dva nova programa: Boxing Fundamentals za sve nivoe i Morning Run Club za ljubitelje trčanja. Rezervišite svoje mjesto već danas.",
-                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            ImageUrl = "uploads/news/yoga_opening.jpg",
-                            IsActive = true,
-                            PublishedAtUtc = new DateTime(2026, 6, 20, 9, 0, 0, 0, DateTimeKind.Utc),
-                            Title = "Uvodimo Boxing Fundamentals i Morning Run Club!"
                         });
                 });
 
@@ -473,39 +428,6 @@ namespace FitBook.Services.Migrations
                             TrainingCategoryId = 2,
                             TrainingId = 2,
                             UserAccountId = 2,
-                            Weight = 1.0m
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CreatedAtUtc = new DateTime(2026, 7, 5, 9, 5, 0, 0, DateTimeKind.Utc),
-                            ReservationId = 3,
-                            SignalType = 4,
-                            TrainingCategoryId = 3,
-                            TrainingId = 3,
-                            UserAccountId = 2,
-                            Weight = 1.0m
-                        },
-                        new
-                        {
-                            Id = 4,
-                            CreatedAtUtc = new DateTime(2026, 6, 28, 9, 40, 0, 0, DateTimeKind.Utc),
-                            ReservationId = 4,
-                            SignalType = 4,
-                            TrainingCategoryId = 1,
-                            TrainingId = 6,
-                            UserAccountId = 6,
-                            Weight = 1.0m
-                        },
-                        new
-                        {
-                            Id = 5,
-                            CreatedAtUtc = new DateTime(2026, 7, 2, 18, 50, 0, 0, DateTimeKind.Utc),
-                            ReservationId = 5,
-                            SignalType = 4,
-                            TrainingCategoryId = 5,
-                            TrainingId = 5,
-                            UserAccountId = 7,
                             Weight = 1.0m
                         });
                 });
@@ -637,46 +559,12 @@ namespace FitBook.Services.Migrations
                         new
                         {
                             Id = 3,
-                            CompletedAtUtc = new DateTime(2026, 7, 5, 9, 5, 0, 0, DateTimeKind.Utc),
                             ConfirmedAtUtc = new DateTime(2026, 6, 23, 10, 15, 0, 0, DateTimeKind.Utc),
                             CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ReservedAtUtc = new DateTime(2026, 6, 23, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = 4,
+                            Status = 2,
                             TrainingTermId = 3,
                             UserAccountId = 2
-                        },
-                        new
-                        {
-                            Id = 4,
-                            CompletedAtUtc = new DateTime(2026, 6, 28, 9, 40, 0, 0, DateTimeKind.Utc),
-                            ConfirmedAtUtc = new DateTime(2026, 6, 27, 8, 10, 0, 0, DateTimeKind.Utc),
-                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            ReservedAtUtc = new DateTime(2026, 6, 27, 8, 0, 0, 0, DateTimeKind.Utc),
-                            Status = 4,
-                            TrainingTermId = 4,
-                            UserAccountId = 6
-                        },
-                        new
-                        {
-                            Id = 5,
-                            CompletedAtUtc = new DateTime(2026, 7, 2, 18, 50, 0, 0, DateTimeKind.Utc),
-                            ConfirmedAtUtc = new DateTime(2026, 7, 1, 12, 5, 0, 0, DateTimeKind.Utc),
-                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            ReservedAtUtc = new DateTime(2026, 7, 1, 12, 0, 0, 0, DateTimeKind.Utc),
-                            Status = 4,
-                            TrainingTermId = 5,
-                            UserAccountId = 7
-                        },
-                        new
-                        {
-                            Id = 6,
-                            CancellationReason = "Promjena rasporeda korisnika.",
-                            CancelledAtUtc = new DateTime(2026, 6, 27, 9, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            ReservedAtUtc = new DateTime(2026, 6, 26, 14, 0, 0, 0, DateTimeKind.Utc),
-                            Status = 3,
-                            TrainingTermId = 4,
-                            UserAccountId = 8
                         });
                 });
 
@@ -743,50 +631,6 @@ namespace FitBook.Services.Migrations
                             PreviousStatus = 2,
                             Reason = "Marked as completed after class finish",
                             ReservationId = 1
-                        },
-                        new
-                        {
-                            Id = 3,
-                            ChangedAtUtc = new DateTime(2026, 7, 5, 9, 5, 0, 0, DateTimeKind.Utc),
-                            ChangedByUserAccountId = 4,
-                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            NewStatus = 4,
-                            PreviousStatus = 2,
-                            Reason = "Marked as completed after class finish",
-                            ReservationId = 3
-                        },
-                        new
-                        {
-                            Id = 4,
-                            ChangedAtUtc = new DateTime(2026, 6, 28, 9, 40, 0, 0, DateTimeKind.Utc),
-                            ChangedByUserAccountId = 5,
-                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            NewStatus = 4,
-                            PreviousStatus = 2,
-                            Reason = "Marked as completed after class finish",
-                            ReservationId = 4
-                        },
-                        new
-                        {
-                            Id = 5,
-                            ChangedAtUtc = new DateTime(2026, 7, 2, 18, 50, 0, 0, DateTimeKind.Utc),
-                            ChangedByUserAccountId = 3,
-                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            NewStatus = 4,
-                            PreviousStatus = 2,
-                            Reason = "Marked as completed after class finish",
-                            ReservationId = 5
-                        },
-                        new
-                        {
-                            Id = 6,
-                            ChangedAtUtc = new DateTime(2026, 6, 27, 9, 0, 0, 0, DateTimeKind.Utc),
-                            ChangedByUserAccountId = 8,
-                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            NewStatus = 3,
-                            PreviousStatus = 1,
-                            Reason = "Promjena rasporeda korisnika.",
-                            ReservationId = 6
                         });
                 });
 
@@ -842,68 +686,6 @@ namespace FitBook.Services.Migrations
                             NotificationType = 2,
                             Title = "Reservation Confirmed",
                             UserAccountId = 2
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Content = "Vaša članarina je uspješno plaćena i sada je aktivna.",
-                            CreatedAtUtc = new DateTime(2026, 5, 30, 10, 5, 0, 0, DateTimeKind.Utc),
-                            IsRead = true,
-                            NotificationType = 5,
-                            ReadAtUtc = new DateTime(2026, 5, 30, 11, 0, 0, 0, DateTimeKind.Utc),
-                            Title = "Plaćanje članarine uspješno",
-                            UserAccountId = 2
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Content = "Vaša članarina je istekla.",
-                            CreatedAtUtc = new DateTime(2026, 5, 1, 0, 5, 0, 0, DateTimeKind.Utc),
-                            IsRead = false,
-                            NotificationType = 9,
-                            Title = "Članarina je istekla",
-                            UserAccountId = 6
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Content = "Vaša članarina je otkazana. Izvršen je povrat sredstava.",
-                            CreatedAtUtc = new DateTime(2026, 6, 1, 12, 0, 0, 0, DateTimeKind.Utc),
-                            IsRead = false,
-                            NotificationType = 8,
-                            Title = "Članarina je otkazana",
-                            UserAccountId = 7
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Content = "Vaš trening za Morning Run Club je uspješno završen. Hvala na dolasku!",
-                            CreatedAtUtc = new DateTime(2026, 6, 28, 9, 40, 0, 0, DateTimeKind.Utc),
-                            IsRead = true,
-                            NotificationType = 4,
-                            ReadAtUtc = new DateTime(2026, 6, 28, 12, 0, 0, 0, DateTimeKind.Utc),
-                            Title = "Trening je završen",
-                            UserAccountId = 6
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Content = "Vaš trening za Boxing Fundamentals je uspješno završen. Hvala na dolasku!",
-                            CreatedAtUtc = new DateTime(2026, 7, 2, 18, 50, 0, 0, DateTimeKind.Utc),
-                            IsRead = false,
-                            NotificationType = 4,
-                            Title = "Trening je završen",
-                            UserAccountId = 7
-                        },
-                        new
-                        {
-                            Id = 7,
-                            Content = "Vaša rezervacija za Morning Run Club je otkazana. Razlog: Promjena rasporeda korisnika.",
-                            CreatedAtUtc = new DateTime(2026, 6, 27, 9, 0, 0, 0, DateTimeKind.Utc),
-                            IsRead = false,
-                            NotificationType = 3,
-                            Title = "Vaša rezervacija je otkazana",
-                            UserAccountId = 8
                         });
                 });
 
@@ -1087,54 +869,6 @@ namespace FitBook.Services.Migrations
                             MaxParticipants = 15,
                             Name = "Vinyasa Yoga",
                             TrainingCategoryId = 3
-                        },
-                        new
-                        {
-                            Id = 4,
-                            CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Guided self-myofascial release and joint mobility drills.",
-                            DifficultyLevelId = 1,
-                            DurationMinutes = 30,
-                            IsActive = true,
-                            MaxParticipants = 12,
-                            Name = "Foam Rolling & Mobility",
-                            TrainingCategoryId = 4
-                        },
-                        new
-                        {
-                            Id = 5,
-                            CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Footwork, combinations, and pad work for beginners and intermediates.",
-                            DifficultyLevelId = 2,
-                            DurationMinutes = 50,
-                            IsActive = true,
-                            MaxParticipants = 14,
-                            Name = "Boxing Fundamentals",
-                            TrainingCategoryId = 5
-                        },
-                        new
-                        {
-                            Id = 6,
-                            CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Coached outdoor interval running session to start the day.",
-                            DifficultyLevelId = 1,
-                            DurationMinutes = 40,
-                            IsActive = true,
-                            MaxParticipants = 25,
-                            Name = "Morning Run Club",
-                            TrainingCategoryId = 1
-                        },
-                        new
-                        {
-                            Id = 7,
-                            CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Barbell deadlift form clinic for lifters ready to add weight safely.",
-                            DifficultyLevelId = 3,
-                            DurationMinutes = 60,
-                            IsActive = true,
-                            MaxParticipants = 8,
-                            Name = "Deadlift Technique",
-                            TrainingCategoryId = 2
                         });
                 });
 
@@ -1195,22 +929,6 @@ namespace FitBook.Services.Migrations
                             Description = "Yoga, stretching, and mindfulness practices.",
                             IsActive = true,
                             Name = "Mind & Body"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Low-impact recovery, stretching, and mobility work.",
-                            IsActive = true,
-                            Name = "Recovery & Mobility"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Boxing and martial-arts inspired conditioning.",
-                            IsActive = true,
-                            Name = "Combat Sports"
                         });
                 });
 
@@ -1277,24 +995,6 @@ namespace FitBook.Services.Migrations
                             Name = "Yoga Mat",
                             Note = "Mats are available in studio, or bring your own",
                             TrainingId = 3
-                        },
-                        new
-                        {
-                            Id = 4,
-                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsRequired = true,
-                            Name = "Foam Roller",
-                            Note = "Provided in studio",
-                            TrainingId = 4
-                        },
-                        new
-                        {
-                            Id = 5,
-                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsRequired = true,
-                            Name = "Boxing Gloves",
-                            Note = "Bring your own or rent at front desk",
-                            TrainingId = 5
                         });
                 });
 
@@ -1382,35 +1082,9 @@ namespace FitBook.Services.Migrations
                             IsActive = true,
                             MaxParticipants = 15,
                             StartTimeUtc = new DateTime(2026, 7, 5, 8, 0, 0, 0, DateTimeKind.Utc),
-                            Status = 3,
+                            Status = 1,
                             TrainerId = 2,
                             TrainingId = 3
-                        },
-                        new
-                        {
-                            Id = 4,
-                            CreatedAtUtc = new DateTime(2026, 6, 21, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndTimeUtc = new DateTime(2026, 6, 28, 9, 40, 0, 0, DateTimeKind.Utc),
-                            HallId = 1,
-                            IsActive = true,
-                            MaxParticipants = 25,
-                            StartTimeUtc = new DateTime(2026, 6, 28, 9, 0, 0, 0, DateTimeKind.Utc),
-                            Status = 3,
-                            TrainerId = 3,
-                            TrainingId = 6
-                        },
-                        new
-                        {
-                            Id = 5,
-                            CreatedAtUtc = new DateTime(2026, 6, 25, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndTimeUtc = new DateTime(2026, 7, 2, 18, 50, 0, 0, DateTimeKind.Utc),
-                            HallId = 1,
-                            IsActive = true,
-                            MaxParticipants = 14,
-                            StartTimeUtc = new DateTime(2026, 7, 2, 18, 0, 0, 0, DateTimeKind.Utc),
-                            Status = 3,
-                            TrainerId = 1,
-                            TrainingId = 5
                         });
                 });
 
@@ -1560,51 +1234,6 @@ namespace FitBook.Services.Migrations
                             ProfileImageUrl = "uploads/trainers/trainer3.jpg",
                             Role = "Trainer",
                             Username = "mikejones"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            CreatedAtUtc = new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Email = "amina@fitbook.com",
-                            FirstName = "Amina",
-                            IsActive = true,
-                            IsDeleted = false,
-                            LastName = "Hodžić",
-                            PasswordHash = "$2a$11$absRakK74SEnr3k6jdjqHeTmEa7SE2m2/0J09n4aSg/kLY1jGVW46",
-                            PhoneNumber = "+38761555010",
-                            ProfileImageUrl = "uploads/users/guest.jpg",
-                            Role = "User",
-                            Username = "amina"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            CreatedAtUtc = new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Email = "emir@fitbook.com",
-                            FirstName = "Emir",
-                            IsActive = true,
-                            IsDeleted = false,
-                            LastName = "Halilović",
-                            PasswordHash = "$2a$11$absRakK74SEnr3k6jdjqHeTmEa7SE2m2/0J09n4aSg/kLY1jGVW46",
-                            PhoneNumber = "+38761555011",
-                            ProfileImageUrl = "uploads/users/john.jpg",
-                            Role = "User",
-                            Username = "emir"
-                        },
-                        new
-                        {
-                            Id = 8,
-                            CreatedAtUtc = new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Email = "lejla@fitbook.com",
-                            FirstName = "Lejla",
-                            IsActive = true,
-                            IsDeleted = false,
-                            LastName = "Bećirović",
-                            PasswordHash = "$2a$11$absRakK74SEnr3k6jdjqHeTmEa7SE2m2/0J09n4aSg/kLY1jGVW46",
-                            PhoneNumber = "+38761555012",
-                            ProfileImageUrl = "uploads/users/jane.jpg",
-                            Role = "User",
-                            Username = "lejla"
                         });
                 });
 
@@ -1671,42 +1300,6 @@ namespace FitBook.Services.Migrations
                             StartDateUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Status = 2,
                             UserAccountId = 2
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CreatedAtUtc = new DateTime(2026, 3, 30, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndDateUtc = new DateTime(2026, 5, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsActive = false,
-                            IsDeleted = false,
-                            MembershipPackageId = 1,
-                            StartDateUtc = new DateTime(2026, 4, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = 3,
-                            UserAccountId = 6
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CreatedAtUtc = new DateTime(2026, 4, 28, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndDateUtc = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsActive = false,
-                            IsDeleted = false,
-                            MembershipPackageId = 2,
-                            StartDateUtc = new DateTime(2026, 5, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = 4,
-                            UserAccountId = 7
-                        },
-                        new
-                        {
-                            Id = 4,
-                            CreatedAtUtc = new DateTime(2026, 7, 10, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndDateUtc = new DateTime(2026, 7, 10, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsActive = false,
-                            IsDeleted = false,
-                            MembershipPackageId = 3,
-                            StartDateUtc = new DateTime(2026, 7, 10, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Status = 1,
-                            UserAccountId = 8
                         });
                 });
 

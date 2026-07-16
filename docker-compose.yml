@@ -4,6 +4,7 @@ services:
   fitbook-db:
     image: ${SQLSERVER_IMAGE:-mcr.microsoft.com/mssql/server:2022-CU13-ubuntu-22.04}
     container_name: fitbook-db
+    restart: unless-stopped
     environment:
       ACCEPT_EULA: ${ACCEPT_EULA:-Y}
       MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-FitBook_230163!}
@@ -17,6 +18,7 @@ services:
   fitbook-rabbitmq:
     image: rabbitmq:3.13-management
     container_name: fitbook-rabbitmq
+    restart: unless-stopped
     environment:
       RABBITMQ_DEFAULT_USER: ${RabbitMQ__Username:-guest}
       RABBITMQ_DEFAULT_PASS: ${RabbitMQ__Password:-guest}
@@ -33,10 +35,12 @@ services:
       context: .
       dockerfile: FitBook.WebAPI/Dockerfile
     container_name: fitbook-api
+    restart: unless-stopped
     env_file:
       - .env
     environment:
       ConnectionStrings__DefaultConnection: Server=fitbook-db;Database=${DB_NAME:-230163};User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False;
+      RabbitMQ__Host: fitbook-rabbitmq
       ASPNETCORE_URLS: http://+:5121
     ports:
       - "${API_HOST_PORT:-5121}:5121"
@@ -51,8 +55,11 @@ services:
       context: .
       dockerfile: FitBook.Worker/Dockerfile
     container_name: fitbook-worker
+    restart: unless-stopped
     env_file:
       - .env
+    environment:
+      RabbitMQ__Host: fitbook-rabbitmq
     depends_on:
       - fitbook-rabbitmq
     networks:

@@ -40,10 +40,16 @@ public abstract class BaseCRUDService<TEntity, TResponse, TSearch, TInsertReques
         ApplyInsertDefaults(entity);
         await BeforeInsert(request, entity, cancellationToken);
 
-        _dbContext.Set<TEntity>().Add(entity);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await using (var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken))
+        {
+            _dbContext.Set<TEntity>().Add(entity);
+            await _dbContext.SaveChangesAsync(cancellationToken);
 
-        await AfterInsert(entity, cancellationToken);
+            await AfterInsert(entity, cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
+        }
+
         _logger.LogInformation(
             "Inserted {EntityType} with id {EntityId}",
             typeof(TEntity).Name,
@@ -59,17 +65,23 @@ public abstract class BaseCRUDService<TEntity, TResponse, TSearch, TInsertReques
         var entity = await FindWriteEntityByIdAsync(id, cancellationToken);
         if (entity is null)
         {
-            throw new NotFoundException($"{typeof(TEntity).Name} with id {id} was not found.");
+            throw new NotFoundException($"Zapis tipa '{typeof(TEntity).Name}' sa ID {id} nije pronađen.");
         }
 
         await ValidateUpdate(id, request, entity, cancellationToken);
         await BeforeUpdate(id, request, entity, cancellationToken);
 
-        MapUpdateToEntity(request, entity);
-        entity.UpdatedAtUtc = DateTime.UtcNow;
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await using (var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken))
+        {
+            MapUpdateToEntity(request, entity);
+            entity.UpdatedAtUtc = DateTime.UtcNow;
+            await _dbContext.SaveChangesAsync(cancellationToken);
 
-        await AfterUpdate(id, request, entity, cancellationToken);
+            await AfterUpdate(id, request, entity, cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
+        }
+
         _logger.LogInformation(
             "Updated {EntityType} with id {EntityId}",
             typeof(TEntity).Name,
@@ -83,24 +95,30 @@ public abstract class BaseCRUDService<TEntity, TResponse, TSearch, TInsertReques
         var entity = await FindWriteEntityByIdAsync(id, cancellationToken);
         if (entity is null)
         {
-            throw new NotFoundException($"{typeof(TEntity).Name} with id {id} was not found.");
+            throw new NotFoundException($"Zapis tipa '{typeof(TEntity).Name}' sa ID {id} nije pronađen.");
         }
 
         await ValidateDelete(id, entity, cancellationToken);
         await BeforeDelete(id, entity, cancellationToken);
 
-        if (entity is ISoftDeletable softDeletableEntity)
+        await using (var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken))
         {
-            softDeletableEntity.IsDeleted = true;
-            entity.UpdatedAtUtc = DateTime.UtcNow;
-        }
-        else
-        {
-            _dbContext.Set<TEntity>().Remove(entity);
+            if (entity is ISoftDeletable softDeletableEntity)
+            {
+                softDeletableEntity.IsDeleted = true;
+                entity.UpdatedAtUtc = DateTime.UtcNow;
+            }
+            else
+            {
+                _dbContext.Set<TEntity>().Remove(entity);
+            }
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await AfterDelete(id, entity, cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
         }
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
-        await AfterDelete(id, entity, cancellationToken);
         _logger.LogInformation(
             "Deleted {EntityType} with id {EntityId}",
             typeof(TEntity).Name,

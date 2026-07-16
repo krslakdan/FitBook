@@ -1,6 +1,7 @@
 using FitBook.Common.Services.CryptoService;
 using FitBook.Model.Enums;
 using FitBook.Model.Exceptions;
+using FitBook.Model.Messages;
 using FitBook.Model.Requests.UserAccounts;
 using FitBook.Model.Responses.UserAccounts;
 using FitBook.Model.SearchObjects;
@@ -8,6 +9,7 @@ using FitBook.Services.Database;
 using FitBook.Services.Database.Entities;
 using FitBook.Services.Interfaces;
 using FitBook.Services.Interfaces.Auth;
+using FitBook.Services.Messaging;
 using FluentValidation;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
@@ -29,6 +31,7 @@ public class UserAccountService
     private readonly ICryptoService _cryptoService;
     private readonly IValidator<UserAccountChangeOwnPasswordRequest> _changeOwnPasswordValidator;
     private readonly IValidator<UserAccountAdminPasswordResetRequest> _adminPasswordResetValidator;
+    private readonly IEmailNotificationPublisher _emailNotificationPublisher;
 
     public UserAccountService(
         FitBookDbContext dbContext,
@@ -39,13 +42,15 @@ public class UserAccountService
         IValidator<UserAccountInsertRequest> insertValidator,
         IValidator<UserAccountUpdateRequest> updateValidator,
         IValidator<UserAccountChangeOwnPasswordRequest> changeOwnPasswordValidator,
-        IValidator<UserAccountAdminPasswordResetRequest> adminPasswordResetValidator)
+        IValidator<UserAccountAdminPasswordResetRequest> adminPasswordResetValidator,
+        IEmailNotificationPublisher emailNotificationPublisher)
         : base(dbContext, mapper, loggerFactory, insertValidator, updateValidator)
     {
         _cryptoService = cryptoService;
         _refreshTokenService= refreshTokenService;
         _changeOwnPasswordValidator = changeOwnPasswordValidator;
         _adminPasswordResetValidator = adminPasswordResetValidator;
+        _emailNotificationPublisher = emailNotificationPublisher;
     }
 
     protected override IQueryable<UserAccount> ApplyFilter(IQueryable<UserAccount> query, UserSearchObject search)
@@ -132,7 +137,7 @@ public class UserAccountService
 
         if (hasActiveReservations)
         {
-            throw new BusinessException("User account has active reservations and cannot be deleted.");
+            throw new BusinessException("Korisnički račun ima aktivne rezervacije i ne može biti obrisan.");
         }
 
         var hasActiveMembership = await _dbContext.UserMemberships
@@ -144,7 +149,7 @@ public class UserAccountService
 
         if (hasActiveMembership)
         {
-            throw new BusinessException("User account has active membership and cannot be deleted.");
+            throw new BusinessException("Korisnički račun ima aktivnu članarinu i ne može biti obrisan.");
         }
 
         var isTrainer = await _dbContext.Trainers
@@ -152,7 +157,7 @@ public class UserAccountService
 
         if (isTrainer)
         {
-            throw new BusinessException("User account is linked to an active trainer profile and cannot be deleted.");
+            throw new BusinessException("Korisnički račun je povezan sa aktivnim trenerskim profilom i ne može biti obrisan.");
         }
     }
 
@@ -170,7 +175,7 @@ public class UserAccountService
 
         if (!_cryptoService.VerifyPassword(request.CurrentPassword, user.PasswordHash))
         {
-            throw new BusinessException("Current password is incorrect.");
+            throw new BusinessException("Trenutna lozinka nije ispravna.");
         }
 
         await SetPasswordAndRevokeTokensAsync(user, request.NewPassword, cancellationToken);
@@ -185,6 +190,14 @@ public class UserAccountService
 
         await SetPasswordAndRevokeTokensAsync(user, request.NewPassword, cancellationToken);
         _logger.LogInformation("Admin reset password for user {UserId} successfully.", userId);
+
+        await _emailNotificationPublisher.PublishAsync(new EmailNotificationMessage
+        {
+            ToEmail = user.Email,
+            ToName = $"{user.FirstName} {user.LastName}",
+            Subject = "Vaša lozinka je promijenjena",
+            Body = $"Poštovani {user.FirstName}, Vaša lozinka za FitBook nalog je upravo promijenjena od strane administratora. Ako niste vi zatražili ovu izmjenu, odmah kontaktirajte podršku.",
+        }, cancellationToken);
     }
 
     private async Task<UserAccount> GetUserForPasswordChangeAsync(int userId, CancellationToken cancellationToken)
@@ -194,7 +207,7 @@ public class UserAccountService
 
         if (user is null)
         {
-            throw new NotFoundException($"UserAccount with id {userId} was not found.");
+            throw new NotFoundException($"Korisnički račun sa ID {userId} nije pronađen.");
         }
 
         return user;
@@ -202,10 +215,14 @@ public class UserAccountService
 
     private async Task SetPasswordAndRevokeTokensAsync(UserAccount user, string newPassword, CancellationToken cancellationToken)
     {
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+
         user.PasswordHash = _cryptoService.HashPassword(newPassword);
         user.UpdatedAtUtc = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync(cancellationToken);
         await _refreshTokenService.RevokeAllUserRefreshTokensAsync(user.Id, cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
     }
 
     private async Task EnsureUniqueEmailAsync(string email, int? excludedUserId, CancellationToken cancellationToken)
@@ -220,7 +237,7 @@ public class UserAccountService
 
         if (exists)
         {
-            throw new BusinessException("Email already exists.");
+            throw new BusinessException("Email adresa već postoji.");
         }
     }
 
@@ -236,7 +253,7 @@ public class UserAccountService
 
         if (exists)
         {
-            throw new BusinessException("Username already exists.");
+            throw new BusinessException("Korisničko ime već postoji.");
         }
     }
 }

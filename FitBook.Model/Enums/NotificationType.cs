@@ -12,5 +12,6 @@ public enum NotificationType
     MembershipCancelled = 8,
     MembershipExpired = 9,
     TrainingTermCancelled = 10,
-    MembershipPaymentFailed = 11
+    MembershipPaymentFailed = 11,
+    ReservationReminder = 12
 }

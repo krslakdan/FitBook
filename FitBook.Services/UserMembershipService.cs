@@ -1,6 +1,7 @@
 using FitBook.Model.Constants;
 using FitBook.Model.Enums;
 using FitBook.Model.Exceptions;
+using FitBook.Model.Messages;
 using FitBook.Model.Requests.UserMemberships;
 using FitBook.Model.Responses.Payments;
 using FitBook.Model.Responses.UserMemberships;
@@ -8,6 +9,7 @@ using FitBook.Model.SearchObjects;
 using FitBook.Services.Database;
 using FitBook.Services.Database.Entities;
 using FitBook.Services.Interfaces;
+using FitBook.Services.Messaging;
 using FluentValidation;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
@@ -36,6 +38,7 @@ public class UserMembershipService
     private readonly ICurrentUserService _currentUserService;
     private readonly IValidator<UserMembershipCancelRequest> _cancelValidator;
     private readonly IStripePaymentService _stripePaymentService;
+    private readonly IEmailNotificationPublisher _emailNotificationPublisher;
 
     public UserMembershipService(
         FitBookDbContext dbContext,
@@ -45,12 +48,14 @@ public class UserMembershipService
         IValidator<UserMembershipInsertRequest> insertValidator,
         IValidator<UserMembershipUpdateRequest> updateValidator,
         IValidator<UserMembershipCancelRequest> cancelValidator,
-        IStripePaymentService stripePaymentService)
+        IStripePaymentService stripePaymentService,
+        IEmailNotificationPublisher emailNotificationPublisher)
         : base(dbContext, mapper, loggerFactory, insertValidator, updateValidator)
     {
         _currentUserService = currentUserService;
         _cancelValidator = cancelValidator;
         _stripePaymentService = stripePaymentService;
+        _emailNotificationPublisher = emailNotificationPublisher;
     }
 
     protected override IQueryable<UserMembership> ApplyFilter(IQueryable<UserMembership> query, MembershipSearchObject search)
@@ -97,7 +102,7 @@ public class UserMembershipService
 
         if (package is null)
         {
-            throw new NotFoundException($"MembershipPackage with id {request.MembershipPackageId} was not found.");
+            throw new NotFoundException($"Paket članarine sa ID {request.MembershipPackageId} nije pronađen.");
         }
 
         if (!package.IsActive)
@@ -151,7 +156,7 @@ public class UserMembershipService
 
         if (membership is null)
         {
-            throw new NotFoundException($"UserMembership with id {id} was not found.");
+            throw new NotFoundException($"Članarina sa ID {id} nije pronađena.");
         }
 
         var currentUserId = _currentUserService.GetRequiredUserId();
@@ -207,7 +212,7 @@ public class UserMembershipService
 
         if (membership is null)
         {
-            throw new NotFoundException($"UserMembership with id {id} was not found.");
+            throw new NotFoundException($"Članarina sa ID {id} nije pronađena.");
         }
 
         if (!_currentUserService.IsAdmin())
@@ -255,7 +260,7 @@ public class UserMembershipService
 
         if (membership is null)
         {
-            throw new NotFoundException($"UserMembership with id {id} was not found.");
+            throw new NotFoundException($"Članarina sa ID {id} nije pronađena.");
         }
 
         var currentUserId = _currentUserService.GetRequiredUserId();
@@ -367,6 +372,8 @@ public class UserMembershipService
         var payment = await _dbContext.MembershipPayments
             .Include(x => x.UserMembership)
                 .ThenInclude(um => um!.MembershipPackage)
+            .Include(x => x.UserMembership)
+                .ThenInclude(um => um!.UserAccount)
             .FirstOrDefaultAsync(x => x.PaymentIntentId == paymentIntentId, cancellationToken);
 
         if (payment == null)
@@ -423,6 +430,17 @@ public class UserMembershipService
 
         await _dbContext.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Payment {PaymentId} marked as Completed. Membership {MembershipId} processed.", payment.Id, membership.Id);
+
+        if (membership.Status == MembershipStatus.Active && membership.UserAccount is not null)
+        {
+            await _emailNotificationPublisher.PublishAsync(new EmailNotificationMessage
+            {
+                ToEmail = membership.UserAccount.Email,
+                ToName = $"{membership.UserAccount.FirstName} {membership.UserAccount.LastName}",
+                Subject = "Plaćanje članarine uspješno",
+                Body = $"Poštovani, Vaša članarina je uspješno plaćena i sada je aktivna do {membership.EndDateUtc:dd.MM.yyyy}. Hvala!",
+            }, cancellationToken);
+        }
     }
 
     public async Task MarkPaymentFailedAsync(string paymentIntentId, CancellationToken cancellationToken = default)

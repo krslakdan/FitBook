@@ -143,7 +143,7 @@ public class TrainingTermService
 
         if (term is null)
         {
-            throw new NotFoundException($"TrainingTerm with id {id} was not found.");
+            throw new NotFoundException($"Trening termin sa ID {id} nije pronađen.");
         }
 
         if (term.Status == TrainingTermStatus.Cancelled)
@@ -156,16 +156,21 @@ public class TrainingTermService
             throw new BusinessException("Nije moguće otkazati završeni termin treninga.");
         }
 
-        term.Status = TrainingTermStatus.Cancelled;
-        term.IsActive = false;
-        term.UpdatedAtUtc = DateTime.UtcNow;
+        await using (var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken))
+        {
+            term.Status = TrainingTermStatus.Cancelled;
+            term.IsActive = false;
+            term.UpdatedAtUtc = DateTime.UtcNow;
 
-        await _reservationService.CancelAllForTrainingTermAsync(
-            term.Id,
-            request.Reason ?? "Termin treninga je otkazan od strane administratora.",
-            cancellationToken);
+            await _reservationService.CancelAllForTrainingTermAsync(
+                term.Id,
+                request.Reason ?? "Termin treninga je otkazan od strane administratora.",
+                cancellationToken);
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
+        }
 
         _logger.LogInformation(
             "TrainingTerm {TermId} cancelled. Reason: {Reason}",
@@ -182,7 +187,7 @@ public class TrainingTermService
 
         if (term is null)
         {
-            throw new NotFoundException($"TrainingTerm with id {id} was not found.");
+            throw new NotFoundException($"Trening termin sa ID {id} nije pronađen.");
         }
 
         if (term.Status == TrainingTermStatus.Completed)
@@ -217,7 +222,7 @@ public class TrainingTermService
 
         if (training is null)
         {
-            throw new NotFoundException($"Training with id {trainingId} was not found.");
+            throw new NotFoundException($"Trening sa ID {trainingId} nije pronađen.");
         }
 
         if (!training.IsActive)
@@ -235,7 +240,7 @@ public class TrainingTermService
 
         if (trainer is null)
         {
-            throw new NotFoundException($"Trainer with id {trainerId} was not found.");
+            throw new NotFoundException($"Trener sa ID {trainerId} nije pronađen.");
         }
 
         if (!trainer.IsActive)
@@ -253,7 +258,7 @@ public class TrainingTermService
 
         if (hall is null)
         {
-            throw new NotFoundException($"Hall with id {hallId} was not found.");
+            throw new NotFoundException($"Sala sa ID {hallId} nije pronađena.");
         }
 
         if (!hall.IsActive)

@@ -72,7 +72,7 @@ public class RefreshTokenService : IRefreshTokenService
     public async Task<RefreshToken> RotateRefreshTokenAsync(string existingToken, CancellationToken cancellationToken = default)
     {
         var oldToken = await _context.RefreshTokens.SingleOrDefaultAsync(x => x.Token == existingToken, cancellationToken);
-        if (oldToken == null) throw new NotFoundException("Refresh token not found");
+        if (oldToken == null) throw new NotFoundException("Refresh token nije pronađen.");
 
         var newToken = GenerateSecureToken();
         var daysToLive = int.Parse(_configuration["RefreshToken:ExpirationDays"] ?? "7");

@@ -9,6 +9,7 @@ public class Reservation : BaseEntity
     public DateTime? ConfirmedAtUtc { get; set; }
     public DateTime? CancelledAtUtc { get; set; }
     public DateTime? CompletedAtUtc { get; set; }
+    public DateTime? ReminderSentAtUtc { get; set; }
     public string? CancellationReason { get; set; }
 
     public int UserAccountId { get; set; }

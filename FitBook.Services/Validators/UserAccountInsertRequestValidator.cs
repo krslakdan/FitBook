@@ -10,20 +10,36 @@ public class UserAccountInsertRequestValidator : AbstractValidator<UserAccountIn
 
     public UserAccountInsertRequestValidator()
     {
-        RuleFor(x => x.FirstName).NotEmpty().MinimumLength(2).MaximumLength(100);
-        RuleFor(x => x.LastName).NotEmpty().MinimumLength(2).MaximumLength(100);
-        RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(200);
+        RuleFor(x => x.FirstName)
+            .NotEmpty().WithMessage("Ime je obavezno.")
+            .MinimumLength(2).WithMessage("Ime mora imati najmanje 2 karaktera.")
+            .MaximumLength(100).WithMessage("Ime ne smije biti duže od 100 karaktera.");
+        RuleFor(x => x.LastName)
+            .NotEmpty().WithMessage("Prezime je obavezno.")
+            .MinimumLength(2).WithMessage("Prezime mora imati najmanje 2 karaktera.")
+            .MaximumLength(100).WithMessage("Prezime ne smije biti duže od 100 karaktera.");
+        RuleFor(x => x.Email)
+            .NotEmpty().WithMessage("Email adresa je obavezna.")
+            .EmailAddress().WithMessage("Email adresa nije u ispravnom formatu.")
+            .MaximumLength(200).WithMessage("Email adresa ne smije biti duža od 200 karaktera.");
         RuleFor(x => x.PhoneNumber)
-            .NotEmpty()
+            .NotEmpty().WithMessage("Broj telefona je obavezan.")
             .Matches(PhonePattern)
             .WithMessage("Broj telefona nije u ispravnom formatu.")
-            .MaximumLength(30);
-        RuleFor(x => x.Username).NotEmpty().MinimumLength(3).MaximumLength(100);
-        RuleFor(x => x.Password).NotEmpty().MinimumLength(8).MaximumLength(128);
+            .MaximumLength(30).WithMessage("Broj telefona ne smije biti duži od 30 karaktera.");
+        RuleFor(x => x.Username)
+            .NotEmpty().WithMessage("Korisničko ime je obavezno.")
+            .MinimumLength(3).WithMessage("Korisničko ime mora imati najmanje 3 karaktera.")
+            .MaximumLength(100).WithMessage("Korisničko ime ne smije biti duže od 100 karaktera.");
+        RuleFor(x => x.Password)
+            .NotEmpty().WithMessage("Lozinka je obavezna.")
+            .MinimumLength(8).WithMessage("Lozinka mora imati najmanje 8 karaktera.")
+            .MaximumLength(128).WithMessage("Lozinka ne smije biti duža od 128 karaktera.");
         RuleFor(x => x.Role)
-            .NotEmpty()
+            .NotEmpty().WithMessage("Uloga je obavezna.")
             .Must(role => Roles.All.Contains(role))
             .WithMessage($"Role mora biti jedna od: {string.Join(", ", Roles.All)}.");
-        RuleFor(x => x.ProfileImageUrl).MaximumLength(500);
+        RuleFor(x => x.ProfileImageUrl)
+            .MaximumLength(500).WithMessage("URL profilne slike ne smije biti duži od 500 karaktera.");
     }
 }

@@ -49,7 +49,7 @@ public class TrainingEquipmentService
 
         if (!trainingExists)
         {
-            throw new NotFoundException($"Training with id {trainingId} was not found.");
+            throw new NotFoundException($"Trening sa ID {trainingId} nije pronađen.");
         }
     }
 }

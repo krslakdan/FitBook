@@ -53,7 +53,7 @@ public class SystemNotificationService
 
         if (notification == null)
         {
-            throw new NotFoundException($"SystemNotification with id {id} was not found.");
+            throw new NotFoundException($"Notifikacija sa ID {id} nije pronađena.");
         }
 
         if (notification.UserAccountId != currentUserId)

@@ -20,6 +20,7 @@ public class ReservationConfiguration : IEntityTypeConfiguration<Reservation>
             .IsUnique()
             .HasFilter("[Status] IN (1, 2)");
         builder.HasIndex(x => new { x.TrainingTermId, x.Status });
+        builder.HasIndex(x => new { x.Status, x.ReminderSentAtUtc });
 
         builder.HasOne(x => x.UserAccount)
             .WithMany(x => x.Reservations)

@@ -1,12 +1,14 @@
 using FitBook.Model.Constants;
 using FitBook.Model.Enums;
 using FitBook.Model.Exceptions;
+using FitBook.Model.Messages;
 using FitBook.Model.Requests.Reservations;
 using FitBook.Model.Responses.Reservations;
 using FitBook.Model.SearchObjects;
 using FitBook.Services.Database;
 using FitBook.Services.Database.Entities;
 using FitBook.Services.Interfaces;
+using FitBook.Services.Messaging;
 using FluentValidation;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
@@ -38,6 +40,7 @@ public class ReservationService
 
     private readonly ICurrentUserService _currentUserService;
     private readonly IValidator<ReservationCancelRequest> _cancelValidator;
+    private readonly IEmailNotificationPublisher _emailNotificationPublisher;
 
     public ReservationService(
         FitBookDbContext dbContext,
@@ -46,11 +49,13 @@ public class ReservationService
         ICurrentUserService currentUserService,
         IValidator<ReservationInsertRequest> insertValidator,
         IValidator<ReservationUpdateRequest> updateValidator,
-        IValidator<ReservationCancelRequest> cancelValidator)
+        IValidator<ReservationCancelRequest> cancelValidator,
+        IEmailNotificationPublisher emailNotificationPublisher)
         : base(dbContext, mapper, loggerFactory, insertValidator, updateValidator)
     {
         _currentUserService = currentUserService;
         _cancelValidator = cancelValidator;
+        _emailNotificationPublisher = emailNotificationPublisher;
     }
 
     protected override IQueryable<Reservation> ApplyFilter(IQueryable<Reservation> query, ReservationSearchObject search)
@@ -126,7 +131,7 @@ public class ReservationService
 
         if (term is null)
         {
-            throw new NotFoundException($"TrainingTerm with id {request.TrainingTermId} was not found.");
+            throw new NotFoundException($"Trening termin sa ID {request.TrainingTermId} nije pronađen.");
         }
 
         if (!term.IsActive)
@@ -243,6 +248,17 @@ public class ReservationService
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
+        if (reservation.UserAccount is not null)
+        {
+            await _emailNotificationPublisher.PublishAsync(new EmailNotificationMessage
+            {
+                ToEmail = reservation.UserAccount.Email,
+                ToName = $"{reservation.UserAccount.FirstName} {reservation.UserAccount.LastName}",
+                Subject = "Vaša rezervacija je potvrđena",
+                Body = $"Poštovani, Vaša rezervacija za {termStartFormatted} je uspješno potvrđena.",
+            }, cancellationToken);
+        }
+
         _logger.LogInformation(
             "Reservation {ReservationId} confirmed by user {UserId}.",
             reservation.Id,
@@ -272,6 +288,8 @@ public class ReservationService
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
+        await PublishCancellationEmailAsync(reservation, request.Reason, cancellationToken);
+
         _logger.LogInformation(
             "Reservation {ReservationId} cancelled by user {UserId}. Reason: {Reason}",
             reservation.Id,
@@ -284,6 +302,7 @@ public class ReservationService
     public async Task CancelAllForTrainingTermAsync(int trainingTermId, string reason, CancellationToken cancellationToken = default)
     {
         var reservations = await _dbContext.Reservations
+            .Include(r => r.UserAccount)
             .Include(r => r.TrainingTerm)
             .Where(r => r.TrainingTermId == trainingTermId && _activeStatuses.Contains(r.Status))
             .ToListAsync(cancellationToken);
@@ -296,10 +315,84 @@ public class ReservationService
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
+        foreach (var reservation in reservations)
+        {
+            await PublishCancellationEmailAsync(reservation, reason, cancellationToken);
+        }
+
         _logger.LogInformation(
             "Cancelled {Count} reservations for TrainingTerm {TermId}.",
             reservations.Count,
             trainingTermId);
+    }
+
+    public async Task<int> SendDueRemindersAsync(TimeSpan reminderLeadTime, CancellationToken cancellationToken = default)
+    {
+        var now = DateTime.UtcNow;
+        var reminderCutoff = now.Add(reminderLeadTime);
+
+        var dueReservations = await _dbContext.Reservations
+            .Include(r => r.UserAccount)
+            .Include(r => r.TrainingTerm)
+            .Where(r => r.Status == ReservationStatus.Confirmed
+                        && r.ReminderSentAtUtc == null
+                        && r.TrainingTerm != null
+                        && r.TrainingTerm.StartTimeUtc > now
+                        && r.TrainingTerm.StartTimeUtc <= reminderCutoff)
+            .ToListAsync(cancellationToken);
+
+        if (dueReservations.Count == 0)
+        {
+            return 0;
+        }
+
+        foreach (var reservation in dueReservations)
+        {
+            reservation.ReminderSentAtUtc = now;
+
+            var termStartFormatted = reservation.TrainingTerm is not null
+                ? reservation.TrainingTerm.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC"
+                : $"termin #{reservation.TrainingTermId}";
+
+            _dbContext.SystemNotifications.Add(new SystemNotification
+            {
+                UserAccountId = reservation.UserAccountId,
+                NotificationType = NotificationType.ReservationReminder,
+                Title = "Podsjetnik: trening uskoro počinje",
+                Content = $"Podsjetnik: Vaš trening zakazan za {termStartFormatted} uskoro počinje.",
+                IsRead = false,
+                CreatedAtUtc = now,
+            });
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        foreach (var reservation in dueReservations)
+        {
+            if (reservation.UserAccount is null)
+            {
+                continue;
+            }
+
+            var termStartFormatted = reservation.TrainingTerm is not null
+                ? reservation.TrainingTerm.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC"
+                : $"termin #{reservation.TrainingTermId}";
+
+            await _emailNotificationPublisher.PublishAsync(new EmailNotificationMessage
+            {
+                ToEmail = reservation.UserAccount.Email,
+                ToName = $"{reservation.UserAccount.FirstName} {reservation.UserAccount.LastName}",
+                Subject = "Podsjetnik: trening uskoro počinje",
+                Body = $"Poštovani, ovo je podsjetnik da Vaš trening zakazan za {termStartFormatted} uskoro počinje.",
+            }, cancellationToken);
+        }
+
+        _logger.LogInformation(
+            "Sent {Count} reservation reminder(s) for trainings starting within {LeadTime}.",
+            dueReservations.Count,
+            reminderLeadTime);
+
+        return dueReservations.Count;
     }
 
     private void ApplyCancellation(Reservation reservation, string? reason)
@@ -326,6 +419,26 @@ public class ReservationService
             IsRead = false,
             CreatedAtUtc = DateTime.UtcNow,
         });
+    }
+
+    private async Task PublishCancellationEmailAsync(Reservation reservation, string? reason, CancellationToken cancellationToken)
+    {
+        if (reservation.UserAccount is null)
+        {
+            return;
+        }
+
+        var termStartFormatted = reservation.TrainingTerm is not null
+            ? reservation.TrainingTerm.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC"
+            : $"termin #{reservation.TrainingTermId}";
+
+        await _emailNotificationPublisher.PublishAsync(new EmailNotificationMessage
+        {
+            ToEmail = reservation.UserAccount.Email,
+            ToName = $"{reservation.UserAccount.FirstName} {reservation.UserAccount.LastName}",
+            Subject = "Vaša rezervacija je otkazana",
+            Body = $"Poštovani, Vaša rezervacija za {termStartFormatted} je otkazana. Razlog: {reason}",
+        }, cancellationToken);
     }
 
     public async Task<ReservationResponse> CompleteAsync(int id, CancellationToken cancellationToken = default)
@@ -441,6 +554,7 @@ public class ReservationService
     private async Task<Reservation> FindTrackedReservationAsync(int id, CancellationToken cancellationToken)
     {
         var reservation = await _dbContext.Reservations
+            .Include(r => r.UserAccount)
             .Include(r => r.TrainingTerm)
                 .ThenInclude(t => t!.Trainer)
             .Include(r => r.TrainingTerm)
@@ -449,7 +563,7 @@ public class ReservationService
 
         if (reservation is null)
         {
-            throw new NotFoundException($"Reservation with id {id} was not found.");
+            throw new NotFoundException($"Rezervacija sa ID {id} nije pronađena.");
         }
 
         return reservation;
