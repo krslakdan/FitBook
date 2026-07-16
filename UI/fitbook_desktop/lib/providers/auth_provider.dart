@@ -1,0 +1,108 @@
+import 'dart:convert';
+
+import '../models/requests/auth/logout_request.dart';
+import '../models/requests/auth/refresh_token_request.dart';
+import '../models/requests/auth/user_login_request.dart';
+import '../models/responses/auth/refresh_token_response.dart';
+import '../models/responses/auth/user_login_response.dart';
+import 'auth_session.dart';
+import 'base_provider.dart';
+
+/// Talks to `AuthController` (`api/auth`). Not a CRUD resource, so it
+/// extends [BaseProvider] directly instead of [BaseCrudProvider] — there is
+/// no single response type it manages, just the login/refresh/logout flow.
+///
+/// Deliberately has no `register()` — self-registration is a public mobile
+/// flow (`POST /auth/register`); the desktop admin app only ever logs in
+/// with a pre-seeded/admin-created account (new accounts are created via
+/// `UserAccountProvider.insert`, not self-registration).
+class AuthProvider extends BaseProvider {
+  AuthProvider() {
+    AuthSession.refreshHandler = _performRefresh;
+  }
+
+  bool get isAuthenticated => AuthSession.accessToken != null;
+
+  int? get currentUserId {
+    final id = _claim('Id');
+    return id == null ? null : int.tryParse(id);
+  }
+
+  String? get currentUsername => _claim('Username');
+  String? get currentFirstName => _claim('FirstName');
+  String? get currentLastName => _claim('LastName');
+  String? get currentEmail => _claim('Email');
+  String? get currentRole => _claim('Role');
+
+  Future<void> login(UserLoginRequest request) async {
+    final response = await apiPost('auth/login', body: request);
+    final loginResponse = UserLoginResponse.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
+    AuthSession.accessToken = loginResponse.accessToken;
+    AuthSession.refreshToken = loginResponse.refreshToken;
+    await AuthSession.persist();
+    notifyListeners();
+  }
+
+  Future<void> logout() async {
+    final refreshToken = AuthSession.refreshToken;
+    if (refreshToken != null) {
+      try {
+        await apiPost('auth/logout', body: LogoutRequest(refreshToken: refreshToken));
+      } on Exception {
+        // Best-effort: the local session is cleared below regardless, so an
+        // unreachable server (or an already-expired token) shouldn't block
+        // logging out on the client.
+      }
+    }
+    await AuthSession.clear();
+    notifyListeners();
+  }
+
+  /// Reads a previously persisted session on app startup. Returns whether a
+  /// session was restored so the caller can decide login vs. home screen.
+  Future<bool> tryRestoreSession() async {
+    await AuthSession.restore();
+    notifyListeners();
+    return isAuthenticated;
+  }
+
+  Future<bool> _performRefresh() async {
+    final refreshToken = AuthSession.refreshToken;
+    if (refreshToken == null) return false;
+
+    try {
+      final response = await apiPost(
+        'auth/refresh',
+        body: RefreshTokenRequest(refreshToken: refreshToken),
+      );
+      final refreshResponse = RefreshTokenResponse.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>,
+      );
+      AuthSession.accessToken = refreshResponse.accessToken;
+      AuthSession.refreshToken = refreshResponse.refreshToken;
+      await AuthSession.persist();
+      return true;
+    } on Exception {
+      return false;
+    }
+  }
+
+  String? _claim(String name) {
+    final token = AuthSession.accessToken;
+    if (token == null) return null;
+
+    final parts = token.split('.');
+    if (parts.length != 3) return null;
+
+    try {
+      final payload =
+          jsonDecode(utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))))
+              as Map<String, dynamic>;
+      return payload[name] as String?;
+    } catch (_) {
+      return null;
+    }
+  }
+}

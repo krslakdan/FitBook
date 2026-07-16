@@ -1,0 +1,35 @@
+import 'package:json_annotation/json_annotation.dart';
+
+import '../common/api_request_body.dart';
+
+part 'trainer_insert_request.g.dart';
+
+/// Mirrors `FitBook.Model.Requests.TrainerInsertRequest`.
+@JsonSerializable()
+class TrainerInsertRequest implements ApiRequestBody {
+  TrainerInsertRequest({
+    required this.firstName,
+    required this.lastName,
+    required this.specialization,
+    this.biography,
+    this.imageUrl,
+    required this.isAvailable,
+    required this.isActive,
+    required this.userAccountId,
+  });
+
+  final String firstName;
+  final String lastName;
+  final String specialization;
+  final String? biography;
+  final String? imageUrl;
+  final bool isAvailable;
+  final bool isActive;
+  final int userAccountId;
+
+  factory TrainerInsertRequest.fromJson(Map<String, dynamic> json) =>
+      _$TrainerInsertRequestFromJson(json);
+
+  @override
+  Map<String, dynamic> toJson() => _$TrainerInsertRequestToJson(this);
+}
