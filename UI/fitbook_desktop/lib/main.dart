@@ -14,6 +14,8 @@ import 'providers/training_equipment_provider.dart';
 import 'providers/training_provider.dart';
 import 'providers/training_term_provider.dart';
 import 'providers/user_account_provider.dart';
+import 'screens/home_screen.dart';
+import 'screens/login_screen.dart';
 
 void main() {
   runApp(const FitBookDesktopApp());
@@ -24,6 +26,8 @@ class FitBookDesktopApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = ColorScheme.fromSeed(seedColor: const Color(0xFF00695C));
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
@@ -42,7 +46,18 @@ class FitBookDesktopApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'FitBook Desktop',
-        theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple)),
+        theme: ThemeData(
+          colorScheme: colorScheme,
+          inputDecorationTheme: InputDecorationTheme(
+            filled: true,
+            fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+        ),
         home: const _StartupGate(),
       ),
     );
@@ -75,16 +90,7 @@ class _StartupGateState extends State<_StartupGate> {
         }
 
         final isAuthenticated = snapshot.data ?? false;
-        return Scaffold(
-          appBar: AppBar(title: const Text('FitBook Desktop')),
-          body: Center(
-            child: Text(
-              isAuthenticated
-                  ? 'Prijavljeni ste. Ekrani stižu u sljedećoj fazi.'
-                  : 'Niste prijavljeni. Ekran za prijavu stiže u sljedećoj fazi.',
-            ),
-          ),
-        );
+        return isAuthenticated ? const HomeScreen() : const LoginScreen();
       },
     );
   }

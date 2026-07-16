@@ -41,7 +41,10 @@ class AuthProvider extends BaseProvider {
     final refreshToken = AuthSession.refreshToken;
     if (refreshToken != null) {
       try {
-        await apiPost('auth/logout', body: LogoutRequest(refreshToken: refreshToken));
+        await apiPost(
+          'auth/logout',
+          body: LogoutRequest(refreshToken: refreshToken),
+        );
       } on Exception {
         // Best-effort: the local session is cleared below regardless, so an
         // unreachable server (or an already-expired token) shouldn't block
@@ -88,7 +91,9 @@ class AuthProvider extends BaseProvider {
 
     try {
       final payload =
-          jsonDecode(utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))))
+          jsonDecode(
+                utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
+              )
               as Map<String, dynamic>;
       return payload[name] as String?;
     } catch (_) {
