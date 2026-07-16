@@ -1,6 +1,5 @@
 import '../common/base_search_object.dart';
 
-/// Mirrors `FitBook.Model.SearchObjects.MembershipPackageSearchObject`.
 class MembershipPackageSearchObject extends BaseSearchObject {
   const MembershipPackageSearchObject({
     super.page,

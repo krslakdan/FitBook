@@ -1,9 +1,5 @@
 import 'dart:convert';
 
-/// Thrown by [BaseProvider] whenever the API returns a non-success status.
-/// Carries the human-readable message the backend produced (see
-/// `FitBook.WebAPI/Filters/ExceptionFilter.cs`) so screens can show it
-/// directly instead of a generic "something went wrong".
 class ApiClientException implements Exception {
   ApiClientException(this.message, {this.statusCode});
 
@@ -14,16 +10,11 @@ class ApiClientException implements Exception {
   String toString() => message;
 }
 
-/// Thrown when the API responds 401 and the access token could not be
-/// refreshed (or there was no session to refresh). Screens should catch
-/// this specifically and navigate back to the login screen.
 class UnauthorizedException extends ApiClientException {
   UnauthorizedException([super.message = 'Sesija je istekla. Prijavite se ponovo.'])
     : super(statusCode: 401);
 }
 
-/// Parses the `{ message, errors }` error body FitBook's `ExceptionFilter`
-/// always produces into a single human-readable string.
 class ApiErrorParser {
   ApiErrorParser._();
 

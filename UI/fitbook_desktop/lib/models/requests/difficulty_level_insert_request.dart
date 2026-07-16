@@ -4,7 +4,6 @@ import '../common/api_request_body.dart';
 
 part 'difficulty_level_insert_request.g.dart';
 
-/// Mirrors `FitBook.Model.Requests.DifficultyLevelInsertRequest`.
 @JsonSerializable()
 class DifficultyLevelInsertRequest implements ApiRequestBody {
   DifficultyLevelInsertRequest({

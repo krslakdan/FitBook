@@ -1,7 +1,5 @@
 import '../common/base_search_object.dart';
 
-/// Mirrors `FitBook.Model.SearchObjects.UserSearchObject` (used by
-/// `UserAccountsController`).
 class UserSearchObject extends BaseSearchObject {
   const UserSearchObject({
     super.page,

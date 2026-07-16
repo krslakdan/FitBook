@@ -4,7 +4,6 @@ import '../common/api_request_body.dart';
 
 part 'training_term_cancel_request.g.dart';
 
-/// Mirrors `FitBook.Model.Requests.TrainingTermCancelRequest`.
 @JsonSerializable()
 class TrainingTermCancelRequest implements ApiRequestBody {
   TrainingTermCancelRequest({this.reason});

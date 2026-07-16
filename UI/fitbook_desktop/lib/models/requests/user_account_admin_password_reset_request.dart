@@ -4,7 +4,6 @@ import '../common/api_request_body.dart';
 
 part 'user_account_admin_password_reset_request.g.dart';
 
-/// Mirrors `FitBook.Model.Requests.UserAccounts.UserAccountAdminPasswordResetRequest`.
 @JsonSerializable()
 class UserAccountAdminPasswordResetRequest implements ApiRequestBody {
   UserAccountAdminPasswordResetRequest({required this.newPassword});

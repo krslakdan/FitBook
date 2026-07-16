@@ -4,7 +4,6 @@ import '../common/api_request_body.dart';
 
 part 'training_term_insert_request.g.dart';
 
-/// Mirrors `FitBook.Model.Requests.TrainingTermInsertRequest`.
 @JsonSerializable()
 class TrainingTermInsertRequest implements ApiRequestBody {
   TrainingTermInsertRequest({

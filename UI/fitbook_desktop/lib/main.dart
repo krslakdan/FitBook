@@ -19,12 +19,6 @@ void main() {
   runApp(const FitBookDesktopApp());
 }
 
-/// Root widget. Registers every provider once (mirroring the backend's
-/// service registrations) so any screen can reach them via `context.read`/
-/// `context.watch`. The actual UI (login/master screen/etc.) is built in the
-/// next phase — [_StartupGate] here only restores a persisted session and
-/// shows a minimal placeholder, so the whole model/provider layer can be
-/// compiled and exercised end-to-end before screens exist.
 class FitBookDesktopApp extends StatelessWidget {
   const FitBookDesktopApp({super.key});
 

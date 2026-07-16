@@ -2,9 +2,6 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'user_account_response.g.dart';
 
-/// Mirrors `FitBook.Model.Responses.UserAccounts.UserAccountResponse`.
-/// Note: intentionally has no password/hash field — the backend never
-/// serializes it.
 @JsonSerializable()
 class UserAccountResponse {
   UserAccountResponse({

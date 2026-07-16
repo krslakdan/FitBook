@@ -4,7 +4,6 @@ import '../common/api_request_body.dart';
 
 part 'training_category_insert_request.g.dart';
 
-/// Mirrors `FitBook.Model.Requests.TrainingCategoryInsertRequest`.
 @JsonSerializable()
 class TrainingCategoryInsertRequest implements ApiRequestBody {
   TrainingCategoryInsertRequest({required this.name, this.description, required this.isActive});

@@ -4,7 +4,6 @@ import '../common/api_request_body.dart';
 
 part 'reservations_report_request.g.dart';
 
-/// Mirrors `FitBook.Model.Requests.ReservationsReportRequest`.
 @JsonSerializable()
 class ReservationsReportRequest implements ApiRequestBody {
   ReservationsReportRequest({required this.fromUtc, required this.toUtc});

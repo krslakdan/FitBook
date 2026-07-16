@@ -4,7 +4,6 @@ import '../common/api_request_body.dart';
 
 part 'user_account_insert_request.g.dart';
 
-/// Mirrors `FitBook.Model.Requests.UserAccounts.UserAccountInsertRequest`.
 @JsonSerializable()
 class UserAccountInsertRequest implements ApiRequestBody {
   UserAccountInsertRequest({

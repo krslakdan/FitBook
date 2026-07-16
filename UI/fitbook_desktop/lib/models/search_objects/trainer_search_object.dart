@@ -1,6 +1,5 @@
 import '../common/base_search_object.dart';
 
-/// Mirrors `FitBook.Model.SearchObjects.TrainerSearchObject`.
 class TrainerSearchObject extends BaseSearchObject {
   const TrainerSearchObject({
     super.page,

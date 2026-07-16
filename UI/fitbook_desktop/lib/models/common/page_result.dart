@@ -2,8 +2,6 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'page_result.g.dart';
 
-/// Mirrors `FitBook.Model.Responses.PageResult<T>` — the shape every list
-/// endpoint (`BaseReadController.GetAll`) returns.
 @JsonSerializable(genericArgumentFactories: true)
 class PageResult<T> {
   PageResult({

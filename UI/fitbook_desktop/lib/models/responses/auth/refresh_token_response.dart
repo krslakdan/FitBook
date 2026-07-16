@@ -2,7 +2,6 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'refresh_token_response.g.dart';
 
-/// Mirrors `FitBook.Model.Responses.Auth.RefreshTokenResponse`.
 @JsonSerializable()
 class RefreshTokenResponse {
   RefreshTokenResponse({

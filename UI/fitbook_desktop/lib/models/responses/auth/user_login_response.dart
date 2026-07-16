@@ -2,7 +2,6 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'user_login_response.g.dart';
 
-/// Mirrors `FitBook.Model.Responses.Auth.UserLoginResponse`.
 @JsonSerializable()
 class UserLoginResponse {
   UserLoginResponse({

@@ -4,7 +4,6 @@ import '../common/api_request_body.dart';
 
 part 'user_account_change_own_password_request.g.dart';
 
-/// Mirrors `FitBook.Model.Requests.UserAccounts.UserAccountChangeOwnPasswordRequest`.
 @JsonSerializable()
 class UserAccountChangeOwnPasswordRequest implements ApiRequestBody {
   UserAccountChangeOwnPasswordRequest({required this.currentPassword, required this.newPassword});

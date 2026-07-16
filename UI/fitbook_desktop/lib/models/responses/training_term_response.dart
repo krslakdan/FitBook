@@ -4,7 +4,6 @@ import '../enums/training_term_status.dart';
 
 part 'training_term_response.g.dart';
 
-/// Mirrors `FitBook.Model.Responses.TrainingTermResponse`.
 @JsonSerializable()
 class TrainingTermResponse {
   TrainingTermResponse({

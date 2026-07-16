@@ -4,7 +4,6 @@ import '../../common/api_request_body.dart';
 
 part 'refresh_token_request.g.dart';
 
-/// Mirrors `FitBook.Model.Requests.Auth.RefreshTokenRequest`.
 @JsonSerializable()
 class RefreshTokenRequest implements ApiRequestBody {
   RefreshTokenRequest({required this.refreshToken});

@@ -1,13 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Holds the current authentication session (in-memory + persisted via
-/// `shared_preferences`) and is shared between [AuthProvider] (which owns
-/// writing to it — login/refresh/logout) and `BaseProvider` (which only
-/// reads the access token and can trigger a refresh through [tryRefresh]).
-///
-/// Splitting this out of `AuthProvider` keeps the base HTTP layer able to
-/// react to an expired token without importing the concrete auth provider
-/// (which itself depends on the base HTTP layer to make its own calls).
 class AuthSession {
   AuthSession._();
 
@@ -17,8 +9,6 @@ class AuthSession {
   static String? accessToken;
   static String? refreshToken;
 
-  /// Registered by [AuthProvider] on construction. Performs a real
-  /// `POST /auth/refresh` call and updates this session on success.
   static Future<bool> Function()? refreshHandler;
 
   static Future<void> persist() async {
@@ -38,9 +28,6 @@ class AuthSession {
     refreshToken = prefs.getString(_refreshTokenKey);
   }
 
-  /// Clears the session immediately (synchronously, before the first
-  /// `await`) so callers that don't await this still see a logged-out state
-  /// right away; persistence to disk finishes in the background.
   static Future<void> clear() async {
     accessToken = null;
     refreshToken = null;

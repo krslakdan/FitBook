@@ -4,7 +4,6 @@ import '../enums/reservation_status.dart';
 
 part 'reservation_response.g.dart';
 
-/// Mirrors `FitBook.Model.Responses.ReservationResponse`.
 @JsonSerializable()
 class ReservationResponse {
   ReservationResponse({

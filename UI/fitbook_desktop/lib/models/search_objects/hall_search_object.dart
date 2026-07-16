@@ -1,6 +1,5 @@
 import '../common/base_search_object.dart';
 
-/// Mirrors `FitBook.Model.SearchObjects.HallSearchObject`.
 class HallSearchObject extends BaseSearchObject {
   const HallSearchObject({
     super.page,

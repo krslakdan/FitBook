@@ -4,7 +4,6 @@ import '../common/api_request_body.dart';
 
 part 'news_item_update_request.g.dart';
 
-/// Mirrors `FitBook.Model.Requests.NewsItemUpdateRequest`.
 @JsonSerializable()
 class NewsItemUpdateRequest implements ApiRequestBody {
   NewsItemUpdateRequest({

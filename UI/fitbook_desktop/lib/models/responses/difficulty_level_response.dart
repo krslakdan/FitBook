@@ -2,7 +2,6 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'difficulty_level_response.g.dart';
 
-/// Mirrors `FitBook.Model.Responses.DifficultyLevelResponse`.
 @JsonSerializable()
 class DifficultyLevelResponse {
   DifficultyLevelResponse({

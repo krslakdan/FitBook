@@ -1,13 +1,5 @@
 import 'package:flutter/foundation.dart';
 
-/// Mirrors `FitBook.Model.SearchObjects.BaseSearchObject` — the paging/search
-/// fields shared by every list endpoint's search object. Concrete search
-/// objects extend this and add their own entity-specific filters.
-///
-/// Search objects are never deserialized from JSON (they're only ever sent
-/// as query parameters on a GET), so unlike the request/response models
-/// there is no `fromJson`/`json_serializable` involved here — just
-/// [toQueryParameters].
 abstract class BaseSearchObject {
   const BaseSearchObject({this.page, this.pageSize, this.search, this.includeTotalCount});
 

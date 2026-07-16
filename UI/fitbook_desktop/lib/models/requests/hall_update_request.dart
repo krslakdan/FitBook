@@ -4,7 +4,6 @@ import '../common/api_request_body.dart';
 
 part 'hall_update_request.g.dart';
 
-/// Mirrors `FitBook.Model.Requests.HallUpdateRequest`.
 @JsonSerializable()
 class HallUpdateRequest implements ApiRequestBody {
   HallUpdateRequest({

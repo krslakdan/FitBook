@@ -8,16 +8,6 @@ import '../utils/api_client_exception.dart';
 import '../utils/app_config.dart';
 import 'auth_session.dart';
 
-/// Base of the whole provider hierarchy. Owns the raw HTTP plumbing shared
-/// by every provider: building request URIs against [AppConfig.apiBaseUrl],
-/// attaching the bearer token, turning a non-success response into a typed
-/// [ApiClientException] with the backend's actual message, and transparently
-/// retrying a request once after a successful token refresh on 401.
-///
-/// Deliberately has no generic type parameter — [BaseReadProvider] and
-/// [BaseCrudProvider] build on top of this for resources that map onto a
-/// single entity; [AuthProvider] and other one-off providers (reports,
-/// recommendations) extend this directly.
 abstract class BaseProvider with ChangeNotifier {
   @protected
   Map<String, String> createHeaders() {

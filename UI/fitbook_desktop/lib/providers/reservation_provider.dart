@@ -4,14 +4,6 @@ import '../models/requests/reservation_cancel_request.dart';
 import '../models/responses/reservation_response.dart';
 import 'base_read_provider.dart';
 
-/// Talks to `ReservationsController` (`api/reservations`). Extends
-/// [BaseReadProvider] rather than [BaseCrudProvider]: the desktop admin app
-/// only ever browses reservations and changes their status through the
-/// dedicated confirm/cancel/complete endpoints (mirroring the backend's
-/// centralized state-machine logic) — it never creates one (that's a mobile
-/// self-service flow, `ReservationInsertRequest` isn't modeled here) nor
-/// hard-deletes one (cancellation is the only "removal" the business logic
-/// supports).
 class ReservationProvider extends BaseReadProvider<ReservationResponse> {
   ReservationProvider() : super('Reservations');
 

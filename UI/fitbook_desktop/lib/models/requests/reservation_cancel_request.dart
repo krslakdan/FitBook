@@ -4,7 +4,6 @@ import '../common/api_request_body.dart';
 
 part 'reservation_cancel_request.g.dart';
 
-/// Mirrors `FitBook.Model.Requests.ReservationCancelRequest`.
 @JsonSerializable()
 class ReservationCancelRequest implements ApiRequestBody {
   ReservationCancelRequest({required this.reason});

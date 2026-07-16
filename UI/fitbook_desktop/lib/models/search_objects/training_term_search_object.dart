@@ -1,7 +1,6 @@
 import '../common/base_search_object.dart';
 import '../enums/training_term_status.dart';
 
-/// Mirrors `FitBook.Model.SearchObjects.TrainingTermSearchObject`.
 class TrainingTermSearchObject extends BaseSearchObject {
   const TrainingTermSearchObject({
     super.page,

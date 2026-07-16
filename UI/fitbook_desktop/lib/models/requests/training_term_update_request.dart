@@ -4,8 +4,6 @@ import '../common/api_request_body.dart';
 
 part 'training_term_update_request.g.dart';
 
-/// Mirrors `FitBook.Model.Requests.TrainingTermUpdateRequest`.
-/// Note: unlike insert, the training cannot be changed on update.
 @JsonSerializable()
 class TrainingTermUpdateRequest implements ApiRequestBody {
   TrainingTermUpdateRequest({

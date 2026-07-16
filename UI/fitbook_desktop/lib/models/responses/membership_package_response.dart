@@ -2,7 +2,6 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'membership_package_response.g.dart';
 
-/// Mirrors `FitBook.Model.Responses.MembershipPackageResponse`.
 @JsonSerializable()
 class MembershipPackageResponse {
   MembershipPackageResponse({

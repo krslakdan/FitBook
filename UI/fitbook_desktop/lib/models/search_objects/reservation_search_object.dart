@@ -1,7 +1,6 @@
 import '../common/base_search_object.dart';
 import '../enums/reservation_status.dart';
 
-/// Mirrors `FitBook.Model.SearchObjects.ReservationSearchObject`.
 class ReservationSearchObject extends BaseSearchObject {
   const ReservationSearchObject({
     super.page,

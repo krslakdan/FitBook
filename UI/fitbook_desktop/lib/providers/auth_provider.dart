@@ -8,14 +8,6 @@ import '../models/responses/auth/user_login_response.dart';
 import 'auth_session.dart';
 import 'base_provider.dart';
 
-/// Talks to `AuthController` (`api/auth`). Not a CRUD resource, so it
-/// extends [BaseProvider] directly instead of [BaseCrudProvider] — there is
-/// no single response type it manages, just the login/refresh/logout flow.
-///
-/// Deliberately has no `register()` — self-registration is a public mobile
-/// flow (`POST /auth/register`); the desktop admin app only ever logs in
-/// with a pre-seeded/admin-created account (new accounts are created via
-/// `UserAccountProvider.insert`, not self-registration).
 class AuthProvider extends BaseProvider {
   AuthProvider() {
     AuthSession.refreshHandler = _performRefresh;
@@ -60,8 +52,6 @@ class AuthProvider extends BaseProvider {
     notifyListeners();
   }
 
-  /// Reads a previously persisted session on app startup. Returns whether a
-  /// session was restored so the caller can decide login vs. home screen.
   Future<bool> tryRestoreSession() async {
     await AuthSession.restore();
     notifyListeners();

@@ -4,7 +4,6 @@ import '../../common/api_request_body.dart';
 
 part 'logout_request.g.dart';
 
-/// Mirrors `FitBook.Model.Requests.Auth.LogoutRequest`.
 @JsonSerializable()
 class LogoutRequest implements ApiRequestBody {
   LogoutRequest({required this.refreshToken});

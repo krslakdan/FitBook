@@ -1,7 +1,6 @@
 import '../models/responses/hall_response.dart';
 import 'base_crud_provider.dart';
 
-/// Talks to `HallsController` (`api/halls`).
 class HallProvider extends BaseCrudProvider<HallResponse> {
   HallProvider() : super('Halls');
 

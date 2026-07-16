@@ -4,9 +4,6 @@ import '../common/api_request_body.dart';
 
 part 'user_account_update_request.g.dart';
 
-/// Mirrors `FitBook.Model.Requests.UserAccounts.UserAccountUpdateRequest`.
-/// Partial-update DTO — every field is optional, only send what changed.
-/// Password is intentionally not here; use the dedicated password endpoints.
 @JsonSerializable()
 class UserAccountUpdateRequest implements ApiRequestBody {
   UserAccountUpdateRequest({

@@ -1,6 +1,5 @@
 import '../common/base_search_object.dart';
 
-/// Mirrors `FitBook.Model.SearchObjects.DifficultyLevelSearchObject`.
 class DifficultyLevelSearchObject extends BaseSearchObject {
   const DifficultyLevelSearchObject({
     super.page,
