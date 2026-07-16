@@ -63,7 +63,7 @@ public class TrainerService
 
         if (userAccount is null)
         {
-            throw new NotFoundException($"UserAccount with id {request.UserAccountId} was not found.");
+            throw new NotFoundException($"Korisnički račun sa ID {request.UserAccountId} nije pronađen.");
         }
 
         if (userAccount.Role != Roles.Trainer)

@@ -39,7 +39,7 @@ public abstract class BaseReadService<TEntity, TResponse, TSearch> : IBaseReadSe
 
         if (response is null)
         {
-            throw new NotFoundException($"{typeof(TEntity).Name} with id {id} was not found.");
+            throw new NotFoundException($"Zapis tipa '{typeof(TEntity).Name}' sa ID {id} nije pronađen.");
         }
 
         return response;

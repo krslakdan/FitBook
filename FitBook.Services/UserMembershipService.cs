@@ -102,7 +102,7 @@ public class UserMembershipService
 
         if (package is null)
         {
-            throw new NotFoundException($"MembershipPackage with id {request.MembershipPackageId} was not found.");
+            throw new NotFoundException($"Paket članarine sa ID {request.MembershipPackageId} nije pronađen.");
         }
 
         if (!package.IsActive)
@@ -156,7 +156,7 @@ public class UserMembershipService
 
         if (membership is null)
         {
-            throw new NotFoundException($"UserMembership with id {id} was not found.");
+            throw new NotFoundException($"Članarina sa ID {id} nije pronađena.");
         }
 
         var currentUserId = _currentUserService.GetRequiredUserId();
@@ -212,7 +212,7 @@ public class UserMembershipService
 
         if (membership is null)
         {
-            throw new NotFoundException($"UserMembership with id {id} was not found.");
+            throw new NotFoundException($"Članarina sa ID {id} nije pronađena.");
         }
 
         if (!_currentUserService.IsAdmin())
@@ -260,7 +260,7 @@ public class UserMembershipService
 
         if (membership is null)
         {
-            throw new NotFoundException($"UserMembership with id {id} was not found.");
+            throw new NotFoundException($"Članarina sa ID {id} nije pronađena.");
         }
 
         var currentUserId = _currentUserService.GetRequiredUserId();

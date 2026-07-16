@@ -7,6 +7,9 @@ public class UserAccountAdminPasswordResetRequestValidator : AbstractValidator<U
 {
     public UserAccountAdminPasswordResetRequestValidator()
     {
-        RuleFor(x => x.NewPassword).NotEmpty().MinimumLength(8).MaximumLength(128);
+        RuleFor(x => x.NewPassword)
+            .NotEmpty().WithMessage("Nova lozinka je obavezna.")
+            .MinimumLength(8).WithMessage("Nova lozinka mora imati najmanje 8 karaktera.")
+            .MaximumLength(128).WithMessage("Nova lozinka ne smije biti duža od 128 karaktera.");
     }
 }

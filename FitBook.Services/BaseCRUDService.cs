@@ -65,7 +65,7 @@ public abstract class BaseCRUDService<TEntity, TResponse, TSearch, TInsertReques
         var entity = await FindWriteEntityByIdAsync(id, cancellationToken);
         if (entity is null)
         {
-            throw new NotFoundException($"{typeof(TEntity).Name} with id {id} was not found.");
+            throw new NotFoundException($"Zapis tipa '{typeof(TEntity).Name}' sa ID {id} nije pronađen.");
         }
 
         await ValidateUpdate(id, request, entity, cancellationToken);
@@ -95,7 +95,7 @@ public abstract class BaseCRUDService<TEntity, TResponse, TSearch, TInsertReques
         var entity = await FindWriteEntityByIdAsync(id, cancellationToken);
         if (entity is null)
         {
-            throw new NotFoundException($"{typeof(TEntity).Name} with id {id} was not found.");
+            throw new NotFoundException($"Zapis tipa '{typeof(TEntity).Name}' sa ID {id} nije pronađen.");
         }
 
         await ValidateDelete(id, entity, cancellationToken);

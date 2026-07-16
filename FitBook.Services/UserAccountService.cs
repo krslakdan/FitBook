@@ -137,7 +137,7 @@ public class UserAccountService
 
         if (hasActiveReservations)
         {
-            throw new BusinessException("User account has active reservations and cannot be deleted.");
+            throw new BusinessException("Korisnički račun ima aktivne rezervacije i ne može biti obrisan.");
         }
 
         var hasActiveMembership = await _dbContext.UserMemberships
@@ -149,7 +149,7 @@ public class UserAccountService
 
         if (hasActiveMembership)
         {
-            throw new BusinessException("User account has active membership and cannot be deleted.");
+            throw new BusinessException("Korisnički račun ima aktivnu članarinu i ne može biti obrisan.");
         }
 
         var isTrainer = await _dbContext.Trainers
@@ -157,7 +157,7 @@ public class UserAccountService
 
         if (isTrainer)
         {
-            throw new BusinessException("User account is linked to an active trainer profile and cannot be deleted.");
+            throw new BusinessException("Korisnički račun je povezan sa aktivnim trenerskim profilom i ne može biti obrisan.");
         }
     }
 
@@ -175,7 +175,7 @@ public class UserAccountService
 
         if (!_cryptoService.VerifyPassword(request.CurrentPassword, user.PasswordHash))
         {
-            throw new BusinessException("Current password is incorrect.");
+            throw new BusinessException("Trenutna lozinka nije ispravna.");
         }
 
         await SetPasswordAndRevokeTokensAsync(user, request.NewPassword, cancellationToken);
@@ -207,7 +207,7 @@ public class UserAccountService
 
         if (user is null)
         {
-            throw new NotFoundException($"UserAccount with id {userId} was not found.");
+            throw new NotFoundException($"Korisnički račun sa ID {userId} nije pronađen.");
         }
 
         return user;
@@ -237,7 +237,7 @@ public class UserAccountService
 
         if (exists)
         {
-            throw new BusinessException("Email already exists.");
+            throw new BusinessException("Email adresa već postoji.");
         }
     }
 
@@ -253,7 +253,7 @@ public class UserAccountService
 
         if (exists)
         {
-            throw new BusinessException("Username already exists.");
+            throw new BusinessException("Korisničko ime već postoji.");
         }
     }
 }

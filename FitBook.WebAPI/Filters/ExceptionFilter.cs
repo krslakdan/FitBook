@@ -19,13 +19,13 @@ public sealed class ExceptionFilter : ExceptionFilterAttribute
     {
         var statusCode = HttpStatusCode.InternalServerError;
         var errors = new Dictionary<string, List<string>>();
-        var message = "Request could not be processed.";
+        var message = "Zahtjev nije moguće obraditi.";
 
         switch (context.Exception)
         {
             case ValidationException validationException:
                 statusCode = HttpStatusCode.BadRequest;
-                message = "Validation failed.";
+                message = "Validacija nije uspjela.";
                 foreach (var error in validationException.Errors)
                 {
                     var key = string.IsNullOrWhiteSpace(error.PropertyName) ? "validation" : error.PropertyName;
@@ -55,7 +55,7 @@ public sealed class ExceptionFilter : ExceptionFilterAttribute
                 break;
 
             default:
-                errors["server"] = ["Server side error. Please check logs."];
+                errors["server"] = ["Došlo je do greške na serveru. Molimo pokušajte ponovo kasnije."];
                 _logger.LogError(context.Exception, "Unhandled exception.");
                 break;
         }

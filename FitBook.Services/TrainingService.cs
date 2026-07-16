@@ -87,7 +87,7 @@ public class TrainingService
 
         if (!categoryExists)
         {
-            throw new NotFoundException($"TrainingCategory with id {categoryId} was not found.");
+            throw new NotFoundException($"Kategorija treninga sa ID {categoryId} nije pronađena.");
         }
 
         var difficultyExists = await _dbContext.DifficultyLevels
@@ -95,7 +95,7 @@ public class TrainingService
 
         if (!difficultyExists)
         {
-            throw new NotFoundException($"DifficultyLevel with id {difficultyLevelId} was not found.");
+            throw new NotFoundException($"Nivo težine sa ID {difficultyLevelId} nije pronađen.");
         }
     }
 }

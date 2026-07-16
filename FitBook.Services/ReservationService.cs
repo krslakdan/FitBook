@@ -131,7 +131,7 @@ public class ReservationService
 
         if (term is null)
         {
-            throw new NotFoundException($"TrainingTerm with id {request.TrainingTermId} was not found.");
+            throw new NotFoundException($"Trening termin sa ID {request.TrainingTermId} nije pronađen.");
         }
 
         if (!term.IsActive)
@@ -563,7 +563,7 @@ public class ReservationService
 
         if (reservation is null)
         {
-            throw new NotFoundException($"Reservation with id {id} was not found.");
+            throw new NotFoundException($"Rezervacija sa ID {id} nije pronađena.");
         }
 
         return reservation;
