@@ -14,8 +14,8 @@ import 'providers/training_equipment_provider.dart';
 import 'providers/training_provider.dart';
 import 'providers/training_term_provider.dart';
 import 'providers/user_account_provider.dart';
+import 'layouts/master_screen.dart';
 import 'screens/login_screen.dart';
-import 'screens/placeholder_screen.dart';
 
 void main() {
   runApp(const FitBookDesktopApp());
@@ -90,9 +90,7 @@ class _StartupGateState extends State<_StartupGate> {
         }
 
         final isAuthenticated = snapshot.data ?? false;
-        return isAuthenticated
-            ? placeholderScreen('Dashboard', 'Ekran "Dashboard" biće implementiran u sljedećoj fazi.')
-            : const LoginScreen();
+        return isAuthenticated ? dashboardScreen() : const LoginScreen();
       },
     );
   }
