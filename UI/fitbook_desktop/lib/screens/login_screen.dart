@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/requests/auth/user_login_request.dart';
 import '../providers/auth_provider.dart';
 import '../utils/api_client_exception.dart';
-import 'home_screen.dart';
+import 'placeholder_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -61,7 +61,14 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (!mounted) return;
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => placeholderScreen(
+            'Dashboard',
+            'Ekran "Dashboard" biće implementiran u sljedećoj fazi.',
+          ),
+        ),
+      );
     } on ApiClientException catch (e) {
       if (!mounted) return;
       setState(() => _serverError = e.message);
