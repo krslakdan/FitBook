@@ -2,6 +2,20 @@ import 'package:flutter/material.dart';
 
 import '../../theme/app_theme.dart';
 
+class TableActionExtra {
+  const TableActionExtra({
+    required this.icon,
+    required this.tooltip,
+    this.onTap,
+    this.danger = false,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback? onTap;
+  final bool danger;
+}
+
 class TableActionButtons extends StatelessWidget {
   const TableActionButtons({
     super.key,
@@ -9,12 +23,16 @@ class TableActionButtons extends StatelessWidget {
     this.onEdit,
     this.onDelete,
     this.deleteDisabledReason,
+    this.extras = const [],
+    this.showDelete = true,
   });
 
   final VoidCallback? onView;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final String? deleteDisabledReason;
+  final List<TableActionExtra> extras;
+  final bool showDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -35,14 +53,26 @@ class TableActionButtons extends StatelessWidget {
             onTap: onEdit,
           ),
         ],
-        const SizedBox(width: 6),
-        _ActionIcon(
-          icon: Icons.delete_outline,
-          tooltip: onDelete == null ? (deleteDisabledReason ?? 'Brisanje nije dostupno.') : 'Obriši',
-          foreground: AppColors.onDangerSoft,
-          background: AppColors.dangerSoft,
-          onTap: onDelete,
-        ),
+        for (final extra in extras) ...[
+          const SizedBox(width: 6),
+          _ActionIcon(
+            icon: extra.icon,
+            tooltip: extra.tooltip,
+            foreground: extra.danger ? AppColors.onDangerSoft : null,
+            background: extra.danger ? AppColors.dangerSoft : null,
+            onTap: extra.onTap,
+          ),
+        ],
+        if (showDelete) ...[
+          const SizedBox(width: 6),
+          _ActionIcon(
+            icon: Icons.delete_outline,
+            tooltip: onDelete == null ? (deleteDisabledReason ?? 'Brisanje nije dostupno.') : 'Obriši',
+            foreground: AppColors.onDangerSoft,
+            background: AppColors.dangerSoft,
+            onTap: onDelete,
+          ),
+        ],
       ],
     );
   }
