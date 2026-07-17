@@ -7,16 +7,16 @@ part 'training_equipment_insert_request.g.dart';
 @JsonSerializable()
 class TrainingEquipmentInsertRequest implements ApiRequestBody {
   TrainingEquipmentInsertRequest({
-    required this.name,
     required this.isRequired,
     this.note,
     required this.trainingId,
+    required this.equipmentId,
   });
 
-  final String name;
   final bool isRequired;
   final String? note;
   final int trainingId;
+  final int equipmentId;
 
   factory TrainingEquipmentInsertRequest.fromJson(Map<String, dynamic> json) =>
       _$TrainingEquipmentInsertRequestFromJson(json);

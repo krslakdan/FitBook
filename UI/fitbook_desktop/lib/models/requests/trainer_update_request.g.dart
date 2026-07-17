@@ -11,7 +11,7 @@ TrainerUpdateRequest _$TrainerUpdateRequestFromJson(
 ) => TrainerUpdateRequest(
   firstName: json['firstName'] as String,
   lastName: json['lastName'] as String,
-  specialization: json['specialization'] as String,
+  specializationId: (json['specializationId'] as num).toInt(),
   biography: json['biography'] as String?,
   imageUrl: json['imageUrl'] as String?,
   isAvailable: json['isAvailable'] as bool,
@@ -23,7 +23,7 @@ Map<String, dynamic> _$TrainerUpdateRequestToJson(
 ) => <String, dynamic>{
   'firstName': instance.firstName,
   'lastName': instance.lastName,
-  'specialization': instance.specialization,
+  'specializationId': instance.specializationId,
   'biography': instance.biography,
   'imageUrl': instance.imageUrl,
   'isAvailable': instance.isAvailable,

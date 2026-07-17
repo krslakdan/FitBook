@@ -3,11 +3,13 @@ import 'package:provider/provider.dart';
 
 import 'providers/auth_provider.dart';
 import 'providers/difficulty_level_provider.dart';
+import 'providers/equipment_provider.dart';
 import 'providers/hall_provider.dart';
 import 'providers/membership_package_provider.dart';
 import 'providers/news_item_provider.dart';
 import 'providers/report_provider.dart';
 import 'providers/reservation_provider.dart';
+import 'providers/specialization_provider.dart';
 import 'providers/trainer_provider.dart';
 import 'providers/training_category_provider.dart';
 import 'providers/training_equipment_provider.dart';
@@ -32,10 +34,12 @@ class FitBookDesktopApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => DifficultyLevelProvider()),
+        ChangeNotifierProvider(create: (_) => EquipmentProvider()),
         ChangeNotifierProvider(create: (_) => HallProvider()),
         ChangeNotifierProvider(create: (_) => MembershipPackageProvider()),
         ChangeNotifierProvider(create: (_) => NewsItemProvider()),
         ChangeNotifierProvider(create: (_) => ReservationProvider()),
+        ChangeNotifierProvider(create: (_) => SpecializationProvider()),
         ChangeNotifierProvider(create: (_) => TrainerProvider()),
         ChangeNotifierProvider(create: (_) => TrainingProvider()),
         ChangeNotifierProvider(create: (_) => TrainingCategoryProvider()),

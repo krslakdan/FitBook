@@ -1,35 +1,29 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'training_equipment_response.dart';
+part of 'specialization_response.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-TrainingEquipmentResponse _$TrainingEquipmentResponseFromJson(
+SpecializationResponse _$SpecializationResponseFromJson(
   Map<String, dynamic> json,
-) => TrainingEquipmentResponse(
+) => SpecializationResponse(
   id: (json['id'] as num).toInt(),
-  isRequired: json['isRequired'] as bool,
-  note: json['note'] as String?,
-  trainingId: (json['trainingId'] as num).toInt(),
-  equipmentId: (json['equipmentId'] as num).toInt(),
-  equipmentName: json['equipmentName'] as String,
+  name: json['name'] as String,
+  isActive: json['isActive'] as bool,
   createdAtUtc: DateTime.parse(json['createdAtUtc'] as String),
   updatedAtUtc: json['updatedAtUtc'] == null
       ? null
       : DateTime.parse(json['updatedAtUtc'] as String),
 );
 
-Map<String, dynamic> _$TrainingEquipmentResponseToJson(
-  TrainingEquipmentResponse instance,
+Map<String, dynamic> _$SpecializationResponseToJson(
+  SpecializationResponse instance,
 ) => <String, dynamic>{
   'id': instance.id,
-  'isRequired': instance.isRequired,
-  'note': instance.note,
-  'trainingId': instance.trainingId,
-  'equipmentId': instance.equipmentId,
-  'equipmentName': instance.equipmentName,
+  'name': instance.name,
+  'isActive': instance.isActive,
   'createdAtUtc': instance.createdAtUtc.toIso8601String(),
   'updatedAtUtc': instance.updatedAtUtc?.toIso8601String(),
 };

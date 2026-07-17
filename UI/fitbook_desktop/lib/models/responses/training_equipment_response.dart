@@ -6,19 +6,21 @@ part 'training_equipment_response.g.dart';
 class TrainingEquipmentResponse {
   TrainingEquipmentResponse({
     required this.id,
-    required this.name,
     required this.isRequired,
     this.note,
     required this.trainingId,
+    required this.equipmentId,
+    required this.equipmentName,
     required this.createdAtUtc,
     this.updatedAtUtc,
   });
 
   final int id;
-  final String name;
   final bool isRequired;
   final String? note;
   final int trainingId;
+  final int equipmentId;
+  final String equipmentName;
   final DateTime createdAtUtc;
   final DateTime? updatedAtUtc;
 

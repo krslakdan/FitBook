@@ -9,7 +9,7 @@ class TrainerInsertRequest implements ApiRequestBody {
   TrainerInsertRequest({
     required this.firstName,
     required this.lastName,
-    required this.specialization,
+    required this.specializationId,
     this.biography,
     this.imageUrl,
     required this.isAvailable,
@@ -19,7 +19,7 @@ class TrainerInsertRequest implements ApiRequestBody {
 
   final String firstName;
   final String lastName;
-  final String specialization;
+  final int specializationId;
   final String? biography;
   final String? imageUrl;
   final bool isAvailable;

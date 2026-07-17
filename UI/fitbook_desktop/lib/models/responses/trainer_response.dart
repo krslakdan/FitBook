@@ -9,7 +9,8 @@ class TrainerResponse {
     required this.firstName,
     required this.lastName,
     required this.fullName,
-    required this.specialization,
+    required this.specializationId,
+    required this.specializationName,
     this.biography,
     this.imageUrl,
     required this.isAvailable,
@@ -23,7 +24,8 @@ class TrainerResponse {
   final String firstName;
   final String lastName;
   final String fullName;
-  final String specialization;
+  final int specializationId;
+  final String specializationName;
   final String? biography;
   final String? imageUrl;
   final bool isAvailable;
