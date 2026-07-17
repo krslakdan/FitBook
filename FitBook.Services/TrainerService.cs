@@ -39,6 +39,11 @@ public class TrainerService
             query = query.Where(x => x.IsAvailable == search.IsAvailable.Value);
         }
 
+        if (search.SpecializationId.HasValue)
+        {
+            query = query.Where(x => x.SpecializationId == search.SpecializationId.Value);
+        }
+
         return query;
     }
 
@@ -50,7 +55,7 @@ public class TrainerService
             query = query.Where(x =>
                 x.FirstName.ToLower().Contains(term) ||
                 x.LastName.ToLower().Contains(term) ||
-                x.Specialization.ToLower().Contains(term));
+                (x.Specialization != null && x.Specialization.Name.ToLower().Contains(term)));
         }
 
         return query;
@@ -58,6 +63,8 @@ public class TrainerService
 
     protected override async Task ValidateInsert(TrainerInsertRequest request, CancellationToken cancellationToken)
     {
+        await EnsureSpecializationExistsAsync(request.SpecializationId, cancellationToken);
+
         var userAccount = await _dbContext.UserAccounts
             .FirstOrDefaultAsync(u => u.Id == request.UserAccountId && !u.IsDeleted, cancellationToken);
 
@@ -77,6 +84,20 @@ public class TrainerService
         if (duplicateExists)
         {
             throw new BusinessException($"Korisnički račun s id {request.UserAccountId} već ima kreiran trenerski profil.");
+        }
+    }
+
+    protected override Task ValidateUpdate(int id, TrainerUpdateRequest request, Trainer entity, CancellationToken cancellationToken)
+        => EnsureSpecializationExistsAsync(request.SpecializationId, cancellationToken);
+
+    private async Task EnsureSpecializationExistsAsync(int specializationId, CancellationToken cancellationToken)
+    {
+        var specializationExists = await _dbContext.Specializations
+            .AnyAsync(s => s.Id == specializationId, cancellationToken);
+
+        if (!specializationExists)
+        {
+            throw new NotFoundException($"Specijalizacija sa ID {specializationId} nije pronađena.");
         }
     }
 
