@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../screens/login_screen.dart';
 import '../screens/placeholder_screen.dart';
+import '../screens/user_accounts_screen.dart';
 
 typedef _ScreenBuilder = Widget Function();
 
@@ -45,10 +46,10 @@ final List<_NavSection> _sections = [
   _NavSection('UPRAVLJANJE', [
     _NavItem(
       'Korisnici',
-      'Upravljanje korisničkim nalozima',
+      'Pregled, pretraga i upravljanje korisnicima',
       Icons.group_outlined,
       Icons.group,
-      () => _placeholder('Korisnici', 'Upravljanje korisničkim nalozima'),
+      () => const UserAccountsScreen(),
     ),
     _NavItem(
       'Treneri',
