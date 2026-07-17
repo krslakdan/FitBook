@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 import '../models/common/api_request_body.dart';
 import '../utils/api_client_exception.dart';
@@ -62,6 +63,34 @@ abstract class BaseProvider with ChangeNotifier {
   @protected
   Future<http.Response> apiDelete(String path) {
     return _send(() => http.delete(buildUri(path), headers: createHeaders()));
+  }
+
+  @protected
+  Future<http.Response> apiPostMultipart(
+    String path, {
+    required Uint8List fileBytes,
+    required String fileName,
+    required String contentType,
+    Map<String, String>? fields,
+  }) {
+    return _send(() async {
+      final request = http.MultipartRequest('POST', buildUri(path));
+      final token = AuthSession.accessToken;
+      if (token != null && token.isNotEmpty) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+      if (fields != null) request.fields.addAll(fields);
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          fileBytes,
+          filename: fileName,
+          contentType: MediaType.parse(contentType),
+        ),
+      );
+      final streamed = await request.send();
+      return http.Response.fromStream(streamed);
+    });
   }
 
   Future<http.Response> _send(Future<http.Response> Function() request, {bool isRetry = false}) async {
