@@ -4,6 +4,7 @@ using FitBook.Services.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FitBook.Services.Migrations
 {
     [DbContext(typeof(FitBookDbContext))]
-    partial class FitBookDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260717091714_SpecializationReferenceTable")]
+    partial class SpecializationReferenceTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -78,73 +81,6 @@ namespace FitBook.Services.Migrations
                             IsActive = true,
                             Name = "Advanced",
                             SortOrder = 3
-                        });
-                });
-
-            modelBuilder.Entity("FitBook.Services.Database.Entities.Equipment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("nvarchar(120)");
-
-                    b.Property<DateTime?>("UpdatedAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
-
-                    b.ToTable("Equipment", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsActive = true,
-                            Name = "Kettlebell"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsActive = true,
-                            Name = "Barbell Set"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsActive = true,
-                            Name = "Yoga Mat"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsActive = true,
-                            Name = "Foam Roller"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            IsActive = true,
-                            Name = "Boxing Gloves"
                         });
                 });
 
@@ -1359,11 +1295,13 @@ namespace FitBook.Services.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("EquipmentId")
-                        .HasColumnType("int");
-
                     b.Property<bool>("IsRequired")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
 
                     b.Property<string>("Note")
                         .HasMaxLength(300)
@@ -1377,9 +1315,7 @@ namespace FitBook.Services.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EquipmentId");
-
-                    b.HasIndex("TrainingId", "EquipmentId")
+                    b.HasIndex("TrainingId", "Name")
                         .IsUnique();
 
                     b.ToTable("TrainingEquipment", (string)null);
@@ -1389,8 +1325,8 @@ namespace FitBook.Services.Migrations
                         {
                             Id = 1,
                             CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            EquipmentId = 1,
                             IsRequired = true,
+                            Name = "Kettlebell",
                             Note = "Recommended 8kg-16kg",
                             TrainingId = 1
                         },
@@ -1398,8 +1334,8 @@ namespace FitBook.Services.Migrations
                         {
                             Id = 2,
                             CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            EquipmentId = 2,
                             IsRequired = true,
+                            Name = "Barbell Set",
                             Note = "Belts provided in hall",
                             TrainingId = 2
                         },
@@ -1407,8 +1343,8 @@ namespace FitBook.Services.Migrations
                         {
                             Id = 3,
                             CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            EquipmentId = 3,
                             IsRequired = false,
+                            Name = "Yoga Mat",
                             Note = "Mats are available in studio, or bring your own",
                             TrainingId = 3
                         },
@@ -1416,8 +1352,8 @@ namespace FitBook.Services.Migrations
                         {
                             Id = 4,
                             CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            EquipmentId = 4,
                             IsRequired = true,
+                            Name = "Foam Roller",
                             Note = "Provided in studio",
                             TrainingId = 4
                         },
@@ -1425,8 +1361,8 @@ namespace FitBook.Services.Migrations
                         {
                             Id = 5,
                             CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            EquipmentId = 5,
                             IsRequired = true,
+                            Name = "Boxing Gloves",
                             Note = "Bring your own or rent at front desk",
                             TrainingId = 5
                         });
@@ -2004,19 +1940,11 @@ namespace FitBook.Services.Migrations
 
             modelBuilder.Entity("FitBook.Services.Database.Entities.TrainingEquipment", b =>
                 {
-                    b.HasOne("FitBook.Services.Database.Entities.Equipment", "Equipment")
-                        .WithMany("TrainingEquipmentItems")
-                        .HasForeignKey("EquipmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("FitBook.Services.Database.Entities.Training", "Training")
                         .WithMany("EquipmentItems")
                         .HasForeignKey("TrainingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Equipment");
 
                     b.Navigation("Training");
                 });
@@ -2070,11 +1998,6 @@ namespace FitBook.Services.Migrations
             modelBuilder.Entity("FitBook.Services.Database.Entities.DifficultyLevel", b =>
                 {
                     b.Navigation("Trainings");
-                });
-
-            modelBuilder.Entity("FitBook.Services.Database.Entities.Equipment", b =>
-                {
-                    b.Navigation("TrainingEquipmentItems");
                 });
 
             modelBuilder.Entity("FitBook.Services.Database.Entities.Hall", b =>
