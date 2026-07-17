@@ -12,15 +12,19 @@ public class TrainingEquipmentConfiguration : IEntityTypeConfiguration<TrainingE
 
         builder.HasKey(x => x.Id);
 
-        builder.Property(x => x.Name).HasMaxLength(120).IsRequired();
         builder.Property(x => x.IsRequired).IsRequired();
         builder.Property(x => x.Note).HasMaxLength(300);
 
-        builder.HasIndex(x => new { x.TrainingId, x.Name }).IsUnique();
+        builder.HasIndex(x => new { x.TrainingId, x.EquipmentId }).IsUnique();
 
         builder.HasOne(x => x.Training)
             .WithMany(x => x.EquipmentItems)
             .HasForeignKey(x => x.TrainingId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(x => x.Equipment)
+            .WithMany(x => x.TrainingEquipmentItems)
+            .HasForeignKey(x => x.EquipmentId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
