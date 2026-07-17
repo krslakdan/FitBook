@@ -112,6 +112,20 @@ final List<_NavSection> _sections = [
       () => _placeholder('Sale', 'Referentni podaci — sale'),
     ),
     _NavItem(
+      'Oprema',
+      'Referentni podaci — oprema za treninge',
+      Icons.sports_gymnastics_outlined,
+      Icons.sports_gymnastics,
+      () => _placeholder('Oprema', 'Referentni podaci — oprema za treninge'),
+    ),
+    _NavItem(
+      'Specijalizacije',
+      'Referentni podaci — specijalizacije trenera',
+      Icons.workspace_premium_outlined,
+      Icons.workspace_premium,
+      () => _placeholder('Specijalizacije', 'Referentni podaci — specijalizacije trenera'),
+    ),
+    _NavItem(
       'Obavijesti',
       'Upravljanje obavijestima',
       Icons.campaign_outlined,
