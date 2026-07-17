@@ -11,6 +11,7 @@ public partial class FitBookDbContext : DbContext
     }
 
     public DbSet<DifficultyLevel> DifficultyLevels { get; set; }
+    public DbSet<Equipment> Equipment { get; set; }
     public DbSet<Hall> Halls { get; set; }
     public DbSet<MembershipPackage> MembershipPackages { get; set; }
     public DbSet<MembershipPayment> MembershipPayments { get; set; }
@@ -18,6 +19,7 @@ public partial class FitBookDbContext : DbContext
     public DbSet<RecommendationSignal> RecommendationSignals { get; set; }
     public DbSet<Reservation> Reservations { get; set; }
     public DbSet<ReservationStatusAudit> ReservationStatusAudits { get; set; }
+    public DbSet<Specialization> Specializations { get; set; }
     public DbSet<SystemNotification> SystemNotifications { get; set; }
     public DbSet<Trainer> Trainers { get; set; }
     public DbSet<Training> Trainings { get; set; }

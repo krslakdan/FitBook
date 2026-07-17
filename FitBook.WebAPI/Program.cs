@@ -3,6 +3,8 @@ using FitBook.Common.Services.CryptoService;
 using FitBook.Model.Constants;
 using FitBook.Services.Configuration;
 using FitBook.Services.Database;
+using FitBook.Services.Files;
+using FitBook.Services.Interfaces;
 using FitBook.WebAPI.BackgroundServices;
 using FitBook.WebAPI.Filters;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -30,6 +32,12 @@ builder.Services.AddDbContext<FitBookDbContext>(options =>
 
 builder.Services.AddScoped<ICryptoService, CryptoService>();
 builder.Services.AddFitBookServices(builder.Configuration);
+
+var webRootPath = string.IsNullOrWhiteSpace(builder.Environment.WebRootPath)
+    ? Path.Combine(builder.Environment.ContentRootPath, "wwwroot")
+    : builder.Environment.WebRootPath;
+builder.Services.Configure<FileStorageOptions>(options => options.RootPath = webRootPath);
+builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 builder.Services.AddHostedService<ReservationReminderBackgroundService>();
 
 var jwtSecret = builder.Configuration["JwtToken:SecretKey"];

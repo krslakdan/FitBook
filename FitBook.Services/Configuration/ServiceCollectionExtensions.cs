@@ -7,12 +7,14 @@ using FitBook.Model.Requests.MembershipPackages;
 using FitBook.Model.Requests.UserMemberships;
 using FitBook.Model.Requests.TrainingCategories;
 using FitBook.Model.Requests.DifficultyLevels;
+using FitBook.Model.Requests.Equipment;
 using FitBook.Model.Requests.Halls;
 using FitBook.Model.Requests.TrainingEquipment;
 using FitBook.Model.Requests.Trainers;
 using FitBook.Model.Requests.Trainings;
 using FitBook.Model.Requests.TrainingTerms;
 using FitBook.Model.Requests.NewsItems;
+using FitBook.Model.Requests.Specializations;
 using FitBook.Model.Requests.Reports;
 using Mapster;
 using MapsterMapper;
@@ -50,6 +52,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITrainingCategoryService, TrainingCategoryService>();
         services.AddScoped<IDifficultyLevelService, DifficultyLevelService>();
         services.AddScoped<IHallService, HallService>();
+        services.AddScoped<ISpecializationService, SpecializationService>();
+        services.AddScoped<IEquipmentService, EquipmentService>();
         services.AddScoped<ITrainingEquipmentService, TrainingEquipmentService>();
         services.AddScoped<ITrainerService, TrainerService>();
         services.AddScoped<ITrainingService, TrainingService>();
@@ -99,9 +103,17 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IValidator<HallInsertRequest>, HallInsertRequestValidator>();
         services.AddScoped<IValidator<HallUpdateRequest>, HallUpdateRequestValidator>();
 
+        // Equipment validators
+        services.AddScoped<IValidator<EquipmentInsertRequest>, EquipmentInsertRequestValidator>();
+        services.AddScoped<IValidator<EquipmentUpdateRequest>, EquipmentUpdateRequestValidator>();
+
         // TrainingEquipment validators
         services.AddScoped<IValidator<TrainingEquipmentInsertRequest>, TrainingEquipmentInsertRequestValidator>();
         services.AddScoped<IValidator<TrainingEquipmentUpdateRequest>, TrainingEquipmentUpdateRequestValidator>();
+
+        // Specialization validators
+        services.AddScoped<IValidator<SpecializationInsertRequest>, SpecializationInsertRequestValidator>();
+        services.AddScoped<IValidator<SpecializationUpdateRequest>, SpecializationUpdateRequestValidator>();
 
         // Trainer validators
         services.AddScoped<IValidator<TrainerInsertRequest>, TrainerInsertRequestValidator>();
