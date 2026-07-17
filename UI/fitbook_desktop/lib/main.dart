@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/difficulty_level_provider.dart';
 import 'providers/equipment_provider.dart';
+import 'providers/file_provider.dart';
 import 'providers/hall_provider.dart';
 import 'providers/membership_package_provider.dart';
 import 'providers/news_item_provider.dart';
@@ -18,6 +19,7 @@ import 'providers/training_term_provider.dart';
 import 'providers/user_account_provider.dart';
 import 'layouts/master_screen.dart';
 import 'screens/login_screen.dart';
+import 'theme/app_theme.dart';
 
 void main() {
   runApp(const FitBookDesktopApp());
@@ -28,13 +30,12 @@ class FitBookDesktopApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = ColorScheme.fromSeed(seedColor: const Color(0xFF00695C));
-
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => DifficultyLevelProvider()),
         ChangeNotifierProvider(create: (_) => EquipmentProvider()),
+        ChangeNotifierProvider(create: (_) => FileProvider()),
         ChangeNotifierProvider(create: (_) => HallProvider()),
         ChangeNotifierProvider(create: (_) => MembershipPackageProvider()),
         ChangeNotifierProvider(create: (_) => NewsItemProvider()),
@@ -50,18 +51,7 @@ class FitBookDesktopApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'FitBook Desktop',
-        theme: ThemeData(
-          colorScheme: colorScheme,
-          inputDecorationTheme: InputDecorationTheme(
-            filled: true,
-            fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          ),
-        ),
+        theme: buildAppTheme(),
         home: const _StartupGate(),
       ),
     );

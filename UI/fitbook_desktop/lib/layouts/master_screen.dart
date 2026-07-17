@@ -2,8 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
+import '../screens/difficulty_levels_screen.dart';
+import '../screens/equipment_screen.dart';
+import '../screens/halls_screen.dart';
 import '../screens/login_screen.dart';
+import '../screens/membership_packages_screen.dart';
+import '../screens/news_items_screen.dart';
 import '../screens/placeholder_screen.dart';
+import '../screens/reservations_screen.dart';
+import '../screens/specializations_screen.dart';
+import '../screens/trainers_screen.dart';
+import '../screens/training_categories_screen.dart';
+import '../screens/training_equipment_screen.dart';
+import '../screens/training_terms_screen.dart';
+import '../screens/trainings_screen.dart';
 import '../screens/user_accounts_screen.dart';
 
 typedef _ScreenBuilder = Widget Function();
@@ -56,28 +68,28 @@ final List<_NavSection> _sections = [
       'Upravljanje trenerima',
       Icons.badge_outlined,
       Icons.badge,
-      () => _placeholder('Treneri', 'Upravljanje trenerima'),
+      () => const TrainersScreen(),
     ),
     _NavItem(
       'Treninzi',
       'Upravljanje treninzima',
       Icons.fitness_center,
       Icons.fitness_center,
-      () => _placeholder('Treninzi', 'Upravljanje treninzima'),
+      () => const TrainingsScreen(),
     ),
     _NavItem(
       'Termini',
       'Upravljanje terminima treninga',
       Icons.calendar_month_outlined,
       Icons.calendar_month,
-      () => _placeholder('Termini', 'Upravljanje terminima treninga'),
+      () => const TrainingTermsScreen(),
     ),
     _NavItem(
       'Rezervacije',
       'Pregled i upravljanje rezervacijama',
       Icons.event_available_outlined,
       Icons.event_available,
-      () => _placeholder('Rezervacije', 'Pregled i upravljanje rezervacijama'),
+      () => const ReservationsScreen(),
     ),
   ]),
   _NavSection('ČLANARINE', [
@@ -86,7 +98,7 @@ final List<_NavSection> _sections = [
       'Upravljanje paketima članarina',
       Icons.card_membership_outlined,
       Icons.card_membership,
-      () => _placeholder('Paketi članarina', 'Upravljanje paketima članarina'),
+      () => const MembershipPackagesScreen(),
     ),
   ]),
   _NavSection('SADRŽAJ', [
@@ -95,7 +107,7 @@ final List<_NavSection> _sections = [
       'Referentni podaci — kategorije treninga',
       Icons.category_outlined,
       Icons.category,
-      () => _placeholder('Kategorije treninga', 'Referentni podaci — kategorije treninga'),
+      () => const TrainingCategoriesScreen(),
       label: 'Kategorije',
     ),
     _NavItem(
@@ -103,35 +115,42 @@ final List<_NavSection> _sections = [
       'Referentni podaci — nivoi težine',
       Icons.speed_outlined,
       Icons.speed,
-      () => _placeholder('Nivoi težine', 'Referentni podaci — nivoi težine'),
+      () => const DifficultyLevelsScreen(),
     ),
     _NavItem(
       'Sale',
       'Referentni podaci — sale',
       Icons.meeting_room_outlined,
       Icons.meeting_room,
-      () => _placeholder('Sale', 'Referentni podaci — sale'),
+      () => const HallsScreen(),
     ),
     _NavItem(
       'Oprema',
       'Referentni podaci — oprema za treninge',
       Icons.sports_gymnastics_outlined,
       Icons.sports_gymnastics,
-      () => _placeholder('Oprema', 'Referentni podaci — oprema za treninge'),
+      () => const EquipmentScreen(),
+    ),
+    _NavItem(
+      'Oprema treninga',
+      'Upravljanje opremom dodijeljenom treninzima',
+      Icons.construction_outlined,
+      Icons.construction,
+      () => const TrainingEquipmentScreen(),
     ),
     _NavItem(
       'Specijalizacije',
       'Referentni podaci — specijalizacije trenera',
       Icons.workspace_premium_outlined,
       Icons.workspace_premium,
-      () => _placeholder('Specijalizacije', 'Referentni podaci — specijalizacije trenera'),
+      () => const SpecializationsScreen(),
     ),
     _NavItem(
       'Obavijesti',
       'Upravljanje obavijestima',
       Icons.campaign_outlined,
       Icons.campaign,
-      () => _placeholder('Obavijesti', 'Upravljanje obavijestima'),
+      () => const NewsItemsScreen(),
     ),
   ]),
   _NavSection('IZVJEŠTAJI', [
