@@ -28,10 +28,10 @@ public class UserMembershipsController
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public override Task<ActionResult<PageResult<UserMembershipResponse>>> GetAll(
-        [FromQuery] MembershipSearchObject search,
+        [FromQuery] MembershipSearchObject searchObject,
         CancellationToken cancellationToken = default)
     {
-        return base.GetAll(search, cancellationToken);
+        return base.GetAll(searchObject, cancellationToken);
     }
 
     [HttpGet("{id:int}")]

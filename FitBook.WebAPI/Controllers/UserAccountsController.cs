@@ -27,9 +27,9 @@ public class UserAccountsController
 
     [HttpGet]
     [Authorize(Roles = Roles.Admin)]
-    public override Task<ActionResult<PageResult<UserAccountResponse>>> GetAll([FromQuery] UserSearchObject search, CancellationToken cancellationToken = default)
+    public override Task<ActionResult<PageResult<UserAccountResponse>>> GetAll([FromQuery] UserSearchObject searchObject, CancellationToken cancellationToken = default)
     {
-        return base.GetAll(search, cancellationToken);
+        return base.GetAll(searchObject, cancellationToken);
     }
 
     [HttpGet("{id:int}")]
