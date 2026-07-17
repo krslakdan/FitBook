@@ -5,10 +5,13 @@ import '../models/requests/auth/refresh_token_request.dart';
 import '../models/requests/auth/user_login_request.dart';
 import '../models/responses/auth/refresh_token_response.dart';
 import '../models/responses/auth/user_login_response.dart';
+import '../utils/api_client_exception.dart';
 import 'auth_session.dart';
 import 'base_provider.dart';
 
 class AuthProvider extends BaseProvider {
+  static const _adminRole = 'Admin';
+
   AuthProvider() {
     AuthSession.refreshHandler = _performRefresh;
   }
@@ -33,6 +36,15 @@ class AuthProvider extends BaseProvider {
     );
     AuthSession.accessToken = loginResponse.accessToken;
     AuthSession.refreshToken = loginResponse.refreshToken;
+
+    if (currentRole != _adminRole) {
+      await logout();
+      throw ApiClientException(
+        'Pristup je dozvoljen samo administratorima.',
+        statusCode: 403,
+      );
+    }
+
     await AuthSession.persist();
     notifyListeners();
   }
@@ -57,6 +69,9 @@ class AuthProvider extends BaseProvider {
 
   Future<bool> tryRestoreSession() async {
     await AuthSession.restore();
+    if (isAuthenticated && currentRole != _adminRole) {
+      await AuthSession.clear();
+    }
     notifyListeners();
     return isAuthenticated;
   }
