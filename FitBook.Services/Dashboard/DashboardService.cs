@@ -1,3 +1,4 @@
+using FitBook.Model.Constants;
 using FitBook.Model.Enums;
 using FitBook.Model.Responses.Dashboard;
 using FitBook.Services.Database;
@@ -35,15 +36,22 @@ public class DashboardService : IDashboardService
         var thirtyDaysAgoUtc = nowUtc.AddDays(-30);
 
         var totalUsers = await _dbContext.UserAccounts
-            .CountAsync(u => !u.IsDeleted, cancellationToken);
+            .CountAsync(u => !u.IsDeleted && u.Role == Roles.User, cancellationToken);
         var usersBeforeThisMonth = await _dbContext.UserAccounts
-            .CountAsync(u => !u.IsDeleted && u.CreatedAtUtc < monthStartUtc, cancellationToken);
+            .CountAsync(
+                u => !u.IsDeleted && u.Role == Roles.User && u.CreatedAtUtc < monthStartUtc,
+                cancellationToken);
 
         var activeMemberships = await _dbContext.UserMemberships
-            .CountAsync(m => !m.IsDeleted && m.Status == MembershipStatus.Active, cancellationToken);
+            .CountAsync(
+                m => !m.IsDeleted
+                    && m.Status == MembershipStatus.Active
+                    && m.EndDateUtc >= nowUtc,
+                cancellationToken);
         var membershipsActiveThirtyDaysAgo = await _dbContext.UserMemberships
             .CountAsync(
                 m => !m.IsDeleted
+                    && m.Status != MembershipStatus.Pending
                     && m.StartDateUtc <= thirtyDaysAgoUtc
                     && m.EndDateUtc >= thirtyDaysAgoUtc,
                 cancellationToken);
@@ -54,18 +62,16 @@ public class DashboardService : IDashboardService
             .CountAsync(r => r.ReservedAtUtc >= yesterdayUtc && r.ReservedAtUtc < todayUtc, cancellationToken);
 
         var monthRevenue = await _dbContext.MembershipPayments
-            .Where(p => p.Status == PaymentStatus.Completed && p.PaidAtUtc >= monthStartUtc)
-            .SumAsync(p => (decimal?)p.Amount, cancellationToken) ?? 0m;
+            .Where(p => (p.Status == PaymentStatus.Completed || p.Status == PaymentStatus.Refunded)
+                && p.PaidAtUtc >= monthStartUtc)
+            .SumAsync(p => (decimal?)(p.Amount - (p.RefundAmount ?? 0m)), cancellationToken) ?? 0m;
         var previousMonthRevenue = await _dbContext.MembershipPayments
-            .Where(p => p.Status == PaymentStatus.Completed
+            .Where(p => (p.Status == PaymentStatus.Completed || p.Status == PaymentStatus.Refunded)
                 && p.PaidAtUtc >= previousMonthStartUtc
                 && p.PaidAtUtc < monthStartUtc)
-            .SumAsync(p => (decimal?)p.Amount, cancellationToken) ?? 0m;
+            .SumAsync(p => (decimal?)(p.Amount - (p.RefundAmount ?? 0m)), cancellationToken) ?? 0m;
 
-        var revenueCurrency = await _dbContext.MembershipPayments
-            .Where(p => p.Status == PaymentStatus.Completed)
-            .Select(p => p.Currency)
-            .FirstOrDefaultAsync(cancellationToken) ?? string.Empty;
+        var revenueCurrency = PaymentConstants.Currency;
 
         var seriesFromUtc = todayUtc.AddDays(-(days - 1));
         var reservationsGrouped = await _dbContext.Reservations
@@ -103,6 +109,7 @@ public class DashboardService : IDashboardService
             .Select(r => new DashboardRecentReservation
             {
                 UserFullName = r.UserAccount!.FirstName + " " + r.UserAccount.LastName,
+                UserImageUrl = r.UserAccount.ProfileImageUrl,
                 TrainingName = r.TrainingTerm!.Training!.Name,
                 TermStartUtc = r.TrainingTerm.StartTimeUtc,
                 TermEndUtc = r.TrainingTerm.EndTimeUtc,
@@ -124,6 +131,19 @@ public class DashboardService : IDashboardService
                 Status = p.Status,
                 PaidAtUtc = p.PaidAtUtc,
                 CreatedAtUtc = p.CreatedAtUtc,
+            })
+            .ToListAsync(cancellationToken);
+
+        var recentActivities = await _dbContext.SystemNotifications
+            .Where(n => n.NotificationType != NotificationType.NewsPublished
+                && n.NotificationType != NotificationType.ReservationReminder)
+            .OrderByDescending(n => n.CreatedAtUtc)
+            .Take(RecentItemsCount)
+            .Select(n => new DashboardActivity
+            {
+                Type = n.NotificationType,
+                UserFullName = n.UserAccount!.FirstName + " " + n.UserAccount.LastName,
+                CreatedAtUtc = n.CreatedAtUtc,
             })
             .ToListAsync(cancellationToken);
 
@@ -159,6 +179,7 @@ public class DashboardService : IDashboardService
                 .ToList(),
             RecentReservations = recentReservations,
             RecentPayments = recentPayments,
+            RecentActivities = recentActivities,
         };
     }
 
