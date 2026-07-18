@@ -22,6 +22,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using FitBook.Services.Interfaces.Auth;
 using FitBook.Services.Auth;
+using FitBook.Services.Dashboard;
 using FitBook.Services.Interfaces;
 using FitBook.Services.Messaging;
 using FitBook.Services.Payments;
@@ -62,6 +63,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISystemNotificationService, SystemNotificationService>();
         services.AddScoped<IRecommendationService, RecommendationService>();
         services.AddScoped<IReportService, ReportService>();
+        services.AddScoped<IDashboardService, DashboardService>();
 
         services.Configure<RabbitMqOptions>(configuration.GetSection("RabbitMQ"));
         services.AddSingleton<IEmailNotificationPublisher, RabbitMqEmailNotificationPublisher>();
