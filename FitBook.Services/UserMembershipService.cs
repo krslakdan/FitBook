@@ -1,3 +1,4 @@
+using FitBook.Common.Services.Time;
 using FitBook.Model.Constants;
 using FitBook.Model.Enums;
 using FitBook.Model.Exceptions;
@@ -437,7 +438,7 @@ public class UserMembershipService
                 UserAccountId = membership.UserAccountId,
                 NotificationType = NotificationType.MembershipPaid,
                 Title = "Plaćanje članarine uspješno",
-                Content = $"Vaša članarina je uspješno plaćena i sada je aktivna do {membership.EndDateUtc:dd.MM.yyyy}. Hvala!",
+                Content = $"Vaša članarina je uspješno plaćena i sada je aktivna do {LocalTimeProvider.FormatDate(membership.EndDateUtc)} Hvala!",
                 IsRead = false,
                 CreatedAtUtc = DateTime.UtcNow
             });
@@ -453,7 +454,7 @@ public class UserMembershipService
                 ToEmail = membership.UserAccount.Email,
                 ToName = $"{membership.UserAccount.FirstName} {membership.UserAccount.LastName}",
                 Subject = "Plaćanje članarine uspješno",
-                Body = $"Poštovani, Vaša članarina je uspješno plaćena i sada je aktivna do {membership.EndDateUtc:dd.MM.yyyy}. Hvala!",
+                Body = $"Poštovani, Vaša članarina je uspješno plaćena i sada je aktivna do {LocalTimeProvider.FormatDate(membership.EndDateUtc)} Hvala!",
             }, cancellationToken);
         }
     }

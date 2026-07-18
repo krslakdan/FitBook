@@ -1,5 +1,3 @@
-// Basic smoke tests: the provider layer wires up, the app renders without
-// throwing, and the login form's client-side validation actually fires.
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';

@@ -22,9 +22,6 @@ public abstract class BaseReadController<TResponse, TSearch, TService> : Control
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    // Parametar se NE smije zvati "search": kolidira sa ?search= query
-    // parametrom i prebacuje model binder u prefiksni mod (search.Page...),
-    // čime svi filteri prestaju da se vezuju.
     public virtual async Task<ActionResult<PageResult<TResponse>>> GetAll([FromQuery] TSearch searchObject, CancellationToken cancellationToken = default)
     {
         var result = await Service.GetAllAsync(searchObject, cancellationToken);

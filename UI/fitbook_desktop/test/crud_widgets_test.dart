@@ -1,5 +1,3 @@
-// Layout smoke testovi za reusable CRUD komponente: hvataju greške tipa
-// "infinite width/height" koje analyzer ne vidi, a ruše ekran u runtimeu.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -110,7 +108,6 @@ void main() {
     expect(find.text('Lista testova'), findsOneWidget);
     expect(find.text('Prvi zapis'), findsOneWidget);
     expect(find.text('Prikazano 11 do 12 od 154 zapisa'), findsOneWidget);
-    // Paginacija: 1 … 1 2 3 … 16 (trenutna=2).
     expect(find.text('16'), findsOneWidget);
     expect(find.text('…'), findsOneWidget);
   });

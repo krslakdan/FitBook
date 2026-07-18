@@ -25,10 +25,6 @@ class ApiErrorParser {
       final decoded = jsonDecode(body);
       if (decoded is! Map<String, dynamic>) return null;
 
-      // `errors` carries the specific, actionable detail (field-level
-      // validation messages, the business rule that failed, etc.); `message`
-      // is often just a generic summary of the same thing ("Validacija nije
-      // uspjela."), so prefer errors and only fall back to message.
       final detail = _flattenErrors(decoded['errors']);
       if (detail != null) return detail;
 

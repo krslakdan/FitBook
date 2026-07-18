@@ -8,8 +8,6 @@ public class FileStorageService : IFileStorageService
 {
     private const long MaxFileSizeBytes = 5 * 1024 * 1024;
 
-    // "users" je dostupan svim autentifikovanim korisnicima (profilna slika);
-    // ostali folderi su rezervisani za administratorske sadržaje.
     private static readonly string[] AllowedFolders = ["users", "trainers", "news"];
     private static readonly string[] AdminOnlyFolders = ["trainers", "news"];
 

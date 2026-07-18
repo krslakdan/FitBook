@@ -1,3 +1,4 @@
+using FitBook.Common.Services.Time;
 using FitBook.Model.Constants;
 using FitBook.Model.Enums;
 using FitBook.Model.Exceptions;
@@ -219,7 +220,7 @@ public class ReservationService
         AddStatusAudit(reservation, previousStatus, ReservationStatus.Confirmed, reason: null);
 
         var termStartFormatted = reservation.TrainingTerm is not null
-            ? reservation.TrainingTerm.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC"
+            ? LocalTimeProvider.FormatDateTime(reservation.TrainingTerm.StartTimeUtc)
             : $"termin #{reservation.TrainingTermId}";
 
         _dbContext.SystemNotifications.Add(new SystemNotification
@@ -351,7 +352,7 @@ public class ReservationService
             reservation.ReminderSentAtUtc = now;
 
             var termStartFormatted = reservation.TrainingTerm is not null
-                ? reservation.TrainingTerm.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC"
+                ? LocalTimeProvider.FormatDateTime(reservation.TrainingTerm.StartTimeUtc)
                 : $"termin #{reservation.TrainingTermId}";
 
             _dbContext.SystemNotifications.Add(new SystemNotification
@@ -375,7 +376,7 @@ public class ReservationService
             }
 
             var termStartFormatted = reservation.TrainingTerm is not null
-                ? reservation.TrainingTerm.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC"
+                ? LocalTimeProvider.FormatDateTime(reservation.TrainingTerm.StartTimeUtc)
                 : $"termin #{reservation.TrainingTermId}";
 
             await _emailNotificationPublisher.PublishAsync(new EmailNotificationMessage
@@ -407,7 +408,7 @@ public class ReservationService
         AddStatusAudit(reservation, previousStatus, ReservationStatus.Cancelled, reason: reason);
 
         var termStartFormatted = reservation.TrainingTerm is not null
-            ? reservation.TrainingTerm.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC"
+            ? LocalTimeProvider.FormatDateTime(reservation.TrainingTerm.StartTimeUtc)
             : $"termin #{reservation.TrainingTermId}";
 
         _dbContext.SystemNotifications.Add(new SystemNotification
@@ -429,7 +430,7 @@ public class ReservationService
         }
 
         var termStartFormatted = reservation.TrainingTerm is not null
-            ? reservation.TrainingTerm.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC"
+            ? LocalTimeProvider.FormatDateTime(reservation.TrainingTerm.StartTimeUtc)
             : $"termin #{reservation.TrainingTermId}";
 
         await _emailNotificationPublisher.PublishAsync(new EmailNotificationMessage
@@ -469,7 +470,7 @@ public class ReservationService
         AddStatusAudit(reservation, previousStatus, ReservationStatus.Completed, reason: null);
 
         var termStartFormatted = reservation.TrainingTerm is not null
-            ? reservation.TrainingTerm.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC"
+            ? LocalTimeProvider.FormatDateTime(reservation.TrainingTerm.StartTimeUtc)
             : $"termin #{reservation.TrainingTermId}";
 
         _dbContext.SystemNotifications.Add(new SystemNotification
@@ -574,7 +575,7 @@ public class ReservationService
         var term = await _dbContext.TrainingTerms
             .Include(t => t.Training)
             .FirstOrDefaultAsync(t => t.Id == entity.TrainingTermId, cancellationToken);
-        var termStartFormatted = term is not null ? term.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC" : $"termin #{entity.TrainingTermId}";
+        var termStartFormatted = term is not null ? LocalTimeProvider.FormatDateTime(term.StartTimeUtc) : $"termin #{entity.TrainingTermId}";
 
         _dbContext.SystemNotifications.Add(new SystemNotification
         {

@@ -39,7 +39,6 @@ void main() {
   ) async {
     await pumpMasterScreen(tester, windowSize: const Size(900, 400));
 
-    // No overflow errors even though all sections can't fit in 400px.
     expect(tester.takeException(), isNull);
 
     expect(find.text('Odjava').hitTestable(), findsOneWidget);

@@ -1,3 +1,4 @@
+using FitBook.Common.Services.Time;
 using FitBook.Model.Constants;
 using FitBook.Model.Enums;
 using FitBook.Services.Database.Entities;
@@ -347,7 +348,7 @@ public static class DatabaseInitializer
 
     private static void AddConfirmationSideEffects(FitBookDbContext dbContext, int userAccountId, int reservationId, Training training, TrainingTerm term, DateTime now)
     {
-        var termStartFormatted = term.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC";
+        var termStartFormatted = LocalTimeProvider.FormatDateTime(term.StartTimeUtc);
 
         dbContext.SystemNotifications.Add(new SystemNotification
         {

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Dugme za dodavanje zapisa koje je onemogućeno dok FK preduslovi
-/// nisu ispunjeni, uz tooltip sa objašnjenjem razloga nedostupnosti.
 class AddRecordButton extends StatelessWidget {
   const AddRecordButton({
     super.key,
@@ -13,7 +11,6 @@ class AddRecordButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
 
-  /// Kada nije null, dugme je onemogućeno, a razlog se prikazuje kao tooltip.
   final String? disabledReason;
 
   @override

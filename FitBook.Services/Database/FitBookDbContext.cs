@@ -10,6 +10,13 @@ public partial class FitBookDbContext : DbContext
     {
     }
 
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        base.ConfigureConventions(configurationBuilder);
+
+        configurationBuilder.Properties<DateTime>().HaveConversion<UtcDateTimeKindConverter>();
+    }
+
     public DbSet<DifficultyLevel> DifficultyLevels { get; set; }
     public DbSet<Equipment> Equipment { get; set; }
     public DbSet<Hall> Halls { get; set; }
