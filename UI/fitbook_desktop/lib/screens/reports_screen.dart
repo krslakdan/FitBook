@@ -148,13 +148,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
       subtitle: 'Generisanje PDF izvještaja',
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
-        child: Wrap(
-          spacing: 16,
-          runSpacing: 16,
-          children: [
-            _buildReservationsCard(),
-            _buildPopularityCard(),
-          ],
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: _buildReservationsCard()),
+              const SizedBox(width: 16),
+              Expanded(child: _buildPopularityCard()),
+            ],
+          ),
         ),
       ),
     );
@@ -171,6 +173,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Expanded(
                 child: _DateField(
@@ -199,6 +202,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   ),
                 ),
               ),
+              const SizedBox(width: 12),
+              _DownloadButton(
+                loading: _downloadingReservations,
+                onPressed: _downloadingReservations ? null : _downloadReservationsReport,
+              ),
             ],
           ),
           if (_rangeError != null)
@@ -209,11 +217,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 style: const TextStyle(fontSize: 12, color: AppColors.danger),
               ),
             ),
-          const SizedBox(height: 16),
-          _DownloadButton(
-            loading: _downloadingReservations,
-            onPressed: _downloadingReservations ? null : _downloadReservationsReport,
-          ),
         ],
       ),
     );
@@ -250,7 +253,6 @@ class _ReportCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 480,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -289,6 +291,7 @@ class _ReportCard extends StatelessWidget {
             description,
             style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.5),
           ),
+          const Spacer(),
           const SizedBox(height: 16),
           child,
         ],
