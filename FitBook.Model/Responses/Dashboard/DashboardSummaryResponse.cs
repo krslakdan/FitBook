@@ -21,6 +21,7 @@ public class DashboardSummaryResponse
     public List<DashboardTopTraining> TopTrainings { get; set; } = [];
     public List<DashboardRecentReservation> RecentReservations { get; set; } = [];
     public List<DashboardRecentPayment> RecentPayments { get; set; } = [];
+    public List<DashboardActivity> RecentActivities { get; set; } = [];
 }
 
 public class DashboardDailyCount
@@ -40,11 +41,19 @@ public class DashboardTopTraining
 public class DashboardRecentReservation
 {
     public string UserFullName { get; set; } = string.Empty;
+    public string? UserImageUrl { get; set; }
     public string TrainingName { get; set; } = string.Empty;
     public DateTime TermStartUtc { get; set; }
     public DateTime TermEndUtc { get; set; }
     public ReservationStatus Status { get; set; }
     public DateTime ReservedAtUtc { get; set; }
+}
+
+public class DashboardActivity
+{
+    public NotificationType Type { get; set; }
+    public string UserFullName { get; set; } = string.Empty;
+    public DateTime CreatedAtUtc { get; set; }
 }
 
 public class DashboardRecentPayment
