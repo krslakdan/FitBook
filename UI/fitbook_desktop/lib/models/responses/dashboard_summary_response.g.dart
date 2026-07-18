@@ -36,6 +36,9 @@ DashboardSummaryResponse _$DashboardSummaryResponseFromJson(
   recentPayments: (json['recentPayments'] as List<dynamic>)
       .map((e) => DashboardRecentPayment.fromJson(e as Map<String, dynamic>))
       .toList(),
+  recentActivities: (json['recentActivities'] as List<dynamic>)
+      .map((e) => DashboardActivity.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$DashboardSummaryResponseToJson(
@@ -54,6 +57,7 @@ Map<String, dynamic> _$DashboardSummaryResponseToJson(
   'topTrainings': instance.topTrainings,
   'recentReservations': instance.recentReservations,
   'recentPayments': instance.recentPayments,
+  'recentActivities': instance.recentActivities,
 };
 
 DashboardDailyCount _$DashboardDailyCountFromJson(Map<String, dynamic> json) =>
@@ -91,6 +95,7 @@ DashboardRecentReservation _$DashboardRecentReservationFromJson(
   Map<String, dynamic> json,
 ) => DashboardRecentReservation(
   userFullName: json['userFullName'] as String,
+  userImageUrl: json['userImageUrl'] as String?,
   trainingName: json['trainingName'] as String,
   termStartUtc: DateTime.parse(json['termStartUtc'] as String),
   termEndUtc: DateTime.parse(json['termEndUtc'] as String),
@@ -102,6 +107,7 @@ Map<String, dynamic> _$DashboardRecentReservationToJson(
   DashboardRecentReservation instance,
 ) => <String, dynamic>{
   'userFullName': instance.userFullName,
+  'userImageUrl': instance.userImageUrl,
   'trainingName': instance.trainingName,
   'termStartUtc': instance.termStartUtc.toIso8601String(),
   'termEndUtc': instance.termEndUtc.toIso8601String(),
@@ -114,6 +120,35 @@ const _$ReservationStatusEnumMap = {
   ReservationStatus.confirmed: 2,
   ReservationStatus.cancelled: 3,
   ReservationStatus.completed: 4,
+};
+
+DashboardActivity _$DashboardActivityFromJson(Map<String, dynamic> json) =>
+    DashboardActivity(
+      type: $enumDecode(_$NotificationTypeEnumMap, json['type']),
+      userFullName: json['userFullName'] as String,
+      createdAtUtc: DateTime.parse(json['createdAtUtc'] as String),
+    );
+
+Map<String, dynamic> _$DashboardActivityToJson(DashboardActivity instance) =>
+    <String, dynamic>{
+      'type': _$NotificationTypeEnumMap[instance.type]!,
+      'userFullName': instance.userFullName,
+      'createdAtUtc': instance.createdAtUtc.toIso8601String(),
+    };
+
+const _$NotificationTypeEnumMap = {
+  NotificationType.reservationCreated: 1,
+  NotificationType.reservationConfirmed: 2,
+  NotificationType.reservationCancelled: 3,
+  NotificationType.reservationCompleted: 4,
+  NotificationType.membershipPaid: 5,
+  NotificationType.membershipExpiringSoon: 6,
+  NotificationType.newsPublished: 7,
+  NotificationType.membershipCancelled: 8,
+  NotificationType.membershipExpired: 9,
+  NotificationType.trainingTermCancelled: 10,
+  NotificationType.membershipPaymentFailed: 11,
+  NotificationType.reservationReminder: 12,
 };
 
 DashboardRecentPayment _$DashboardRecentPaymentFromJson(

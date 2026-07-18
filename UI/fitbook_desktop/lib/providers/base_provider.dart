@@ -116,9 +116,6 @@ abstract class BaseProvider with ChangeNotifier {
     if (response.statusCode >= 200 && response.statusCode < 300) return;
 
     if (response.statusCode == 401) {
-      // Fire-and-forget: nulls the in-memory tokens synchronously (before
-      // the first `await` inside AuthSession.clear), persistence to disk
-      // finishes in the background.
       AuthSession.clear();
       throw UnauthorizedException();
     }

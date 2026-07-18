@@ -52,19 +52,21 @@ class AuthProvider extends BaseProvider {
   Future<void> logout() async {
     final refreshToken = AuthSession.refreshToken;
     if (refreshToken != null) {
-      try {
-        await apiPost(
-          'auth/logout',
-          body: LogoutRequest(refreshToken: refreshToken),
-        );
-      } on Exception {
-        // Best-effort: the local session is cleared below regardless, so an
-        // unreachable server (or an already-expired token) shouldn't block
-        // logging out on the client.
-      }
+      await _revokeServerSession(refreshToken);
     }
     await AuthSession.clear();
     notifyListeners();
+  }
+
+  Future<void> _revokeServerSession(String refreshToken) async {
+    try {
+      await apiPost(
+        'auth/logout',
+        body: LogoutRequest(refreshToken: refreshToken),
+      );
+    } on Exception {
+      return;
+    }
   }
 
   Future<bool> tryRestoreSession() async {

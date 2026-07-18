@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
+import '../enums/notification_type.dart';
 import '../enums/payment_status.dart';
 import '../enums/reservation_status.dart';
 
@@ -21,6 +22,7 @@ class DashboardSummaryResponse {
     required this.topTrainings,
     required this.recentReservations,
     required this.recentPayments,
+    required this.recentActivities,
   });
 
   final int totalUsers;
@@ -36,6 +38,7 @@ class DashboardSummaryResponse {
   final List<DashboardTopTraining> topTrainings;
   final List<DashboardRecentReservation> recentReservations;
   final List<DashboardRecentPayment> recentPayments;
+  final List<DashboardActivity> recentActivities;
 
   factory DashboardSummaryResponse.fromJson(Map<String, dynamic> json) =>
       _$DashboardSummaryResponseFromJson(json);
@@ -80,6 +83,7 @@ class DashboardTopTraining {
 class DashboardRecentReservation {
   DashboardRecentReservation({
     required this.userFullName,
+    this.userImageUrl,
     required this.trainingName,
     required this.termStartUtc,
     required this.termEndUtc,
@@ -88,6 +92,7 @@ class DashboardRecentReservation {
   });
 
   final String userFullName;
+  final String? userImageUrl;
   final String trainingName;
   final DateTime termStartUtc;
   final DateTime termEndUtc;
@@ -98,6 +103,24 @@ class DashboardRecentReservation {
       _$DashboardRecentReservationFromJson(json);
 
   Map<String, dynamic> toJson() => _$DashboardRecentReservationToJson(this);
+}
+
+@JsonSerializable()
+class DashboardActivity {
+  DashboardActivity({
+    required this.type,
+    required this.userFullName,
+    required this.createdAtUtc,
+  });
+
+  final NotificationType type;
+  final String userFullName;
+  final DateTime createdAtUtc;
+
+  factory DashboardActivity.fromJson(Map<String, dynamic> json) =>
+      _$DashboardActivityFromJson(json);
+
+  Map<String, dynamic> toJson() => _$DashboardActivityToJson(this);
 }
 
 @JsonSerializable()

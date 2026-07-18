@@ -3,17 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../layouts/master_screen.dart';
+import '../models/enums/notification_type.dart';
 import '../models/enums/payment_status.dart';
 import '../models/responses/dashboard_summary_response.dart';
-import '../models/responses/news_item_response.dart';
-import '../models/search_objects/news_item_search_object.dart';
 import '../providers/dashboard_provider.dart';
-import '../providers/news_item_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/api_client_exception.dart';
+import '../utils/app_config.dart';
 import '../utils/formatters.dart';
 import '../widgets/status_chip.dart';
-import 'news_items_screen.dart';
 import 'reservations_screen.dart';
 import 'trainings_screen.dart';
 import 'user_memberships_screen.dart';
@@ -31,7 +29,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _reservationsDays = 7;
 
   DashboardSummaryResponse? _summary;
-  List<NewsItemResponse> _news = const [];
   bool _loading = false;
   String? _error;
 
@@ -48,21 +45,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
 
     try {
-      final summaryFuture = context
+      final summary = await context
           .read<DashboardProvider>()
           .getSummary(reservationsDays: _reservationsDays);
-      final newsFuture = context
-          .read<NewsItemProvider>()
-          .get(filter: const NewsItemSearchObject(pageSize: 4));
-
-      final summary = await summaryFuture;
-      final news = await newsFuture;
 
       if (!mounted) return;
-      setState(() {
-        _summary = summary;
-        _news = news.items;
-      });
+      setState(() => _summary = summary);
     } on ApiClientException catch (e) {
       if (!mounted) return;
       setState(() => _error = e.message);
@@ -147,7 +135,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 const SizedBox(width: 16),
                 Expanded(child: _buildRecentPaymentsCard(summary)),
                 const SizedBox(width: 16),
-                Expanded(child: _buildNewsCard()),
+                Expanded(child: _buildActivitiesCard(summary)),
               ],
             ),
           ),
@@ -304,17 +292,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildNewsCard() {
+  Widget _buildActivitiesCard(DashboardSummaryResponse summary) {
     return _DashboardCard(
       title: 'Obavijesti',
-      trailing: _SeeAllButton(onPressed: () => _navigateTo(const NewsItemsScreen())),
-      child: _news.isEmpty
-          ? const _EmptyCardMessage('Još nema objavljenih obavijesti.')
+      child: summary.recentActivities.isEmpty
+          ? const _EmptyCardMessage('Još nema aktivnosti u sistemu.')
           : Column(
               children: [
-                for (var i = 0; i < _news.length; i++) ...[
+                for (var i = 0; i < summary.recentActivities.length; i++) ...[
                   if (i > 0) const SizedBox(height: 12),
-                  _NewsRow(newsItem: _news[i]),
+                  _ActivityRow(activity: summary.recentActivities[i]),
                 ],
               ],
             ),
@@ -721,12 +708,14 @@ class _RecentReservationRow extends StatelessWidget {
         .take(2)
         .map((part) => part[0].toUpperCase())
         .join();
+    final imageUrl = AppConfig.absoluteFileUrl(reservation.userImageUrl);
 
     return Row(
       children: [
         CircleAvatar(
           radius: 17,
           backgroundColor: AppColors.primarySoft,
+          foregroundImage: imageUrl == null ? null : NetworkImage(imageUrl),
           child: Text(
             initials,
             style: const TextStyle(
@@ -841,23 +830,134 @@ class _RecentPaymentRow extends StatelessWidget {
   }
 }
 
-class _NewsRow extends StatelessWidget {
-  const _NewsRow({required this.newsItem});
+class _ActivityStyle {
+  const _ActivityStyle(this.title, this.description, this.icon, this.background, this.foreground);
 
-  final NewsItemResponse newsItem;
+  final String title;
+  final String description;
+  final IconData icon;
+  final Color background;
+  final Color foreground;
+}
+
+class _ActivityRow extends StatelessWidget {
+  const _ActivityRow({required this.activity});
+
+  final DashboardActivity activity;
+
+  _ActivityStyle _style() {
+    final user = activity.userFullName;
+    return switch (activity.type) {
+      NotificationType.reservationCreated => _ActivityStyle(
+        'Nova rezervacija',
+        '$user — kreirana je rezervacija',
+        Icons.check_circle_outline,
+        AppColors.primarySoft,
+        AppColors.onPrimarySoft,
+      ),
+      NotificationType.reservationConfirmed => _ActivityStyle(
+        'Potvrđena rezervacija',
+        '$user — rezervacija je potvrđena',
+        Icons.event_available_outlined,
+        AppColors.primarySoft,
+        AppColors.onPrimarySoft,
+      ),
+      NotificationType.reservationCancelled => _ActivityStyle(
+        'Otkazana rezervacija',
+        '$user — rezervacija je otkazana',
+        Icons.warning_amber_outlined,
+        AppColors.warningSoft,
+        AppColors.onWarningSoft,
+      ),
+      NotificationType.reservationCompleted => _ActivityStyle(
+        'Završena rezervacija',
+        '$user — rezervacija je završena',
+        Icons.task_alt_outlined,
+        AppColors.infoSoft,
+        AppColors.onInfoSoft,
+      ),
+      NotificationType.membershipPaid => _ActivityStyle(
+        'Uspješno plaćanje',
+        '$user — uplata članarine je izvršena',
+        Icons.info_outline,
+        AppColors.infoSoft,
+        AppColors.onInfoSoft,
+      ),
+      NotificationType.membershipExpiringSoon => _ActivityStyle(
+        'Članarina uskoro ističe',
+        '$user — članarina uskoro ističe',
+        Icons.hourglass_bottom_outlined,
+        AppColors.warningSoft,
+        AppColors.onWarningSoft,
+      ),
+      NotificationType.membershipCancelled => _ActivityStyle(
+        'Otkazana članarina',
+        '$user — članarina je otkazana',
+        Icons.cancel_outlined,
+        AppColors.dangerSoft,
+        AppColors.onDangerSoft,
+      ),
+      NotificationType.membershipExpired => _ActivityStyle(
+        'Istekla članarina',
+        '$user — članarina je istekla',
+        Icons.event_busy_outlined,
+        AppColors.neutralSoft,
+        AppColors.onNeutralSoft,
+      ),
+      NotificationType.trainingTermCancelled => _ActivityStyle(
+        'Otkazan termin',
+        '$user — termin treninga je otkazan',
+        Icons.calendar_month_outlined,
+        AppColors.warningSoft,
+        AppColors.onWarningSoft,
+      ),
+      NotificationType.membershipPaymentFailed => _ActivityStyle(
+        'Neuspjelo plaćanje',
+        '$user — uplata članarine nije uspjela',
+        Icons.error_outline,
+        AppColors.dangerSoft,
+        AppColors.onDangerSoft,
+      ),
+      NotificationType.newsPublished => _ActivityStyle(
+        'Nova obavijest',
+        '$user — objavljena je obavijest',
+        Icons.campaign_outlined,
+        AppColors.infoSoft,
+        AppColors.onInfoSoft,
+      ),
+      NotificationType.reservationReminder => _ActivityStyle(
+        'Podsjetnik',
+        '$user — poslan je podsjetnik za termin',
+        Icons.notifications_outlined,
+        AppColors.infoSoft,
+        AppColors.onInfoSoft,
+      ),
+    };
+  }
+
+  String _relativeTime() {
+    final difference = DateTime.now().toUtc().difference(activity.createdAtUtc);
+    if (difference.inMinutes < 1) return 'upravo sada';
+    if (difference.inMinutes < 60) return 'prije ${difference.inMinutes} min';
+    if (difference.inHours < 24) return 'prije ${difference.inHours} h';
+    if (difference.inDays < 7) return 'prije ${difference.inDays} d';
+    return formatDate(activity.createdAtUtc.toLocal());
+  }
 
   @override
   Widget build(BuildContext context) {
+    final style = _style();
+
     return Row(
       children: [
         Container(
           width: 34,
           height: 34,
           decoration: BoxDecoration(
-            color: AppColors.infoSoft,
+            color: style.background,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Icon(Icons.campaign_outlined, size: 18, color: AppColors.onInfoSoft),
+          child: Icon(style.icon, size: 18, color: style.foreground),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -865,16 +965,22 @@ class _NewsRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                newsItem.title,
+                style.title,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
               ),
               Text(
-                formatDateTime(newsItem.publishedAtUtc),
+                style.description,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
               ),
             ],
           ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          _relativeTime(),
+          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
         ),
       ],
     );
