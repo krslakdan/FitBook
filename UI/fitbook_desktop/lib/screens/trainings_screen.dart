@@ -17,6 +17,7 @@ import '../providers/training_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/api_client_exception.dart';
 import '../utils/formatters.dart';
+import '../widgets/crud/add_record_button.dart';
 import '../widgets/crud/confirm_dialog.dart';
 import '../widgets/crud/data_table_card.dart';
 import '../widgets/crud/filter_bar.dart';
@@ -46,6 +47,8 @@ class _TrainingsScreenState extends State<TrainingsScreen> {
   PageResult<TrainingResponse>? _data;
   List<TrainingCategoryResponse> _categories = const [];
   List<DifficultyLevelResponse> _levels = const [];
+  bool _lookupsLoaded = false;
+  bool _lookupsFailed = false;
   bool _loading = false;
   String? _error;
 
@@ -104,10 +107,24 @@ class _TrainingsScreenState extends State<TrainingsScreen> {
       setState(() {
         _categories = categories.items;
         _levels = levels.items;
+        _lookupsLoaded = true;
       });
     } on ApiClientException {
       if (!mounted) return;
+      setState(() => _lookupsFailed = true);
     }
+  }
+
+  String? get _addDisabledReason {
+    if (_lookupsFailed) return null;
+    if (!_lookupsLoaded) return 'Provjera preduslova je u toku...';
+    if (_categories.isEmpty) {
+      return 'Dodavanje nije moguće: prvo dodajte barem jednu kategoriju treninga.';
+    }
+    if (_levels.isEmpty) {
+      return 'Dodavanje nije moguće: prvo dodajte barem jedan nivo težine.';
+    }
+    return null;
   }
 
   void _onSearchChanged(String _) {
@@ -291,10 +308,10 @@ class _TrainingsScreenState extends State<TrainingsScreen> {
                 ),
               ],
               actions: [
-                FilledButton.icon(
+                AddRecordButton(
+                  label: 'Dodaj trening',
                   onPressed: () => _openForm(),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Dodaj trening'),
+                  disabledReason: _addDisabledReason,
                 ),
                 OutlinedButton.icon(
                   onPressed: _clearFilters,

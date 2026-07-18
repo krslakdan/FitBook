@@ -7,13 +7,16 @@ import '../layouts/master_screen.dart';
 import '../models/common/page_result.dart';
 import '../models/responses/training_equipment_response.dart';
 import '../models/responses/training_response.dart';
+import '../models/search_objects/equipment_search_object.dart';
 import '../models/search_objects/training_equipment_search_object.dart';
 import '../models/search_objects/training_search_object.dart';
+import '../providers/equipment_provider.dart';
 import '../providers/training_equipment_provider.dart';
 import '../providers/training_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/api_client_exception.dart';
 import '../utils/formatters.dart';
+import '../widgets/crud/add_record_button.dart';
 import '../widgets/crud/confirm_dialog.dart';
 import '../widgets/crud/data_table_card.dart';
 import '../widgets/crud/filter_bar.dart';
@@ -41,6 +44,9 @@ class _TrainingEquipmentScreenState extends State<TrainingEquipmentScreen> {
 
   PageResult<TrainingEquipmentResponse>? _data;
   List<TrainingResponse> _trainings = const [];
+  bool _hasEquipment = false;
+  bool _lookupsLoaded = false;
+  bool _lookupsFailed = false;
   bool _loading = false;
   String? _error;
 
@@ -48,7 +54,7 @@ class _TrainingEquipmentScreenState extends State<TrainingEquipmentScreen> {
   void initState() {
     super.initState();
     _load();
-    _loadTrainings();
+    _loadLookups();
   }
 
   @override
@@ -84,16 +90,37 @@ class _TrainingEquipmentScreenState extends State<TrainingEquipmentScreen> {
     }
   }
 
-  Future<void> _loadTrainings() async {
+  Future<void> _loadLookups() async {
     try {
-      final result = await context.read<TrainingProvider>().get(
+      final trainings = await context.read<TrainingProvider>().get(
         filter: const TrainingSearchObject(pageSize: 100),
       );
       if (!mounted) return;
-      setState(() => _trainings = result.items);
+      final equipment = await context.read<EquipmentProvider>().get(
+        filter: const EquipmentSearchObject(pageSize: 1),
+      );
+      if (!mounted) return;
+      setState(() {
+        _trainings = trainings.items;
+        _hasEquipment = equipment.items.isNotEmpty;
+        _lookupsLoaded = true;
+      });
     } on ApiClientException {
       if (!mounted) return;
+      setState(() => _lookupsFailed = true);
     }
+  }
+
+  String? get _addDisabledReason {
+    if (_lookupsFailed) return null;
+    if (!_lookupsLoaded) return 'Provjera preduslova je u toku...';
+    if (_trainings.isEmpty) {
+      return 'Dodavanje nije moguće: prvo dodajte barem jedan trening.';
+    }
+    if (!_hasEquipment) {
+      return 'Dodavanje nije moguće: prvo dodajte barem jednu opremu.';
+    }
+    return null;
   }
 
   void _onSearchChanged(String _) {
@@ -154,13 +181,6 @@ class _TrainingEquipmentScreenState extends State<TrainingEquipmentScreen> {
       builder: (_) =>
           _TrainingEquipmentDetailsDialog(trainingEquipment: trainingEquipment),
     );
-  }
-
-  String _trainingName(TrainingEquipmentResponse trainingEquipment) {
-    for (final training in _trainings) {
-      if (training.id == trainingEquipment.trainingId) return training.name;
-    }
-    return 'Trening #${trainingEquipment.trainingId}';
   }
 
   Future<void> _delete(TrainingEquipmentResponse trainingEquipment) async {
@@ -243,10 +263,10 @@ class _TrainingEquipmentScreenState extends State<TrainingEquipmentScreen> {
                 ),
               ],
               actions: [
-                FilledButton.icon(
+                AddRecordButton(
+                  label: 'Dodaj opremu treningu',
                   onPressed: () => _openForm(),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Dodaj opremu treningu'),
+                  disabledReason: _addDisabledReason,
                 ),
                 OutlinedButton.icon(
                   onPressed: _clearFilters,
@@ -298,7 +318,7 @@ class _TrainingEquipmentScreenState extends State<TrainingEquipmentScreen> {
                     ),
                   ),
                   Text(
-                    _trainingName(trainingEquipment),
+                    trainingEquipment.trainingName,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 13),
                   ),
@@ -370,6 +390,11 @@ class _TrainingEquipmentDetailsDialog extends StatelessWidget {
           const SizedBox(height: 20),
           const Divider(height: 1),
           const SizedBox(height: 16),
+          DetailRow(
+            icon: Icons.fitness_center,
+            label: 'Trening',
+            value: trainingEquipment.trainingName,
+          ),
           DetailRow(
             icon: Icons.notes_outlined,
             label: 'Napomena',

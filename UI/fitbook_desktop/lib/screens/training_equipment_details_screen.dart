@@ -155,7 +155,8 @@ class _TrainingEquipmentDetailsScreenState
         DropdownMenuItem(
           value: trainingEquipment.trainingId,
           child: Text(
-            'Trening #${trainingEquipment.trainingId}',
+            trainingEquipment.trainingName,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontSize: 13.5),
           ),
         ),

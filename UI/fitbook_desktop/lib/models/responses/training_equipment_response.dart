@@ -9,6 +9,7 @@ class TrainingEquipmentResponse {
     required this.isRequired,
     this.note,
     required this.trainingId,
+    required this.trainingName,
     required this.equipmentId,
     required this.equipmentName,
     required this.createdAtUtc,
@@ -19,6 +20,7 @@ class TrainingEquipmentResponse {
   final bool isRequired;
   final String? note;
   final int trainingId;
+  final String trainingName;
   final int equipmentId;
   final String equipmentName;
   final DateTime createdAtUtc;

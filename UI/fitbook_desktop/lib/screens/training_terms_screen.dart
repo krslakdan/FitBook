@@ -8,11 +8,18 @@ import '../models/common/page_result.dart';
 import '../models/enums/training_term_status.dart';
 import '../models/requests/training_term_cancel_request.dart';
 import '../models/responses/training_term_response.dart';
+import '../models/search_objects/hall_search_object.dart';
+import '../models/search_objects/trainer_search_object.dart';
+import '../models/search_objects/training_search_object.dart';
 import '../models/search_objects/training_term_search_object.dart';
+import '../providers/hall_provider.dart';
+import '../providers/trainer_provider.dart';
+import '../providers/training_provider.dart';
 import '../providers/training_term_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/api_client_exception.dart';
 import '../utils/formatters.dart';
+import '../widgets/crud/add_record_button.dart';
 import '../widgets/crud/confirm_dialog.dart';
 import '../widgets/crud/data_table_card.dart';
 import '../widgets/crud/filter_bar.dart';
@@ -52,6 +59,11 @@ class _TrainingTermsScreenState extends State<TrainingTermsScreen> {
   int _pageSize = 10;
 
   PageResult<TrainingTermResponse>? _data;
+  bool _hasActiveTrainings = false;
+  bool _hasActiveTrainers = false;
+  bool _hasActiveHalls = false;
+  bool _lookupsLoaded = false;
+  bool _lookupsFailed = false;
   bool _loading = false;
   String? _error;
 
@@ -59,6 +71,7 @@ class _TrainingTermsScreenState extends State<TrainingTermsScreen> {
   void initState() {
     super.initState();
     _load();
+    _loadLookups();
   }
 
   @override
@@ -97,6 +110,47 @@ class _TrainingTermsScreenState extends State<TrainingTermsScreen> {
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Future<void> _loadLookups() async {
+    try {
+      final trainings = await context.read<TrainingProvider>().get(
+        filter: const TrainingSearchObject(pageSize: 1, isActive: true),
+      );
+      if (!mounted) return;
+      final trainers = await context.read<TrainerProvider>().get(
+        filter: const TrainerSearchObject(pageSize: 1, isActive: true),
+      );
+      if (!mounted) return;
+      final halls = await context.read<HallProvider>().get(
+        filter: const HallSearchObject(pageSize: 1, isActive: true),
+      );
+      if (!mounted) return;
+      setState(() {
+        _hasActiveTrainings = trainings.items.isNotEmpty;
+        _hasActiveTrainers = trainers.items.isNotEmpty;
+        _hasActiveHalls = halls.items.isNotEmpty;
+        _lookupsLoaded = true;
+      });
+    } on ApiClientException {
+      if (!mounted) return;
+      setState(() => _lookupsFailed = true);
+    }
+  }
+
+  String? get _addDisabledReason {
+    if (_lookupsFailed) return null;
+    if (!_lookupsLoaded) return 'Provjera preduslova je u toku...';
+    if (!_hasActiveTrainings) {
+      return 'Dodavanje nije moguće: prvo dodajte barem jedan aktivan trening.';
+    }
+    if (!_hasActiveTrainers) {
+      return 'Dodavanje nije moguće: prvo dodajte barem jednog aktivnog trenera.';
+    }
+    if (!_hasActiveHalls) {
+      return 'Dodavanje nije moguće: prvo dodajte barem jednu aktivnu salu.';
+    }
+    return null;
   }
 
   void _onSearchChanged(String _) {
@@ -325,10 +379,10 @@ class _TrainingTermsScreenState extends State<TrainingTermsScreen> {
                 ),
               ],
               actions: [
-                FilledButton.icon(
+                AddRecordButton(
+                  label: 'Dodaj termin',
                   onPressed: () => _openForm(),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Dodaj termin'),
+                  disabledReason: _addDisabledReason,
                 ),
                 OutlinedButton.icon(
                   onPressed: _clearFilters,

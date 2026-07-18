@@ -117,8 +117,9 @@ class _TrainersDetailsScreenState extends State<TrainersDetailsScreen> {
     final text = value?.trim() ?? '';
     if (text.isEmpty) return '$field je obavezno polje.';
     if (text.length < min) return '$field mora imati najmanje $min karaktera.';
-    if (text.length > max)
+    if (text.length > max) {
       return '$field ne smije biti duže od $max karaktera.';
+    }
     return null;
   }
 

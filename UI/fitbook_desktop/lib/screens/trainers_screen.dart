@@ -9,12 +9,16 @@ import '../models/responses/specialization_response.dart';
 import '../models/responses/trainer_response.dart';
 import '../models/search_objects/specialization_search_object.dart';
 import '../models/search_objects/trainer_search_object.dart';
+import '../models/search_objects/user_search_object.dart';
 import '../providers/specialization_provider.dart';
 import '../providers/trainer_provider.dart';
+import '../providers/user_account_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/api_client_exception.dart';
 import '../utils/app_config.dart';
+import '../utils/app_roles.dart';
 import '../utils/formatters.dart';
+import '../widgets/crud/add_record_button.dart';
 import '../widgets/crud/confirm_dialog.dart';
 import '../widgets/crud/data_table_card.dart';
 import '../widgets/crud/filter_bar.dart';
@@ -43,6 +47,9 @@ class _TrainersScreenState extends State<TrainersScreen> {
 
   PageResult<TrainerResponse>? _data;
   List<SpecializationResponse> _specializations = const [];
+  bool _hasTrainerAccounts = false;
+  bool _lookupsLoaded = false;
+  bool _lookupsFailed = false;
   bool _loading = false;
   String? _error;
 
@@ -50,7 +57,7 @@ class _TrainersScreenState extends State<TrainersScreen> {
   void initState() {
     super.initState();
     _load();
-    _loadSpecializations();
+    _loadLookups();
   }
 
   @override
@@ -88,16 +95,41 @@ class _TrainersScreenState extends State<TrainersScreen> {
     }
   }
 
-  Future<void> _loadSpecializations() async {
+  Future<void> _loadLookups() async {
     try {
-      final result = await context.read<SpecializationProvider>().get(
+      final specializations = await context.read<SpecializationProvider>().get(
         filter: const SpecializationSearchObject(pageSize: 100),
       );
       if (!mounted) return;
-      setState(() => _specializations = result.items);
+      final trainerAccounts = await context.read<UserAccountProvider>().get(
+        filter: const UserSearchObject(
+          pageSize: 1,
+          role: AppRoles.trainer,
+          isActive: true,
+        ),
+      );
+      if (!mounted) return;
+      setState(() {
+        _specializations = specializations.items;
+        _hasTrainerAccounts = trainerAccounts.items.isNotEmpty;
+        _lookupsLoaded = true;
+      });
     } on ApiClientException {
       if (!mounted) return;
+      setState(() => _lookupsFailed = true);
     }
+  }
+
+  String? get _addDisabledReason {
+    if (_lookupsFailed) return null;
+    if (!_lookupsLoaded) return 'Provjera preduslova je u toku...';
+    if (_specializations.isEmpty) {
+      return 'Dodavanje nije moguće: prvo dodajte barem jednu specijalizaciju.';
+    }
+    if (!_hasTrainerAccounts) {
+      return 'Dodavanje nije moguće: ne postoji nijedan aktivan korisnik sa ulogom "Trener".';
+    }
+    return null;
   }
 
   void _onSearchChanged(String _) {
@@ -321,10 +353,10 @@ class _TrainersScreenState extends State<TrainersScreen> {
                 ),
               ],
               actions: [
-                FilledButton.icon(
+                AddRecordButton(
+                  label: 'Dodaj trenera',
                   onPressed: () => _openForm(),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Dodaj trenera'),
+                  disabledReason: _addDisabledReason,
                 ),
                 OutlinedButton.icon(
                   onPressed: _clearFilters,

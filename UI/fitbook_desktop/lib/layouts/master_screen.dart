@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
+import '../screens/dashboard_screen.dart';
 import '../screens/difficulty_levels_screen.dart';
 import '../screens/equipment_screen.dart';
 import '../screens/halls_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/membership_packages_screen.dart';
 import '../screens/news_items_screen.dart';
-import '../screens/placeholder_screen.dart';
+import '../screens/reports_screen.dart';
 import '../screens/reservations_screen.dart';
 import '../screens/specializations_screen.dart';
 import '../screens/trainers_screen.dart';
@@ -39,12 +40,6 @@ class _NavSection {
   final List<_NavItem> items;
 }
 
-Widget _placeholder(String title, String subtitle) => placeholderScreen(
-  title,
-  'Ekran "$title" biće implementiran u sljedećoj fazi.',
-  subtitle: subtitle,
-);
-
 final List<_NavSection> _sections = [
   _NavSection(null, [
     _NavItem(
@@ -52,7 +47,7 @@ final List<_NavSection> _sections = [
       'Pregled ključnih informacija o sistemu',
       Icons.home_outlined,
       Icons.home,
-      () => _placeholder('Dashboard', 'Pregled ključnih informacija o sistemu'),
+      () => const DashboardScreen(),
     ),
   ]),
   _NavSection('UPRAVLJANJE', [
@@ -159,7 +154,7 @@ final List<_NavSection> _sections = [
       'Generisanje PDF izvještaja',
       Icons.assessment_outlined,
       Icons.assessment,
-      () => _placeholder('Izvještaji', 'Generisanje PDF izvještaja'),
+      () => const ReportsScreen(),
     ),
   ]),
 ];

@@ -86,8 +86,9 @@ class _UserAccountsDetailsScreenState extends State<UserAccountsDetailsScreen> {
     final text = value?.trim() ?? '';
     if (text.isEmpty) return '$field je obavezno polje.';
     if (text.length < min) return '$field mora imati najmanje $min karaktera.';
-    if (text.length > max)
+    if (text.length > max) {
       return '$field ne smije biti duže od $max karaktera.';
+    }
     return null;
   }
 
@@ -119,8 +120,9 @@ class _UserAccountsDetailsScreenState extends State<UserAccountsDetailsScreen> {
 
   String? _validatePasswordConfirm(String? value) {
     if (!_changePassword) return null;
-    if ((value ?? '') != _passwordController.text)
+    if ((value ?? '') != _passwordController.text) {
       return 'Lozinke se ne podudaraju.';
+    }
     return null;
   }
 
