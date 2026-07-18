@@ -10,6 +10,8 @@ public class TrainingEquipmentMappingConfig : IRegister
     public void Register(TypeAdapterConfig config)
     {
         config.NewConfig<TrainingEquipmentEntity, TrainingEquipmentResponse>()
+            .Map(dest => dest.TrainingName,
+                src => src.Training != null ? src.Training.Name : string.Empty)
             .Map(dest => dest.EquipmentName,
                 src => src.Equipment != null ? src.Equipment.Name : string.Empty);
 
