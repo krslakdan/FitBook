@@ -95,6 +95,21 @@ public class UserMembershipService
         return query;
     }
 
+    protected override IQueryable<UserMembership> ApplySearch(IQueryable<UserMembership> query, MembershipSearchObject search)
+    {
+        if (string.IsNullOrWhiteSpace(search.Search))
+        {
+            return query;
+        }
+
+        var term = search.Search.Trim().ToLowerInvariant();
+        return query.Where(x =>
+            x.UserAccount!.FirstName.ToLower().Contains(term) ||
+            x.UserAccount.LastName.ToLower().Contains(term) ||
+            x.UserAccount.Email.ToLower().Contains(term) ||
+            x.MembershipPackage!.Name.ToLower().Contains(term));
+    }
+
     protected override async Task ValidateInsert(UserMembershipInsertRequest request, CancellationToken cancellationToken)
     {
         var package = await _dbContext.MembershipPackages
