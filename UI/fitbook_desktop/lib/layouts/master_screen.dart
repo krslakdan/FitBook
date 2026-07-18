@@ -18,6 +18,7 @@ import '../screens/training_equipment_screen.dart';
 import '../screens/training_terms_screen.dart';
 import '../screens/trainings_screen.dart';
 import '../screens/user_accounts_screen.dart';
+import '../screens/user_memberships_screen.dart';
 
 typedef _ScreenBuilder = Widget Function();
 
@@ -88,6 +89,13 @@ final List<_NavSection> _sections = [
     ),
   ]),
   _NavSection('ČLANARINE', [
+    _NavItem(
+      'Članarine',
+      'Pregled članarina korisnika',
+      Icons.loyalty_outlined,
+      Icons.loyalty,
+      () => const UserMembershipsScreen(),
+    ),
     _NavItem(
       'Paketi članarina',
       'Upravljanje paketima članarina',
