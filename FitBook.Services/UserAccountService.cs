@@ -93,11 +93,6 @@ public class UserAccountService
         return query;
     }
 
-    protected override IOrderedQueryable<UserAccount> ApplyOrdering(IQueryable<UserAccount> query, UserSearchObject search)
-    {
-        return query.OrderByDescending(user => user.CreatedAtUtc);
-    }
-
     protected override IQueryable<UserAccount> ApplySearch(IQueryable<UserAccount> query, UserSearchObject search)
     {
         if (string.IsNullOrWhiteSpace(search.Search))

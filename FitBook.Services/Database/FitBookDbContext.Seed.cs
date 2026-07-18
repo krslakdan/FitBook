@@ -41,20 +41,20 @@ public partial class FitBookDbContext
     private void SeedSpecializations(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Specialization>().HasData(
-            new Specialization { Id = 1, Name = "Strength & Conditioning", IsActive = true },
-            new Specialization { Id = 2, Name = "Yoga & Pilates", IsActive = true },
-            new Specialization { Id = 3, Name = "Cardio & HIIT", IsActive = true },
-            new Specialization { Id = 4, Name = "CrossFit", IsActive = true },
-            new Specialization { Id = 5, Name = "Bodybuilding", IsActive = true }
+            new Specialization { Id = 1, Name = "Strength & Conditioning", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Specialization { Id = 2, Name = "Yoga & Pilates", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Specialization { Id = 3, Name = "Cardio & HIIT", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Specialization { Id = 4, Name = "CrossFit", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Specialization { Id = 5, Name = "Bodybuilding", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
         );
     }
 
     private void SeedHalls(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Hall>().HasData(
-            new Hall { Id = 1, Name = "Main Gym Hall", Capacity = 30, LocationDescription = "Ground Floor, Zone A", IsActive = true },
-            new Hall { Id = 2, Name = "Yoga & Pilates Studio", Capacity = 15, LocationDescription = "First Floor, Zone B", IsActive = true },
-            new Hall { Id = 3, Name = "Spinning Room", Capacity = 20, LocationDescription = "First Floor, Zone C", IsActive = true }
+            new Hall { Id = 1, Name = "Main Gym Hall", Capacity = 30, LocationDescription = "Ground Floor, Zone A", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Hall { Id = 2, Name = "Yoga & Pilates Studio", Capacity = 15, LocationDescription = "First Floor, Zone B", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Hall { Id = 3, Name = "Spinning Room", Capacity = 20, LocationDescription = "First Floor, Zone C", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
         );
     }
 
@@ -334,22 +334,22 @@ public partial class FitBookDbContext
     private void SeedEquipment(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Equipment>().HasData(
-            new Equipment { Id = 1, Name = "Kettlebell", IsActive = true },
-            new Equipment { Id = 2, Name = "Barbell Set", IsActive = true },
-            new Equipment { Id = 3, Name = "Yoga Mat", IsActive = true },
-            new Equipment { Id = 4, Name = "Foam Roller", IsActive = true },
-            new Equipment { Id = 5, Name = "Boxing Gloves", IsActive = true }
+            new Equipment { Id = 1, Name = "Kettlebell", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Equipment { Id = 2, Name = "Barbell Set", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Equipment { Id = 3, Name = "Yoga Mat", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Equipment { Id = 4, Name = "Foam Roller", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Equipment { Id = 5, Name = "Boxing Gloves", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
         );
     }
 
     private void SeedTrainingEquipment(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<TrainingEquipment>().HasData(
-            new TrainingEquipment { Id = 1, EquipmentId = 1, IsRequired = true, Note = "Recommended 8kg-16kg", TrainingId = 1 },
-            new TrainingEquipment { Id = 2, EquipmentId = 2, IsRequired = true, Note = "Belts provided in hall", TrainingId = 2 },
-            new TrainingEquipment { Id = 3, EquipmentId = 3, IsRequired = false, Note = "Mats are available in studio, or bring your own", TrainingId = 3 },
-            new TrainingEquipment { Id = 4, EquipmentId = 4, IsRequired = true, Note = "Provided in studio", TrainingId = 4 },
-            new TrainingEquipment { Id = 5, EquipmentId = 5, IsRequired = true, Note = "Bring your own or rent at front desk", TrainingId = 5 }
+            new TrainingEquipment { Id = 1, EquipmentId = 1, IsRequired = true, Note = "Recommended 8kg-16kg", TrainingId = 1, CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingEquipment { Id = 2, EquipmentId = 2, IsRequired = true, Note = "Belts provided in hall", TrainingId = 2, CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingEquipment { Id = 3, EquipmentId = 3, IsRequired = false, Note = "Mats are available in studio, or bring your own", TrainingId = 3, CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingEquipment { Id = 4, EquipmentId = 4, IsRequired = true, Note = "Provided in studio", TrainingId = 4, CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingEquipment { Id = 5, EquipmentId = 5, IsRequired = true, Note = "Bring your own or rent at front desk", TrainingId = 5, CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc) }
         );
     }
 
