@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'providers/auth_provider.dart';
+import 'providers/dashboard_provider.dart';
 import 'providers/difficulty_level_provider.dart';
 import 'providers/equipment_provider.dart';
 import 'providers/file_provider.dart';
@@ -17,6 +18,7 @@ import 'providers/training_equipment_provider.dart';
 import 'providers/training_provider.dart';
 import 'providers/training_term_provider.dart';
 import 'providers/user_account_provider.dart';
+import 'providers/user_membership_provider.dart';
 import 'layouts/master_screen.dart';
 import 'screens/login_screen.dart';
 import 'theme/app_theme.dart';
@@ -33,6 +35,7 @@ class FitBookDesktopApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => DashboardProvider()),
         ChangeNotifierProvider(create: (_) => DifficultyLevelProvider()),
         ChangeNotifierProvider(create: (_) => EquipmentProvider()),
         ChangeNotifierProvider(create: (_) => FileProvider()),
@@ -47,6 +50,7 @@ class FitBookDesktopApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => TrainingEquipmentProvider()),
         ChangeNotifierProvider(create: (_) => TrainingTermProvider()),
         ChangeNotifierProvider(create: (_) => UserAccountProvider()),
+        ChangeNotifierProvider(create: (_) => UserMembershipProvider()),
         ChangeNotifierProvider(create: (_) => ReportProvider()),
       ],
       child: MaterialApp(
