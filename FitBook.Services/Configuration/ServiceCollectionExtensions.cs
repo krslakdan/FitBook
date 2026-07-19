@@ -16,6 +16,7 @@ using FitBook.Model.Requests.TrainingTerms;
 using FitBook.Model.Requests.NewsItems;
 using FitBook.Model.Requests.Specializations;
 using FitBook.Model.Requests.Reports;
+using FitBook.Model.Requests.Auth;
 using Mapster;
 using MapsterMapper;
 using Microsoft.Extensions.Configuration;
@@ -36,18 +37,15 @@ public static class ServiceCollectionExtensions
     {
         var mapsterConfig = TypeAdapterConfig.GlobalSettings;
         mapsterConfig.Scan(typeof(UserAccountMappingConfig).Assembly);
-        // By scanning the assembly containing UserAccountMappingConfig, 
-        // all other mapping configs in the same assembly will be registered automatically.
-        // E.g., TrainingCategoryMappingConfig, TrainerMappingConfig, etc.
 
         services.AddSingleton(mapsterConfig);
         services.AddScoped<IMapper, ServiceMapper>();
 
-        // Domain services
         services.AddScoped<IReservationService, ReservationService>();
         services.AddScoped<IUserAccountService, UserAccountService>();
         services.AddScoped<IMembershipPackageService, MembershipPackageService>();
         services.AddScoped<IUserMembershipService, UserMembershipService>();
+        services.AddScoped<IMembershipPaymentService, MembershipPaymentService>();
         services.AddScoped<IStripePaymentService, StripePaymentService>();
         
         services.AddScoped<ITrainingCategoryService, TrainingCategoryService>();
@@ -73,68 +71,57 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 
-        // UserAccount validators
         services.AddScoped<IValidator<UserAccountInsertRequest>, UserAccountInsertRequestValidator>();
         services.AddScoped<IValidator<UserAccountUpdateRequest>, UserAccountUpdateRequestValidator>();
         services.AddScoped<IValidator<UserAccountChangeOwnPasswordRequest>, UserAccountChangeOwnPasswordRequestValidator>();
         services.AddScoped<IValidator<UserAccountAdminPasswordResetRequest>, UserAccountAdminPasswordResetRequestValidator>();
 
-        // Reservation validators
         services.AddScoped<IValidator<ReservationInsertRequest>, ReservationInsertRequestValidator>();
         services.AddScoped<IValidator<ReservationUpdateRequest>, NullReservationUpdateRequestValidator>();
         services.AddScoped<IValidator<ReservationCancelRequest>, ReservationCancelRequestValidator>();
 
-        // MembershipPackage validators
         services.AddScoped<IValidator<MembershipPackageInsertRequest>, MembershipPackageInsertRequestValidator>();
         services.AddScoped<IValidator<MembershipPackageUpdateRequest>, MembershipPackageUpdateRequestValidator>();
 
-        // UserMembership validators
         services.AddScoped<IValidator<UserMembershipInsertRequest>, UserMembershipInsertRequestValidator>();
         services.AddScoped<IValidator<UserMembershipUpdateRequest>, NullUserMembershipUpdateRequestValidator>();
         services.AddScoped<IValidator<UserMembershipCancelRequest>, UserMembershipCancelRequestValidator>();
 
-        // TrainingCategory validators
         services.AddScoped<IValidator<TrainingCategoryInsertRequest>, TrainingCategoryInsertRequestValidator>();
         services.AddScoped<IValidator<TrainingCategoryUpdateRequest>, TrainingCategoryUpdateRequestValidator>();
 
-        // DifficultyLevel validators
         services.AddScoped<IValidator<DifficultyLevelInsertRequest>, DifficultyLevelInsertRequestValidator>();
         services.AddScoped<IValidator<DifficultyLevelUpdateRequest>, DifficultyLevelUpdateRequestValidator>();
 
-        // Hall validators
         services.AddScoped<IValidator<HallInsertRequest>, HallInsertRequestValidator>();
         services.AddScoped<IValidator<HallUpdateRequest>, HallUpdateRequestValidator>();
 
-        // Equipment validators
         services.AddScoped<IValidator<EquipmentInsertRequest>, EquipmentInsertRequestValidator>();
         services.AddScoped<IValidator<EquipmentUpdateRequest>, EquipmentUpdateRequestValidator>();
 
-        // TrainingEquipment validators
         services.AddScoped<IValidator<TrainingEquipmentInsertRequest>, TrainingEquipmentInsertRequestValidator>();
         services.AddScoped<IValidator<TrainingEquipmentUpdateRequest>, TrainingEquipmentUpdateRequestValidator>();
 
-        // Specialization validators
         services.AddScoped<IValidator<SpecializationInsertRequest>, SpecializationInsertRequestValidator>();
         services.AddScoped<IValidator<SpecializationUpdateRequest>, SpecializationUpdateRequestValidator>();
 
-        // Trainer validators
         services.AddScoped<IValidator<TrainerInsertRequest>, TrainerInsertRequestValidator>();
         services.AddScoped<IValidator<TrainerUpdateRequest>, TrainerUpdateRequestValidator>();
 
-        // Training validators
         services.AddScoped<IValidator<TrainingInsertRequest>, TrainingInsertRequestValidator>();
         services.AddScoped<IValidator<TrainingUpdateRequest>, TrainingUpdateRequestValidator>();
 
-        // TrainingTerm validators
         services.AddScoped<IValidator<TrainingTermInsertRequest>, TrainingTermInsertRequestValidator>();
         services.AddScoped<IValidator<TrainingTermUpdateRequest>, TrainingTermUpdateRequestValidator>();
         services.AddScoped<IValidator<TrainingTermCancelRequest>, TrainingTermCancelRequestValidator>();
 
-        // NewsItem validators
         services.AddScoped<IValidator<NewsItemInsertRequest>, NewsItemInsertRequestValidator>();
         services.AddScoped<IValidator<NewsItemUpdateRequest>, NewsItemUpdateRequestValidator>();
 
         services.AddScoped<IValidator<ReservationsReportRequest>, ReservationsReportRequestValidator>();
+
+        services.AddScoped<IValidator<ForgotPasswordRequest>, ForgotPasswordRequestValidator>();
+        services.AddScoped<IValidator<ResetPasswordRequest>, ResetPasswordRequestValidator>();
 
         return services;
     }
