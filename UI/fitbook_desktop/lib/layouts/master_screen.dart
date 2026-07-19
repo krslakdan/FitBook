@@ -12,6 +12,7 @@ import '../screens/news_items_screen.dart';
 import '../screens/reports_screen.dart';
 import '../screens/reservations_screen.dart';
 import '../screens/specializations_screen.dart';
+import '../screens/system_notifications_screen.dart';
 import '../screens/trainers_screen.dart';
 import '../screens/training_categories_screen.dart';
 import '../screens/training_equipment_screen.dart';
@@ -149,11 +150,18 @@ final List<_NavSection> _sections = [
       () => const SpecializationsScreen(),
     ),
     _NavItem(
-      'Obavijesti',
-      'Upravljanje obavijestima',
+      'Novosti',
+      'Upravljanje novostima',
       Icons.campaign_outlined,
       Icons.campaign,
       () => const NewsItemsScreen(),
+    ),
+    _NavItem(
+      'Obavijesti',
+      'Pregled sistemskih obavijesti korisnika',
+      Icons.notifications_outlined,
+      Icons.notifications,
+      () => const SystemNotificationsScreen(),
     ),
   ]),
   _NavSection('IZVJEŠTAJI', [
