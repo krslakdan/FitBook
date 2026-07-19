@@ -102,6 +102,21 @@ public class ReservationService
         return query;
     }
 
+    protected override IQueryable<Reservation> ApplySearch(IQueryable<Reservation> query, ReservationSearchObject search)
+    {
+        if (string.IsNullOrWhiteSpace(search.Search))
+        {
+            return query;
+        }
+
+        var term = search.Search.Trim().ToLowerInvariant();
+        return query.Where(x =>
+            x.UserAccount!.FirstName.ToLower().Contains(term) ||
+            x.UserAccount.LastName.ToLower().Contains(term) ||
+            (x.UserAccount.FirstName + " " + x.UserAccount.LastName).ToLower().Contains(term) ||
+            x.TrainingTerm!.Training!.Name.ToLower().Contains(term));
+    }
+
     protected override async Task ValidateInsert(ReservationInsertRequest request, CancellationToken cancellationToken)
     {
         var currentUserId = _currentUserService.GetRequiredUserId();

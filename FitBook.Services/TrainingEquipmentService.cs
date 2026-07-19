@@ -36,6 +36,19 @@ public class TrainingEquipmentService
         return query;
     }
 
+    protected override IQueryable<TrainingEquipmentEntity> ApplySearch(IQueryable<TrainingEquipmentEntity> query, TrainingEquipmentSearchObject search)
+    {
+        if (string.IsNullOrWhiteSpace(search.Search))
+        {
+            return query;
+        }
+
+        var term = search.Search.Trim().ToLowerInvariant();
+        return query.Where(x =>
+            x.Equipment!.Name.ToLower().Contains(term) ||
+            x.Training!.Name.ToLower().Contains(term));
+    }
+
     protected override async Task ValidateInsert(TrainingEquipmentInsertRequest request, CancellationToken cancellationToken)
     {
         await EnsureTrainingExistsAsync(request.TrainingId, cancellationToken);
