@@ -139,16 +139,16 @@ class _NewsItemsScreenState extends State<NewsItemsScreen> {
   Future<void> _delete(NewsItemResponse newsItem) async {
     final confirmed = await showConfirmDialog(
       context,
-      title: 'Brisanje obavijesti',
+      title: 'Brisanje novosti',
       message:
-          'Da li ste sigurni da želite obrisati obavijest "${newsItem.title}"?',
+          'Da li ste sigurni da želite obrisati novost "${newsItem.title}"?',
     );
     if (!confirmed || !mounted) return;
 
     try {
       await context.read<NewsItemProvider>().remove(newsItem.id);
       if (!mounted) return;
-      _showSuccess('Obavijest "${newsItem.title}" je uspješno obrisana.');
+      _showSuccess('Novost "${newsItem.title}" je uspješno obrisana.');
       if (_data != null && _data!.items.length == 1 && _page > 1) _page -= 1;
       await _load();
     } on ApiClientException catch (e) {
@@ -224,8 +224,8 @@ class _NewsItemsScreenState extends State<NewsItemsScreen> {
   @override
   Widget build(BuildContext context) {
     return MasterScreen(
-      title: 'Obavijesti',
-      subtitle: 'Upravljanje obavijestima',
+      title: 'Novosti',
+      subtitle: 'Upravljanje novostima',
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -240,7 +240,7 @@ class _NewsItemsScreenState extends State<NewsItemsScreen> {
                     controller: _searchController,
                     onChanged: _onSearchChanged,
                     decoration: const InputDecoration(
-                      hintText: 'Naslov ili sadržaj obavijesti...',
+                      hintText: 'Naslov ili sadržaj novosti...',
                       prefixIcon: Icon(Icons.search, size: 20),
                     ),
                   ),
@@ -270,7 +270,7 @@ class _NewsItemsScreenState extends State<NewsItemsScreen> {
                 FilledButton.icon(
                   onPressed: () => _openForm(),
                   icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Dodaj obavijest'),
+                  label: const Text('Dodaj novost'),
                 ),
                 OutlinedButton.icon(
                   onPressed: _clearFilters,
@@ -282,7 +282,7 @@ class _NewsItemsScreenState extends State<NewsItemsScreen> {
             const SizedBox(height: 16),
             Expanded(
               child: DataTableCard<NewsItemResponse>(
-                title: 'Lista obavijesti',
+                title: 'Lista novosti',
                 loading: _loading,
                 error: _error,
                 items: _data?.items ?? const [],
@@ -290,8 +290,8 @@ class _NewsItemsScreenState extends State<NewsItemsScreen> {
                 pageSize: _pageSize,
                 totalCount: _data?.totalCount,
                 totalPages: _data?.totalPages,
-                itemsLabel: 'obavijesti',
-                emptyMessage: 'Nema obavijesti za zadate filtere.',
+                itemsLabel: 'novosti',
+                emptyMessage: 'Nema novosti za zadate filtere.',
                 onRefresh: _load,
                 onPageChanged: (page) {
                   setState(() => _page = page);
@@ -305,7 +305,7 @@ class _NewsItemsScreenState extends State<NewsItemsScreen> {
                   _load();
                 },
                 columns: const [
-                  ColumnSpec('Obavijest', flex: 4),
+                  ColumnSpec('Novost', flex: 4),
                   ColumnSpec('Objavljeno', width: 130),
                   ColumnSpec('Status', width: 110),
                   ColumnSpec('Kreirano', width: 130),
@@ -352,7 +352,7 @@ class _NewsItemDetailsDialog extends StatelessWidget {
     final imageUrl = AppConfig.absoluteFileUrl(newsItem.imageUrl);
 
     return FormDialogShell(
-      title: 'Detalji obavijesti',
+      title: 'Detalji novosti',
       maxWidth: 620,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -8,10 +8,12 @@ import 'providers/equipment_provider.dart';
 import 'providers/file_provider.dart';
 import 'providers/hall_provider.dart';
 import 'providers/membership_package_provider.dart';
+import 'providers/membership_payment_provider.dart';
 import 'providers/news_item_provider.dart';
 import 'providers/report_provider.dart';
 import 'providers/reservation_provider.dart';
 import 'providers/specialization_provider.dart';
+import 'providers/system_notification_provider.dart';
 import 'providers/trainer_provider.dart';
 import 'providers/training_category_provider.dart';
 import 'providers/training_equipment_provider.dart';
@@ -41,6 +43,8 @@ class FitBookDesktopApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => FileProvider()),
         ChangeNotifierProvider(create: (_) => HallProvider()),
         ChangeNotifierProvider(create: (_) => MembershipPackageProvider()),
+        ChangeNotifierProvider(create: (_) => MembershipPaymentProvider()),
+        ChangeNotifierProvider(create: (_) => SystemNotificationProvider()),
         ChangeNotifierProvider(create: (_) => NewsItemProvider()),
         ChangeNotifierProvider(create: (_) => ReservationProvider()),
         ChangeNotifierProvider(create: (_) => SpecializationProvider()),

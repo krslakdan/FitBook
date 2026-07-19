@@ -72,7 +72,7 @@ class _NewsItemsDetailsScreenState extends State<NewsItemsDetailsScreen> {
 
     final formValid = _formKey.currentState!.validate();
     if (!widget.isEdit && _pickedImageBytes == null) {
-      setState(() => _imageError = 'Slika obavijesti je obavezna.');
+      setState(() => _imageError = 'Slika novosti je obavezna.');
       return;
     }
     if (!formValid) return;
@@ -107,7 +107,7 @@ class _NewsItemsDetailsScreenState extends State<NewsItemsDetailsScreen> {
         if (!mounted) return;
         Navigator.of(
           context,
-        ).pop('Obavijest "$title" je uspješno izmijenjena.');
+        ).pop('Novost "$title" je uspješno izmijenjena.');
       } else {
         await provider.insert(
           NewsItemInsertRequest(
@@ -118,7 +118,7 @@ class _NewsItemsDetailsScreenState extends State<NewsItemsDetailsScreen> {
           ),
         );
         if (!mounted) return;
-        Navigator.of(context).pop('Obavijest "$title" je uspješno dodana.');
+        Navigator.of(context).pop('Novost "$title" je uspješno dodana.');
       }
     } on ApiClientException catch (e) {
       if (!mounted) return;
@@ -131,7 +131,7 @@ class _NewsItemsDetailsScreenState extends State<NewsItemsDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return FormDialogShell(
-      title: widget.isEdit ? 'Izmjena obavijesti' : 'Dodaj novu obavijest',
+      title: widget.isEdit ? 'Izmjena novosti' : 'Dodaj novost',
       saving: _saving,
       serverError: _serverError,
       onSave: _save,
@@ -144,7 +144,7 @@ class _NewsItemsDetailsScreenState extends State<NewsItemsDetailsScreen> {
             SizedBox(
               width: 200,
               child: ImagePickerField(
-                label: 'Slika obavijesti',
+                label: 'Slika novosti',
                 enabled: !_saving,
                 pickedBytes: _pickedImageBytes,
                 existingImageUrl: widget.newsItem?.imageUrl,
@@ -173,7 +173,7 @@ class _NewsItemsDetailsScreenState extends State<NewsItemsDetailsScreen> {
                     controller: _titleController,
                     enabled: !_saving,
                     decoration: const InputDecoration(
-                      hintText: 'Unesite naslov obavijesti',
+                      hintText: 'Unesite naslov novosti',
                     ),
                     validator: _validateTitle,
                   ),
@@ -184,7 +184,7 @@ class _NewsItemsDetailsScreenState extends State<NewsItemsDetailsScreen> {
                     enabled: !_saving,
                     maxLines: 6,
                     decoration: const InputDecoration(
-                      hintText: 'Unesite sadržaj obavijesti',
+                      hintText: 'Unesite sadržaj novosti',
                     ),
                     validator: _validateContent,
                   ),

@@ -336,7 +336,7 @@ class _TrainingTermsScreenState extends State<TrainingTermsScreen> {
                     controller: _searchController,
                     onChanged: _onSearchChanged,
                     decoration: const InputDecoration(
-                      hintText: 'Naziv treninga...',
+                      hintText: 'Trening ili trener...',
                       prefixIcon: Icon(Icons.search, size: 20),
                     ),
                   ),

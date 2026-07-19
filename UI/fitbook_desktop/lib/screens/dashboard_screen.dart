@@ -13,6 +13,7 @@ import '../utils/app_config.dart';
 import '../utils/formatters.dart';
 import '../widgets/status_chip.dart';
 import 'reservations_screen.dart';
+import 'system_notifications_screen.dart';
 import 'trainings_screen.dart';
 import 'user_memberships_screen.dart';
 
@@ -295,6 +296,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildActivitiesCard(DashboardSummaryResponse summary) {
     return _DashboardCard(
       title: 'Obavijesti',
+      trailing: _SeeAllButton(
+        onPressed: () => _navigateTo(const SystemNotificationsScreen()),
+      ),
       child: summary.recentActivities.isEmpty
           ? const _EmptyCardMessage('Još nema aktivnosti u sistemu.')
           : Column(
@@ -919,8 +923,8 @@ class _ActivityRow extends StatelessWidget {
         AppColors.onDangerSoft,
       ),
       NotificationType.newsPublished => _ActivityStyle(
-        'Nova obavijest',
-        '$user — objavljena je obavijest',
+        'Nova novost',
+        '$user — objavljena je novost',
         Icons.campaign_outlined,
         AppColors.infoSoft,
         AppColors.onInfoSoft,
