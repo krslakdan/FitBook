@@ -6,11 +6,15 @@ import 'package:provider/provider.dart';
 import '../layouts/master_screen.dart';
 import '../models/common/page_result.dart';
 import '../models/enums/membership_status.dart';
+import '../models/enums/payment_status.dart';
 import '../models/responses/membership_package_response.dart';
+import '../models/responses/membership_payment_response.dart';
 import '../models/responses/user_membership_response.dart';
 import '../models/search_objects/membership_package_search_object.dart';
+import '../models/search_objects/membership_payment_search_object.dart';
 import '../models/search_objects/membership_search_object.dart';
 import '../providers/membership_package_provider.dart';
+import '../providers/membership_payment_provider.dart';
 import '../providers/user_membership_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/api_client_exception.dart';
@@ -33,6 +37,20 @@ ChipTone membershipStatusTone(MembershipStatus status) => switch (status) {
   MembershipStatus.active => ChipTone.success,
   MembershipStatus.expired => ChipTone.neutral,
   MembershipStatus.cancelled => ChipTone.danger,
+};
+
+String paymentStatusLabel(PaymentStatus status) => switch (status) {
+  PaymentStatus.pending => 'Na čekanju',
+  PaymentStatus.completed => 'Plaćeno',
+  PaymentStatus.failed => 'Neuspjelo',
+  PaymentStatus.refunded => 'Refundirano',
+};
+
+ChipTone paymentStatusTone(PaymentStatus status) => switch (status) {
+  PaymentStatus.pending => ChipTone.warning,
+  PaymentStatus.completed => ChipTone.success,
+  PaymentStatus.failed => ChipTone.danger,
+  PaymentStatus.refunded => ChipTone.info,
 };
 
 class UserMembershipsScreen extends StatefulWidget {
@@ -308,13 +326,92 @@ class _UserMembershipsScreenState extends State<UserMembershipsScreen> {
   }
 }
 
-class _UserMembershipDetailsDialog extends StatelessWidget {
+class _UserMembershipDetailsDialog extends StatefulWidget {
   const _UserMembershipDetailsDialog({required this.membership});
 
   final UserMembershipResponse membership;
 
   @override
+  State<_UserMembershipDetailsDialog> createState() => _UserMembershipDetailsDialogState();
+}
+
+class _UserMembershipDetailsDialogState extends State<_UserMembershipDetailsDialog> {
+  List<MembershipPaymentResponse> _payments = const [];
+  bool _paymentsLoading = true;
+  String? _paymentsError;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPayments();
+  }
+
+  Future<void> _loadPayments() async {
+    setState(() {
+      _paymentsLoading = true;
+      _paymentsError = null;
+    });
+
+    try {
+      final result = await context.read<MembershipPaymentProvider>().get(
+        filter: MembershipPaymentSearchObject(
+          userMembershipId: widget.membership.id,
+          pageSize: 100,
+        ),
+      );
+      if (!mounted) return;
+      setState(() => _payments = result.items);
+    } on ApiClientException catch (e) {
+      if (!mounted) return;
+      setState(() => _paymentsError = e.message);
+    } finally {
+      if (mounted) setState(() => _paymentsLoading = false);
+    }
+  }
+
+  Widget _buildPaymentsSection() {
+    if (_paymentsLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_paymentsError != null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Text(
+          _paymentsError!,
+          style: const TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
+        ),
+      );
+    }
+
+    if (_payments.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8),
+        child: Text(
+          'Nema evidentiranih plaćanja za ovu članarinu.',
+          style: TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < _payments.length; i++) ...[
+          if (i > 0) const Divider(height: 16),
+          _PaymentHistoryRow(payment: _payments[i]),
+        ],
+      ],
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final membership = widget.membership;
+
     return FormDialogShell(
       title: 'Detalji članarine',
       maxWidth: 560,
@@ -390,8 +487,71 @@ class _UserMembershipDetailsDialog extends StatelessWidget {
             label: 'Ažurirano',
             value: formatDateTime(membership.updatedAtUtc),
           ),
+          const SizedBox(height: 16),
+          const Divider(height: 1),
+          const SizedBox(height: 16),
+          const Text(
+            'Historija plaćanja',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 8),
+          _buildPaymentsSection(),
         ],
       ),
+    );
+  }
+}
+
+class _PaymentHistoryRow extends StatelessWidget {
+  const _PaymentHistoryRow({required this.payment});
+
+  final MembershipPaymentResponse payment;
+
+  @override
+  Widget build(BuildContext context) {
+    final paidAt = payment.paidAtUtc ?? payment.createdAtUtc;
+    final amountText =
+        '${payment.amount.toStringAsFixed(2)} ${payment.currency.toUpperCase()}';
+    final refundText = payment.refundAmount == null
+        ? null
+        : 'Refundirano ${payment.refundAmount!.toStringAsFixed(2)} ${payment.currency.toUpperCase()}'
+              '${payment.refundedAtUtc == null ? '' : ' — ${formatDateTime(payment.refundedAtUtc!)}'}';
+
+    return Row(
+      children: [
+        const Icon(Icons.receipt_long_outlined, size: 18, color: AppColors.textSecondary),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                formatDateTime(paidAt),
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+              ),
+              Text(
+                payment.paymentProvider,
+                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
+              if (refundText != null)
+                Text(
+                  refundText,
+                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          amountText,
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(width: 12),
+        StatusChip(
+          label: paymentStatusLabel(payment.status),
+          tone: paymentStatusTone(payment.status),
+        ),
+      ],
     );
   }
 }
