@@ -28,8 +28,15 @@ public class SystemNotificationService
 
     protected override IQueryable<SystemNotification> ApplyFilter(IQueryable<SystemNotification> query, SystemNotificationSearchObject search)
     {
-        var currentUserId = _currentUserService.GetRequiredUserId();
-        query = query.Where(x => x.UserAccountId == currentUserId);
+        if (!_currentUserService.IsAdmin())
+        {
+            var currentUserId = _currentUserService.GetRequiredUserId();
+            query = query.Where(x => x.UserAccountId == currentUserId);
+        }
+        else if (search.UserAccountId.HasValue)
+        {
+            query = query.Where(x => x.UserAccountId == search.UserAccountId.Value);
+        }
 
         if (search.IsRead.HasValue)
         {
@@ -41,7 +48,33 @@ public class SystemNotificationService
             query = query.Where(x => x.NotificationType == search.NotificationType.Value);
         }
 
+        if (search.CreatedFromUtc.HasValue)
+        {
+            query = query.Where(x => x.CreatedAtUtc >= search.CreatedFromUtc.Value);
+        }
+
+        if (search.CreatedToUtc.HasValue)
+        {
+            query = query.Where(x => x.CreatedAtUtc <= search.CreatedToUtc.Value);
+        }
+
         return query;
+    }
+
+    protected override IQueryable<SystemNotification> ApplySearch(IQueryable<SystemNotification> query, SystemNotificationSearchObject search)
+    {
+        if (string.IsNullOrWhiteSpace(search.Search))
+        {
+            return query;
+        }
+
+        var term = search.Search.Trim().ToLowerInvariant();
+        return query.Where(x =>
+            x.Title.ToLower().Contains(term) ||
+            x.Content.ToLower().Contains(term) ||
+            x.UserAccount!.FirstName.ToLower().Contains(term) ||
+            x.UserAccount.LastName.ToLower().Contains(term) ||
+            (x.UserAccount.FirstName + " " + x.UserAccount.LastName).ToLower().Contains(term));
     }
 
     public async Task MarkAsReadAsync(int id, CancellationToken cancellationToken = default)
