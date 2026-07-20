@@ -1,0 +1,135 @@
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+
+import '../models/common/api_request_body.dart';
+import '../utils/api_client_exception.dart';
+import '../utils/app_config.dart';
+import 'auth_session.dart';
+
+abstract class BaseProvider with ChangeNotifier {
+  @protected
+  Map<String, String> createHeaders() {
+    final headers = <String, String>{'Content-Type': 'application/json', 'Accept': 'application/json'};
+    final token = AuthSession.accessToken;
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
+    }
+    return headers;
+  }
+
+  @protected
+  Uri buildUri(String path, [Map<String, dynamic>? queryParameters]) {
+    final base = AppConfig.apiBaseUrl.endsWith('/')
+        ? AppConfig.apiBaseUrl.substring(0, AppConfig.apiBaseUrl.length - 1)
+        : AppConfig.apiBaseUrl;
+    final cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    final uri = Uri.parse('$base/$cleanPath');
+    if (queryParameters == null || queryParameters.isEmpty) return uri;
+    return uri.replace(
+      queryParameters: queryParameters.map((key, value) => MapEntry(key, value.toString())),
+    );
+  }
+
+  @protected
+  Future<http.Response> apiGet(String path, {Map<String, dynamic>? queryParameters}) {
+    return _send(() => http.get(buildUri(path, queryParameters), headers: createHeaders()));
+  }
+
+  @protected
+  Future<http.Response> apiPost(String path, {ApiRequestBody? body}) {
+    return _send(
+      () => http.post(
+        buildUri(path),
+        headers: createHeaders(),
+        body: body == null ? null : jsonEncode(body.toJson()),
+      ),
+    );
+  }
+
+  @protected
+  Future<http.Response> apiPut(String path, {ApiRequestBody? body}) {
+    return _send(
+      () => http.put(
+        buildUri(path),
+        headers: createHeaders(),
+        body: body == null ? null : jsonEncode(body.toJson()),
+      ),
+    );
+  }
+
+  @protected
+  Future<http.Response> apiDelete(String path) {
+    return _send(() => http.delete(buildUri(path), headers: createHeaders()));
+  }
+
+  @protected
+  Future<http.Response> apiPostMultipart(
+    String path, {
+    required Uint8List fileBytes,
+    required String fileName,
+    required String contentType,
+    Map<String, String>? fields,
+  }) {
+    return _send(() async {
+      final request = http.MultipartRequest('POST', buildUri(path));
+      final token = AuthSession.accessToken;
+      if (token != null && token.isNotEmpty) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+      if (fields != null) request.fields.addAll(fields);
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          fileBytes,
+          filename: fileName,
+          contentType: MediaType.parse(contentType),
+        ),
+      );
+      final streamed = await request.send();
+      return http.Response.fromStream(streamed);
+    });
+  }
+
+  Future<http.Response> _send(Future<http.Response> Function() request, {bool isRetry = false}) async {
+    http.Response response;
+    try {
+      response = await request();
+    } on http.ClientException {
+      throw ApiClientException('Ne mogu se povezati sa serverom. Provjerite internet konekciju.');
+    }
+
+    if (response.statusCode == 401 && !isRetry) {
+      final refreshed = await AuthSession.tryRefresh();
+      if (refreshed) {
+        return _send(request, isRetry: true);
+      }
+    }
+
+    _validate(response);
+    return response;
+  }
+
+  void _validate(http.Response response) {
+    if (response.statusCode >= 200 && response.statusCode < 300) return;
+
+    if (response.statusCode == 401) {
+      AuthSession.clear();
+      throw UnauthorizedException();
+    }
+
+    final parsed = ApiErrorParser.messageFromBody(response.body);
+    if (response.statusCode >= 500) {
+      throw ApiClientException(
+        parsed ?? 'Greška na serveru. Molimo pokušajte ponovo kasnije.',
+        statusCode: response.statusCode,
+      );
+    }
+    throw ApiClientException(
+      parsed ?? 'Zahtjev nije moguće obraditi. Molimo pokušajte ponovo.',
+      statusCode: response.statusCode,
+    );
+  }
+}

@@ -1,0 +1,16 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'create_payment_intent_response.g.dart';
+
+@JsonSerializable()
+class CreatePaymentIntentResponse {
+  CreatePaymentIntentResponse({required this.clientSecret, required this.paymentId});
+
+  final String clientSecret;
+  final int paymentId;
+
+  factory CreatePaymentIntentResponse.fromJson(Map<String, dynamic> json) =>
+      _$CreatePaymentIntentResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$CreatePaymentIntentResponseToJson(this);
+}
