@@ -7,7 +7,7 @@ services:
     restart: unless-stopped
     environment:
       ACCEPT_EULA: ${ACCEPT_EULA:-Y}
-      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-FitBook_230163!}
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?MSSQL_SA_PASSWORD nije postavljen - kopirajte .env.example u .env i postavite vrijednosti}
     ports:
       - "${SQL_HOST_PORT:-1435}:1433"
     volumes:
@@ -45,6 +45,8 @@ services:
       APP_TIMEZONE: ${APP_TIMEZONE:-Europe/Sarajevo}
     ports:
       - "${API_HOST_PORT:-5121}:5121"
+    volumes:
+      - fitbook_uploads:/app/wwwroot/uploads
     depends_on:
       - fitbook-db
       - fitbook-rabbitmq
@@ -60,9 +62,11 @@ services:
     env_file:
       - .env
     environment:
+      ConnectionStrings__DefaultConnection: Server=fitbook-db;Database=${DB_NAME:-230163};User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False;
       RabbitMQ__Host: fitbook-rabbitmq
       APP_TIMEZONE: ${APP_TIMEZONE:-Europe/Sarajevo}
     depends_on:
+      - fitbook-db
       - fitbook-rabbitmq
     networks:
       - fitbook-net
@@ -70,6 +74,7 @@ services:
 volumes:
   fitbook_sqlserver_data:
   fitbook_rabbitmq_data:
+  fitbook_uploads:
 
 networks:
   fitbook-net:
