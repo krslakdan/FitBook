@@ -20,8 +20,10 @@ import 'providers/training_provider.dart';
 import 'providers/training_term_provider.dart';
 import 'providers/user_account_provider.dart';
 import 'providers/user_membership_provider.dart';
+import 'screens/login_screen.dart';
 import 'screens/placeholder_home_screen.dart';
 import 'theme/app_theme.dart';
+import 'widgets/auth_scaffold.dart';
 
 void main() {
   runApp(const FitBookMobileApp());
@@ -56,8 +58,68 @@ class FitBookMobileApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'FitBook',
+        debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
-        home: const PlaceholderHomeScreen(),
+        home: const AuthGate(),
+      ),
+    );
+  }
+}
+
+class AuthGate extends StatefulWidget {
+  const AuthGate({super.key});
+
+  @override
+  State<AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends State<AuthGate> {
+  late final Future<bool> _restoreFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _restoreFuture = context.read<AuthProvider>().tryRestoreSession();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: _restoreFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const _AuthSplash();
+        }
+        return Consumer<AuthProvider>(
+          builder: (context, auth, _) {
+            return auth.isAuthenticated ? const PlaceholderHomeScreen() : const LoginScreen();
+          },
+        );
+      },
+    );
+  }
+}
+
+class _AuthSplash extends StatelessWidget {
+  const _AuthSplash();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.pageBackground,
+      body: const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            BrandMark(),
+            SizedBox(height: 28),
+            SizedBox(
+              height: 24,
+              width: 24,
+              child: CircularProgressIndicator(strokeWidth: 2.4),
+            ),
+          ],
+        ),
       ),
     );
   }
