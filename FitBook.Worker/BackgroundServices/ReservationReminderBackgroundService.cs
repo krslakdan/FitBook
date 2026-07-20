@@ -1,10 +1,11 @@
 using FitBook.Services.Interfaces;
 
-namespace FitBook.WebAPI.BackgroundServices;
+namespace FitBook.Worker.BackgroundServices;
 
 public class ReservationReminderBackgroundService : BackgroundService
 {
     private static readonly TimeSpan PollInterval = TimeSpan.FromMinutes(15);
+    private static readonly TimeSpan FailureRetryInterval = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan ReminderLeadTime = TimeSpan.FromHours(24);
 
     private readonly IServiceScopeFactory _scopeFactory;
@@ -22,20 +23,23 @@ public class ReservationReminderBackgroundService : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
+            var nextDelay = PollInterval;
+
             try
             {
                 using var scope = _scopeFactory.CreateScope();
-                var reservationService = scope.ServiceProvider.GetRequiredService<IReservationService>();
-                await reservationService.SendDueRemindersAsync(ReminderLeadTime, stoppingToken);
+                var reminderService = scope.ServiceProvider.GetRequiredService<IReminderService>();
+                await reminderService.SendDueReservationRemindersAsync(ReminderLeadTime, stoppingToken);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to process due reservation reminders.");
+                _logger.LogError(ex, "Failed to process due reservation reminders. Retrying in {Delay}.", FailureRetryInterval);
+                nextDelay = FailureRetryInterval;
             }
 
             try
             {
-                await Task.Delay(PollInterval, stoppingToken);
+                await Task.Delay(nextDelay, stoppingToken);
             }
             catch (OperationCanceledException)
             {

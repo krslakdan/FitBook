@@ -5,7 +5,6 @@ using FitBook.Services.Configuration;
 using FitBook.Services.Database;
 using FitBook.Services.Files;
 using FitBook.Services.Interfaces;
-using FitBook.WebAPI.BackgroundServices;
 using FitBook.WebAPI.Filters;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -38,8 +37,6 @@ var webRootPath = string.IsNullOrWhiteSpace(builder.Environment.WebRootPath)
     : builder.Environment.WebRootPath;
 builder.Services.Configure<FileStorageOptions>(options => options.RootPath = webRootPath);
 builder.Services.AddScoped<IFileStorageService, FileStorageService>();
-builder.Services.AddHostedService<ReservationReminderBackgroundService>();
-builder.Services.AddHostedService<MembershipExpiryReminderBackgroundService>();
 
 var jwtSecret = builder.Configuration["JwtToken:SecretKey"];
 if (string.IsNullOrWhiteSpace(jwtSecret))

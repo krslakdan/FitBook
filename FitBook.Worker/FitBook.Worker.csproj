@@ -17,5 +17,6 @@
   <ItemGroup>
     <ProjectReference Include="..\FitBook.Model\FitBook.Model.csproj" />
     <ProjectReference Include="..\FitBook.Common.Services\FitBook.Common.Services.csproj" />
+    <ProjectReference Include="..\FitBook.Services\FitBook.Services.csproj" />
   </ItemGroup>
 </Project>

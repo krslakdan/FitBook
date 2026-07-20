@@ -13,5 +13,4 @@ public interface IUserMembershipService
     Task<CreatePaymentIntentResponse> CreatePaymentIntentAsync(int id, CancellationToken cancellationToken = default);
     Task MarkPaymentSuccessfulAsync(string paymentIntentId, CancellationToken cancellationToken = default);
     Task MarkPaymentFailedAsync(string paymentIntentId, CancellationToken cancellationToken = default);
-    Task<int> SendDueExpiryRemindersAsync(TimeSpan reminderLeadTime, CancellationToken cancellationToken = default);
 }

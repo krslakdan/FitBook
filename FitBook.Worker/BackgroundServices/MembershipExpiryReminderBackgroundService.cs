@@ -1,10 +1,11 @@
 using FitBook.Services.Interfaces;
 
-namespace FitBook.WebAPI.BackgroundServices;
+namespace FitBook.Worker.BackgroundServices;
 
 public class MembershipExpiryReminderBackgroundService : BackgroundService
 {
     private static readonly TimeSpan PollInterval = TimeSpan.FromHours(6);
+    private static readonly TimeSpan FailureRetryInterval = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan ReminderLeadTime = TimeSpan.FromDays(3);
 
     private readonly IServiceScopeFactory _scopeFactory;
@@ -22,20 +23,23 @@ public class MembershipExpiryReminderBackgroundService : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
+            var nextDelay = PollInterval;
+
             try
             {
                 using var scope = _scopeFactory.CreateScope();
-                var membershipService = scope.ServiceProvider.GetRequiredService<IUserMembershipService>();
-                await membershipService.SendDueExpiryRemindersAsync(ReminderLeadTime, stoppingToken);
+                var reminderService = scope.ServiceProvider.GetRequiredService<IReminderService>();
+                await reminderService.SendDueMembershipExpiryRemindersAsync(ReminderLeadTime, stoppingToken);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to process due membership expiry reminders.");
+                _logger.LogError(ex, "Failed to process due membership expiry reminders. Retrying in {Delay}.", FailureRetryInterval);
+                nextDelay = FailureRetryInterval;
             }
 
             try
             {
-                await Task.Delay(PollInterval, stoppingToken);
+                await Task.Delay(nextDelay, stoppingToken);
             }
             catch (OperationCanceledException)
             {
