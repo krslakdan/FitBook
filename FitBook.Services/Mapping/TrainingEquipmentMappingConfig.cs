@@ -9,18 +9,24 @@ public class TrainingEquipmentMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<TrainingEquipmentEntity, TrainingEquipmentResponse>();
+        config.NewConfig<TrainingEquipmentEntity, TrainingEquipmentResponse>()
+            .Map(dest => dest.TrainingName,
+                src => src.Training != null ? src.Training.Name : string.Empty)
+            .Map(dest => dest.EquipmentName,
+                src => src.Equipment != null ? src.Equipment.Name : string.Empty);
 
 #pragma warning disable CS8603
         config.NewConfig<TrainingEquipmentInsertRequest, TrainingEquipmentEntity>()
             .Ignore(dest => dest.Id)
             .Ignore(dest => dest.Training)
+            .Ignore(dest => dest.Equipment)
             .Ignore(dest => dest.CreatedAtUtc)
             .Ignore(dest => dest.UpdatedAtUtc);
 
         config.NewConfig<TrainingEquipmentUpdateRequest, TrainingEquipmentEntity>()
             .Ignore(dest => dest.Id)
             .Ignore(dest => dest.Training)
+            .Ignore(dest => dest.Equipment)
             .Ignore(dest => dest.CreatedAtUtc)
             .Ignore(dest => dest.UpdatedAtUtc);
 #pragma warning restore CS8603

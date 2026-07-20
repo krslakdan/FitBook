@@ -11,6 +11,7 @@ public class SystemNotificationResponse : IEntityResponse
     public DateTime? ReadAtUtc { get; set; }
     public NotificationType NotificationType { get; set; }
     public int UserAccountId { get; set; }
+    public string UserFullName { get; set; } = string.Empty;
     public DateTime CreatedAtUtc { get; set; }
     public DateTime? UpdatedAtUtc { get; set; }
 }

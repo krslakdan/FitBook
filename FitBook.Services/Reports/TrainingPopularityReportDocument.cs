@@ -1,3 +1,4 @@
+using FitBook.Common.Services.Time;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -29,7 +30,7 @@ internal class TrainingPopularityReportDocument : IDocument
             page.Header().Column(column =>
             {
                 column.Item().Text("Izvještaj o popularnosti treninga").FontSize(18).Bold();
-                column.Item().Text($"Datum generisanja: {_generatedAtUtc:dd.MM.yyyy. HH:mm} UTC").FontSize(11);
+                column.Item().Text($"Datum generisanja: {LocalTimeProvider.FormatDateTime(_generatedAtUtc)}").FontSize(11);
             });
 
             page.Content().PaddingVertical(10).Column(column =>
@@ -67,7 +68,7 @@ internal class TrainingPopularityReportDocument : IDocument
 
             page.Footer().Row(row =>
             {
-                row.RelativeItem().Text($"Ukupno treninga: {_rows.Count}   |   Generisano: {_generatedAtUtc:dd.MM.yyyy. HH:mm} UTC");
+                row.RelativeItem().Text($"Ukupno treninga: {_rows.Count}   |   Generisano: {LocalTimeProvider.FormatDateTime(_generatedAtUtc)}");
                 row.RelativeItem().AlignRight().Text(x =>
                 {
                     x.Span("Stranica ");

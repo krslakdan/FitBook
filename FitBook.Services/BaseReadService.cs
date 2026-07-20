@@ -88,7 +88,9 @@ public abstract class BaseReadService<TEntity, TResponse, TSearch> : IBaseReadSe
 
     protected virtual IOrderedQueryable<TEntity> ApplyOrdering(IQueryable<TEntity> query, TSearch search)
     {
-        return query.OrderBy(entity => entity.Id);
+        return query
+            .OrderByDescending(entity => entity.CreatedAtUtc)
+            .ThenByDescending(entity => entity.Id);
     }
 
     protected IQueryable<TEntity> ApplyQueryPipeline(

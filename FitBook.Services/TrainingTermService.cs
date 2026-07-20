@@ -84,6 +84,21 @@ public class TrainingTermService
         return query;
     }
 
+    protected override IQueryable<TrainingTerm> ApplySearch(IQueryable<TrainingTerm> query, TrainingTermSearchObject search)
+    {
+        if (string.IsNullOrWhiteSpace(search.Search))
+        {
+            return query;
+        }
+
+        var term = search.Search.Trim().ToLowerInvariant();
+        return query.Where(x =>
+            x.Training!.Name.ToLower().Contains(term) ||
+            x.Trainer!.FirstName.ToLower().Contains(term) ||
+            x.Trainer.LastName.ToLower().Contains(term) ||
+            (x.Trainer.FirstName + " " + x.Trainer.LastName).ToLower().Contains(term));
+    }
+
     protected override async Task ValidateInsert(TrainingTermInsertRequest request, CancellationToken cancellationToken)
     {
         await ValidateForeignKeys(request.TrainingId, request.TrainerId, request.HallId, request.MaxParticipants, cancellationToken);

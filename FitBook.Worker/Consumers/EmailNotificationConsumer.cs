@@ -47,7 +47,6 @@ public sealed class EmailNotificationConsumer : BackgroundService
 
         if (_channel is null)
         {
-            // Only reached if shutdown was requested while still retrying the initial connection.
             return;
         }
 
@@ -133,10 +132,6 @@ public sealed class EmailNotificationConsumer : BackgroundService
         }
         catch (Exception ex)
         {
-            // The failed delivery is acked immediately (not requeued) so it doesn't block the
-            // queue; a copy with an incremented retry counter is republished after the backoff
-            // delay instead. Requeue-without-delay would otherwise spin the same poison message
-            // through this consumer with no pause (see Dodatak A.1).
             Ack(eventArgs.DeliveryTag);
             await HandleFailureAsync(message, ex, stoppingToken);
         }

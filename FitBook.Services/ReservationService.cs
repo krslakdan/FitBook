@@ -1,3 +1,4 @@
+using FitBook.Common.Services.Time;
 using FitBook.Model.Constants;
 using FitBook.Model.Enums;
 using FitBook.Model.Exceptions;
@@ -99,6 +100,21 @@ public class ReservationService
         }
 
         return query;
+    }
+
+    protected override IQueryable<Reservation> ApplySearch(IQueryable<Reservation> query, ReservationSearchObject search)
+    {
+        if (string.IsNullOrWhiteSpace(search.Search))
+        {
+            return query;
+        }
+
+        var term = search.Search.Trim().ToLowerInvariant();
+        return query.Where(x =>
+            x.UserAccount!.FirstName.ToLower().Contains(term) ||
+            x.UserAccount.LastName.ToLower().Contains(term) ||
+            (x.UserAccount.FirstName + " " + x.UserAccount.LastName).ToLower().Contains(term) ||
+            x.TrainingTerm!.Training!.Name.ToLower().Contains(term));
     }
 
     protected override async Task ValidateInsert(ReservationInsertRequest request, CancellationToken cancellationToken)
@@ -219,7 +235,7 @@ public class ReservationService
         AddStatusAudit(reservation, previousStatus, ReservationStatus.Confirmed, reason: null);
 
         var termStartFormatted = reservation.TrainingTerm is not null
-            ? reservation.TrainingTerm.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC"
+            ? LocalTimeProvider.FormatDateTime(reservation.TrainingTerm.StartTimeUtc)
             : $"termin #{reservation.TrainingTermId}";
 
         _dbContext.SystemNotifications.Add(new SystemNotification
@@ -326,75 +342,6 @@ public class ReservationService
             trainingTermId);
     }
 
-    public async Task<int> SendDueRemindersAsync(TimeSpan reminderLeadTime, CancellationToken cancellationToken = default)
-    {
-        var now = DateTime.UtcNow;
-        var reminderCutoff = now.Add(reminderLeadTime);
-
-        var dueReservations = await _dbContext.Reservations
-            .Include(r => r.UserAccount)
-            .Include(r => r.TrainingTerm)
-            .Where(r => r.Status == ReservationStatus.Confirmed
-                        && r.ReminderSentAtUtc == null
-                        && r.TrainingTerm != null
-                        && r.TrainingTerm.StartTimeUtc > now
-                        && r.TrainingTerm.StartTimeUtc <= reminderCutoff)
-            .ToListAsync(cancellationToken);
-
-        if (dueReservations.Count == 0)
-        {
-            return 0;
-        }
-
-        foreach (var reservation in dueReservations)
-        {
-            reservation.ReminderSentAtUtc = now;
-
-            var termStartFormatted = reservation.TrainingTerm is not null
-                ? reservation.TrainingTerm.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC"
-                : $"termin #{reservation.TrainingTermId}";
-
-            _dbContext.SystemNotifications.Add(new SystemNotification
-            {
-                UserAccountId = reservation.UserAccountId,
-                NotificationType = NotificationType.ReservationReminder,
-                Title = "Podsjetnik: trening uskoro počinje",
-                Content = $"Podsjetnik: Vaš trening zakazan za {termStartFormatted} uskoro počinje.",
-                IsRead = false,
-                CreatedAtUtc = now,
-            });
-        }
-
-        await _dbContext.SaveChangesAsync(cancellationToken);
-
-        foreach (var reservation in dueReservations)
-        {
-            if (reservation.UserAccount is null)
-            {
-                continue;
-            }
-
-            var termStartFormatted = reservation.TrainingTerm is not null
-                ? reservation.TrainingTerm.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC"
-                : $"termin #{reservation.TrainingTermId}";
-
-            await _emailNotificationPublisher.PublishAsync(new EmailNotificationMessage
-            {
-                ToEmail = reservation.UserAccount.Email,
-                ToName = $"{reservation.UserAccount.FirstName} {reservation.UserAccount.LastName}",
-                Subject = "Podsjetnik: trening uskoro počinje",
-                Body = $"Poštovani, ovo je podsjetnik da Vaš trening zakazan za {termStartFormatted} uskoro počinje.",
-            }, cancellationToken);
-        }
-
-        _logger.LogInformation(
-            "Sent {Count} reservation reminder(s) for trainings starting within {LeadTime}.",
-            dueReservations.Count,
-            reminderLeadTime);
-
-        return dueReservations.Count;
-    }
-
     private void ApplyCancellation(Reservation reservation, string? reason)
     {
         var previousStatus = reservation.Status;
@@ -407,7 +354,7 @@ public class ReservationService
         AddStatusAudit(reservation, previousStatus, ReservationStatus.Cancelled, reason: reason);
 
         var termStartFormatted = reservation.TrainingTerm is not null
-            ? reservation.TrainingTerm.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC"
+            ? LocalTimeProvider.FormatDateTime(reservation.TrainingTerm.StartTimeUtc)
             : $"termin #{reservation.TrainingTermId}";
 
         _dbContext.SystemNotifications.Add(new SystemNotification
@@ -429,7 +376,7 @@ public class ReservationService
         }
 
         var termStartFormatted = reservation.TrainingTerm is not null
-            ? reservation.TrainingTerm.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC"
+            ? LocalTimeProvider.FormatDateTime(reservation.TrainingTerm.StartTimeUtc)
             : $"termin #{reservation.TrainingTermId}";
 
         await _emailNotificationPublisher.PublishAsync(new EmailNotificationMessage
@@ -469,7 +416,7 @@ public class ReservationService
         AddStatusAudit(reservation, previousStatus, ReservationStatus.Completed, reason: null);
 
         var termStartFormatted = reservation.TrainingTerm is not null
-            ? reservation.TrainingTerm.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC"
+            ? LocalTimeProvider.FormatDateTime(reservation.TrainingTerm.StartTimeUtc)
             : $"termin #{reservation.TrainingTermId}";
 
         _dbContext.SystemNotifications.Add(new SystemNotification
@@ -574,7 +521,7 @@ public class ReservationService
         var term = await _dbContext.TrainingTerms
             .Include(t => t.Training)
             .FirstOrDefaultAsync(t => t.Id == entity.TrainingTermId, cancellationToken);
-        var termStartFormatted = term is not null ? term.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC" : $"termin #{entity.TrainingTermId}";
+        var termStartFormatted = term is not null ? LocalTimeProvider.FormatDateTime(term.StartTimeUtc) : $"termin #{entity.TrainingTermId}";
 
         _dbContext.SystemNotifications.Add(new SystemNotification
         {

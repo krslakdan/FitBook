@@ -1,3 +1,4 @@
+using FitBook.Common.Services.Time;
 using FitBook.Model.Enums;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -69,16 +70,16 @@ internal class ReservationsReportDocument : IDocument
                     {
                         table.Cell().Element(BodyCellStyle).Text(row.UserFullName);
                         table.Cell().Element(BodyCellStyle).Text(row.TrainingName);
-                        table.Cell().Element(BodyCellStyle).Text(row.TrainingTermStartUtc.ToString("dd.MM.yyyy. HH:mm"));
+                        table.Cell().Element(BodyCellStyle).Text(LocalTimeProvider.FormatDateTime(row.TrainingTermStartUtc));
                         table.Cell().Element(BodyCellStyle).Text(FormatStatus(row.Status));
-                        table.Cell().Element(BodyCellStyle).Text(row.ReservedAtUtc.ToString("dd.MM.yyyy. HH:mm"));
+                        table.Cell().Element(BodyCellStyle).Text(LocalTimeProvider.FormatDateTime(row.ReservedAtUtc));
                     }
                 });
             });
 
             page.Footer().Row(row =>
             {
-                row.RelativeItem().Text($"Ukupno rezervacija: {_rows.Count}   |   Generisano: {_generatedAtUtc:dd.MM.yyyy. HH:mm} UTC");
+                row.RelativeItem().Text($"Ukupno rezervacija: {_rows.Count}   |   Generisano: {LocalTimeProvider.FormatDateTime(_generatedAtUtc)}");
                 row.RelativeItem().AlignRight().Text(x =>
                 {
                     x.Span("Stranica ");

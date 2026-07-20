@@ -22,9 +22,9 @@ public abstract class BaseReadController<TResponse, TSearch, TService> : Control
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public virtual async Task<ActionResult<PageResult<TResponse>>> GetAll([FromQuery] TSearch search, CancellationToken cancellationToken = default)
+    public virtual async Task<ActionResult<PageResult<TResponse>>> GetAll([FromQuery] TSearch searchObject, CancellationToken cancellationToken = default)
     {
-        var result = await Service.GetAllAsync(search, cancellationToken);
+        var result = await Service.GetAllAsync(searchObject, cancellationToken);
         return Ok(result);
     }
 

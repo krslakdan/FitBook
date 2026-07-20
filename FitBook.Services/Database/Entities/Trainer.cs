@@ -4,11 +4,13 @@ public class Trainer : BaseEntity
 {
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
-    public string Specialization { get; set; } = string.Empty;
     public string? Biography { get; set; }
     public string? ImageUrl { get; set; }
     public bool IsAvailable { get; set; }
     public bool IsActive { get; set; }
+
+    public int SpecializationId { get; set; }
+    public Specialization? Specialization { get; set; }
 
     public int UserAccountId { get; set; }
     public UserAccount UserAccount { get; set; } = null!;

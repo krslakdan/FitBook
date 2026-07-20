@@ -6,7 +6,8 @@ public class TrainerResponse : IEntityResponse
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string FullName => $"{FirstName} {LastName}";
-    public string Specialization { get; set; } = string.Empty;
+    public int SpecializationId { get; set; }
+    public string SpecializationName { get; set; } = string.Empty;
     public string? Biography { get; set; }
     public string? ImageUrl { get; set; }
     public bool IsAvailable { get; set; }

@@ -32,6 +32,7 @@ public class UserAccountService
     private readonly IValidator<UserAccountChangeOwnPasswordRequest> _changeOwnPasswordValidator;
     private readonly IValidator<UserAccountAdminPasswordResetRequest> _adminPasswordResetValidator;
     private readonly IEmailNotificationPublisher _emailNotificationPublisher;
+    private readonly ICurrentUserService _currentUserService;
 
     public UserAccountService(
         FitBookDbContext dbContext,
@@ -43,7 +44,8 @@ public class UserAccountService
         IValidator<UserAccountUpdateRequest> updateValidator,
         IValidator<UserAccountChangeOwnPasswordRequest> changeOwnPasswordValidator,
         IValidator<UserAccountAdminPasswordResetRequest> adminPasswordResetValidator,
-        IEmailNotificationPublisher emailNotificationPublisher)
+        IEmailNotificationPublisher emailNotificationPublisher,
+        ICurrentUserService currentUserService)
         : base(dbContext, mapper, loggerFactory, insertValidator, updateValidator)
     {
         _cryptoService = cryptoService;
@@ -51,6 +53,7 @@ public class UserAccountService
         _changeOwnPasswordValidator = changeOwnPasswordValidator;
         _adminPasswordResetValidator = adminPasswordResetValidator;
         _emailNotificationPublisher = emailNotificationPublisher;
+        _currentUserService = currentUserService;
     }
 
     protected override IQueryable<UserAccount> ApplyFilter(IQueryable<UserAccount> query, UserSearchObject search)
@@ -129,6 +132,11 @@ public class UserAccountService
 
     protected override async Task ValidateDelete(int id, UserAccount entity, CancellationToken cancellationToken)
     {
+        if (id == _currentUserService.GetRequiredUserId())
+        {
+            throw new BusinessException("Ne možete obrisati vlastiti korisnički račun.");
+        }
+
         var hasActiveReservations = await _dbContext.Reservations
             .AnyAsync(
                 reservation => reservation.UserAccountId == id &&

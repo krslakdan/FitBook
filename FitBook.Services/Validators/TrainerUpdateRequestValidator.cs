@@ -15,9 +15,8 @@ public class TrainerUpdateRequestValidator : AbstractValidator<TrainerUpdateRequ
             .NotEmpty().WithMessage("Prezime trenera je obavezno.")
             .MaximumLength(100).WithMessage("Prezime trenera ne smije biti duže od 100 karaktera.");
 
-        RuleFor(x => x.Specialization)
-            .NotEmpty().WithMessage("Specijalizacija trenera je obavezna.")
-            .MaximumLength(150).WithMessage("Specijalizacija trenera ne smije biti duža od 150 karaktera.");
+        RuleFor(x => x.SpecializationId)
+            .GreaterThan(0).WithMessage("Specijalizacija trenera je obavezna.");
 
         RuleFor(x => x.Biography)
             .MaximumLength(2000).WithMessage("Biografija ne smije biti duža od 2000 karaktera.")

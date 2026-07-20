@@ -10,7 +10,15 @@ public partial class FitBookDbContext : DbContext
     {
     }
 
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        base.ConfigureConventions(configurationBuilder);
+
+        configurationBuilder.Properties<DateTime>().HaveConversion<UtcDateTimeKindConverter>();
+    }
+
     public DbSet<DifficultyLevel> DifficultyLevels { get; set; }
+    public DbSet<Equipment> Equipment { get; set; }
     public DbSet<Hall> Halls { get; set; }
     public DbSet<MembershipPackage> MembershipPackages { get; set; }
     public DbSet<MembershipPayment> MembershipPayments { get; set; }
@@ -18,6 +26,7 @@ public partial class FitBookDbContext : DbContext
     public DbSet<RecommendationSignal> RecommendationSignals { get; set; }
     public DbSet<Reservation> Reservations { get; set; }
     public DbSet<ReservationStatusAudit> ReservationStatusAudits { get; set; }
+    public DbSet<Specialization> Specializations { get; set; }
     public DbSet<SystemNotification> SystemNotifications { get; set; }
     public DbSet<Trainer> Trainers { get; set; }
     public DbSet<Training> Trainings { get; set; }
@@ -27,6 +36,7 @@ public partial class FitBookDbContext : DbContext
     public DbSet<UserAccount> UserAccounts { get; set; }
     public DbSet<UserMembership> UserMemberships { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

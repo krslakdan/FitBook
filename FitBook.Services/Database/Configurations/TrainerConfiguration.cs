@@ -14,12 +14,16 @@ public class TrainerConfiguration : IEntityTypeConfiguration<Trainer>
 
         builder.Property(x => x.FirstName).HasMaxLength(100).IsRequired();
         builder.Property(x => x.LastName).HasMaxLength(100).IsRequired();
-        builder.Property(x => x.Specialization).HasMaxLength(150).IsRequired();
         builder.Property(x => x.Biography).HasMaxLength(2000);
         builder.Property(x => x.ImageUrl).HasMaxLength(500);
         builder.Property(x => x.IsAvailable).IsRequired();
         builder.Property(x => x.IsActive).IsRequired();
         builder.Property(x => x.CreatedAtUtc).IsRequired();
+
+        builder.HasOne(x => x.Specialization)
+            .WithMany(x => x.Trainers)
+            .HasForeignKey(x => x.SpecializationId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(x => x.UserAccountId).IsUnique();
         builder.HasOne(x => x.UserAccount)

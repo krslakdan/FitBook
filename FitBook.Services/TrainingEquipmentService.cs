@@ -36,11 +36,32 @@ public class TrainingEquipmentService
         return query;
     }
 
-    protected override Task ValidateInsert(TrainingEquipmentInsertRequest request, CancellationToken cancellationToken)
-        => EnsureTrainingExistsAsync(request.TrainingId, cancellationToken);
+    protected override IQueryable<TrainingEquipmentEntity> ApplySearch(IQueryable<TrainingEquipmentEntity> query, TrainingEquipmentSearchObject search)
+    {
+        if (string.IsNullOrWhiteSpace(search.Search))
+        {
+            return query;
+        }
 
-    protected override Task ValidateUpdate(int id, TrainingEquipmentUpdateRequest request, TrainingEquipmentEntity entity, CancellationToken cancellationToken)
-        => EnsureTrainingExistsAsync(request.TrainingId, cancellationToken);
+        var term = search.Search.Trim().ToLowerInvariant();
+        return query.Where(x =>
+            x.Equipment!.Name.ToLower().Contains(term) ||
+            x.Training!.Name.ToLower().Contains(term));
+    }
+
+    protected override async Task ValidateInsert(TrainingEquipmentInsertRequest request, CancellationToken cancellationToken)
+    {
+        await EnsureTrainingExistsAsync(request.TrainingId, cancellationToken);
+        await EnsureEquipmentExistsAsync(request.EquipmentId, cancellationToken);
+        await EnsurePairIsUniqueAsync(request.TrainingId, request.EquipmentId, excludeId: null, cancellationToken);
+    }
+
+    protected override async Task ValidateUpdate(int id, TrainingEquipmentUpdateRequest request, TrainingEquipmentEntity entity, CancellationToken cancellationToken)
+    {
+        await EnsureTrainingExistsAsync(request.TrainingId, cancellationToken);
+        await EnsureEquipmentExistsAsync(request.EquipmentId, cancellationToken);
+        await EnsurePairIsUniqueAsync(request.TrainingId, request.EquipmentId, excludeId: id, cancellationToken);
+    }
 
     private async Task EnsureTrainingExistsAsync(int trainingId, CancellationToken cancellationToken)
     {
@@ -50,6 +71,30 @@ public class TrainingEquipmentService
         if (!trainingExists)
         {
             throw new NotFoundException($"Trening sa ID {trainingId} nije pronađen.");
+        }
+    }
+
+    private async Task EnsureEquipmentExistsAsync(int equipmentId, CancellationToken cancellationToken)
+    {
+        var equipmentExists = await _dbContext.Equipment
+            .AnyAsync(e => e.Id == equipmentId, cancellationToken);
+
+        if (!equipmentExists)
+        {
+            throw new NotFoundException($"Oprema sa ID {equipmentId} nije pronađena.");
+        }
+    }
+
+    private async Task EnsurePairIsUniqueAsync(int trainingId, int equipmentId, int? excludeId, CancellationToken cancellationToken)
+    {
+        var duplicateExists = await _dbContext.TrainingEquipment
+            .AnyAsync(x => x.TrainingId == trainingId
+                && x.EquipmentId == equipmentId
+                && (excludeId == null || x.Id != excludeId.Value), cancellationToken);
+
+        if (duplicateExists)
+        {
+            throw new BusinessException("Odabrana oprema je već dodijeljena ovom treningu.");
         }
     }
 }

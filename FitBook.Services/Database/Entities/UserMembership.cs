@@ -9,6 +9,7 @@ public class UserMembership : SoftDeletableEntity
     public DateTime? NextPaymentDateUtc { get; set; }
     public MembershipStatus Status { get; set; }
     public bool IsActive { get; set; }
+    public DateTime? ExpiryReminderSentAtUtc { get; set; }
 
     public int UserAccountId { get; set; }
     public UserAccount? UserAccount { get; set; }

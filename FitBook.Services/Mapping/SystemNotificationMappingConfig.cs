@@ -8,6 +8,10 @@ public class SystemNotificationMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<SystemNotification, SystemNotificationResponse>();
+        config.NewConfig<SystemNotification, SystemNotificationResponse>()
+            .Map(destination => destination.UserFullName,
+                 source => source.UserAccount == null
+                     ? string.Empty
+                     : source.UserAccount.FirstName + " " + source.UserAccount.LastName);
     }
 }

@@ -8,20 +8,28 @@ using FitBook.Model.Responses.Auth;
 using FitBook.Services.Database;
 using FitBook.Services.Interfaces;
 using FitBook.Services.Interfaces.Auth;
+using FitBook.Services.Database.Entities;
 using FitBook.Services.Messaging;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Globalization;
+using System.Security.Cryptography;
 
 namespace FitBook.Services.Auth;
 
 public class AuthService : IAuthService
 {
+    private static readonly TimeSpan PasswordResetCodeLifetime = TimeSpan.FromMinutes(15);
+
     private readonly FitBookDbContext _context;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IRefreshTokenService _refreshTokenService;
     private readonly IUserAccountService _userAccountService;
     private readonly ICryptoService _cryptoService;
     private readonly IEmailNotificationPublisher _emailNotificationPublisher;
+    private readonly IValidator<ForgotPasswordRequest> _forgotPasswordValidator;
+    private readonly IValidator<ResetPasswordRequest> _resetPasswordValidator;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
@@ -31,6 +39,8 @@ public class AuthService : IAuthService
         IUserAccountService userAccountService,
         ICryptoService cryptoService,
         IEmailNotificationPublisher emailNotificationPublisher,
+        IValidator<ForgotPasswordRequest> forgotPasswordValidator,
+        IValidator<ResetPasswordRequest> resetPasswordValidator,
         ILogger<AuthService> logger)
     {
         _context = context;
@@ -39,6 +49,8 @@ public class AuthService : IAuthService
         _userAccountService = userAccountService;
         _cryptoService = cryptoService;
         _emailNotificationPublisher = emailNotificationPublisher;
+        _forgotPasswordValidator = forgotPasswordValidator;
+        _resetPasswordValidator = resetPasswordValidator;
         _logger = logger;
     }
 
@@ -143,5 +155,101 @@ public class AuthService : IAuthService
         }
 
         await _refreshTokenService.RevokeRefreshTokenAsync(request.RefreshToken.Trim(), cancellationToken);
+    }
+
+    public async Task ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken cancellationToken = default)
+    {
+        await _forgotPasswordValidator.ValidateAndThrowAsync(request, cancellationToken);
+
+        var email = request.Email.Trim();
+        var user = await _context.UserAccounts
+            .SingleOrDefaultAsync(x => x.Email.ToLower() == email.ToLower() && !x.IsDeleted, cancellationToken);
+
+        if (user == null || !user.IsActive)
+        {
+            _logger.LogWarning("Password reset requested for unknown or inactive e-mail address.");
+            return;
+        }
+
+        var now = DateTime.UtcNow;
+
+        var activeTokens = await _context.PasswordResetTokens
+            .Where(x => x.UserAccountId == user.Id && x.UsedAtUtc == null && x.ExpiresAtUtc > now)
+            .ToListAsync(cancellationToken);
+
+        foreach (var activeToken in activeTokens)
+        {
+            activeToken.ExpiresAtUtc = now;
+            activeToken.UpdatedAtUtc = now;
+        }
+
+        var code = RandomNumberGenerator.GetInt32(100000, 1000000).ToString(CultureInfo.InvariantCulture);
+
+        _context.PasswordResetTokens.Add(new PasswordResetToken
+        {
+            UserAccountId = user.Id,
+            CodeHash = _cryptoService.HashPassword(code),
+            ExpiresAtUtc = now.Add(PasswordResetCodeLifetime),
+            CreatedAtUtc = now,
+        });
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        await _emailNotificationPublisher.PublishAsync(new EmailNotificationMessage
+        {
+            ToEmail = user.Email,
+            ToName = $"{user.FirstName} {user.LastName}",
+            Subject = "FitBook - kod za reset lozinke",
+            Body = $"Poštovani {user.FirstName}, Vaš kod za reset lozinke je: {code}. Kod važi {(int)PasswordResetCodeLifetime.TotalMinutes} minuta. Ako niste zatražili reset lozinke, zanemarite ovu poruku.",
+        }, cancellationToken);
+
+        _logger.LogInformation("Password reset code generated for user {UserId}.", user.Id);
+    }
+
+    public async Task ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken = default)
+    {
+        await _resetPasswordValidator.ValidateAndThrowAsync(request, cancellationToken);
+
+        var email = request.Email.Trim();
+        var user = await _context.UserAccounts
+            .SingleOrDefaultAsync(x => x.Email.ToLower() == email.ToLower() && !x.IsDeleted, cancellationToken);
+
+        if (user == null || !user.IsActive)
+        {
+            _logger.LogWarning("Password reset attempted for unknown or inactive e-mail address.");
+            throw new BusinessException("Nevažeći ili istekao kod za reset lozinke. Zatražite novi kod i pokušajte ponovo.");
+        }
+
+        var now = DateTime.UtcNow;
+
+        var resetToken = await _context.PasswordResetTokens
+            .Where(x => x.UserAccountId == user.Id && x.UsedAtUtc == null && x.ExpiresAtUtc > now)
+            .OrderByDescending(x => x.CreatedAtUtc)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (resetToken == null || !_cryptoService.VerifyPassword(request.Code.Trim(), resetToken.CodeHash))
+        {
+            _logger.LogWarning("Invalid or expired password reset code for user {UserId}.", user.Id);
+            throw new BusinessException("Nevažeći ili istekao kod za reset lozinke. Zatražite novi kod i pokušajte ponovo.");
+        }
+
+        user.PasswordHash = _cryptoService.HashPassword(request.NewPassword.Trim());
+        user.UpdatedAtUtc = now;
+
+        resetToken.UsedAtUtc = now;
+        resetToken.UpdatedAtUtc = now;
+
+        var activeRefreshTokens = await _context.RefreshTokens
+            .Where(x => x.UserId == user.Id && x.RevokedAtUtc == null)
+            .ToListAsync(cancellationToken);
+
+        foreach (var refreshToken in activeRefreshTokens)
+        {
+            refreshToken.RevokedAtUtc = now;
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Password reset completed for user {UserId}.", user.Id);
     }
 }

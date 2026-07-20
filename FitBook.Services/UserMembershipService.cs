@@ -1,3 +1,4 @@
+using FitBook.Common.Services.Time;
 using FitBook.Model.Constants;
 using FitBook.Model.Enums;
 using FitBook.Model.Exceptions;
@@ -95,6 +96,21 @@ public class UserMembershipService
         return query;
     }
 
+    protected override IQueryable<UserMembership> ApplySearch(IQueryable<UserMembership> query, MembershipSearchObject search)
+    {
+        if (string.IsNullOrWhiteSpace(search.Search))
+        {
+            return query;
+        }
+
+        var term = search.Search.Trim().ToLowerInvariant();
+        return query.Where(x =>
+            x.UserAccount!.FirstName.ToLower().Contains(term) ||
+            x.UserAccount.LastName.ToLower().Contains(term) ||
+            x.UserAccount.Email.ToLower().Contains(term) ||
+            x.MembershipPackage!.Name.ToLower().Contains(term));
+    }
+
     protected override async Task ValidateInsert(UserMembershipInsertRequest request, CancellationToken cancellationToken)
     {
         var package = await _dbContext.MembershipPackages
@@ -124,7 +140,7 @@ public class UserMembershipService
         }
     }
 
-    protected override async Task BeforeInsert(UserMembershipInsertRequest request, UserMembership entity, CancellationToken cancellationToken)
+    protected override Task BeforeInsert(UserMembershipInsertRequest request, UserMembership entity, CancellationToken cancellationToken)
     {
         var currentUserId = _currentUserService.GetRequiredUserId();
 
@@ -134,6 +150,8 @@ public class UserMembershipService
 
         entity.StartDateUtc = DateTime.UtcNow;
         entity.EndDateUtc = DateTime.UtcNow;
+
+        return Task.CompletedTask;
     }
 
     public override Task<UserMembershipResponse> UpdateAsync(int id, UserMembershipUpdateRequest request, CancellationToken cancellationToken = default)
@@ -152,6 +170,7 @@ public class UserMembershipService
 
         var membership = await _dbContext.UserMemberships
             .Include(x => x.Payments)
+            .Include(x => x.UserAccount)
             .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted, cancellationToken);
 
         if (membership is null)
@@ -194,6 +213,21 @@ public class UserMembershipService
         });
 
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        if (membership.UserAccount is not null)
+        {
+            var refundNote = completedPayment != null
+                ? $" Izvršen je povrat sredstava u iznosu od {completedPayment.Amount:0.00} {completedPayment.Currency}."
+                : string.Empty;
+
+            await _emailNotificationPublisher.PublishAsync(new EmailNotificationMessage
+            {
+                ToEmail = membership.UserAccount.Email,
+                ToName = $"{membership.UserAccount.FirstName} {membership.UserAccount.LastName}",
+                Subject = "Vaša članarina je otkazana",
+                Body = $"Poštovani, Vaša članarina je otkazana. Razlog: {request.Reason}{refundNote}",
+            }, cancellationToken);
+        }
 
         _logger.LogInformation(
             "Membership {MembershipId} cancelled by user {UserId}. Reason: {Reason}. Refunded: {IsRefunded}",
@@ -422,7 +456,7 @@ public class UserMembershipService
                 UserAccountId = membership.UserAccountId,
                 NotificationType = NotificationType.MembershipPaid,
                 Title = "Plaćanje članarine uspješno",
-                Content = $"Vaša članarina je uspješno plaćena i sada je aktivna do {membership.EndDateUtc:dd.MM.yyyy}. Hvala!",
+                Content = $"Vaša članarina je uspješno plaćena i sada je aktivna do {LocalTimeProvider.FormatDate(membership.EndDateUtc)} Hvala!",
                 IsRead = false,
                 CreatedAtUtc = DateTime.UtcNow
             });
@@ -438,7 +472,7 @@ public class UserMembershipService
                 ToEmail = membership.UserAccount.Email,
                 ToName = $"{membership.UserAccount.FirstName} {membership.UserAccount.LastName}",
                 Subject = "Plaćanje članarine uspješno",
-                Body = $"Poštovani, Vaša članarina je uspješno plaćena i sada je aktivna do {membership.EndDateUtc:dd.MM.yyyy}. Hvala!",
+                Body = $"Poštovani, Vaša članarina je uspješno plaćena i sada je aktivna do {LocalTimeProvider.FormatDate(membership.EndDateUtc)} Hvala!",
             }, cancellationToken);
         }
     }
@@ -446,6 +480,7 @@ public class UserMembershipService
     public async Task MarkPaymentFailedAsync(string paymentIntentId, CancellationToken cancellationToken = default)
     {
         var payment = await _dbContext.MembershipPayments
+            .Include(x => x.UserAccount)
             .FirstOrDefaultAsync(x => x.PaymentIntentId == paymentIntentId, cancellationToken);
 
         if (payment == null)
@@ -477,6 +512,17 @@ public class UserMembershipService
         });
 
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        if (payment.UserAccount is not null)
+        {
+            await _emailNotificationPublisher.PublishAsync(new EmailNotificationMessage
+            {
+                ToEmail = payment.UserAccount.Email,
+                ToName = $"{payment.UserAccount.FirstName} {payment.UserAccount.LastName}",
+                Subject = "Plaćanje članarine nije uspjelo",
+                Body = "Poštovani, Vaše plaćanje članarine nije uspjelo. Molimo pokušajte ponovo.",
+            }, cancellationToken);
+        }
 
         _logger.LogInformation("Payment {PaymentId} marked as Failed via webhook.", payment.Id);
     }

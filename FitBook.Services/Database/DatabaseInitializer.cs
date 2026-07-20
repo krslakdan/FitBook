@@ -1,3 +1,4 @@
+using FitBook.Common.Services.Time;
 using FitBook.Model.Constants;
 using FitBook.Model.Enums;
 using FitBook.Services.Database.Entities;
@@ -84,6 +85,7 @@ public static class DatabaseInitializer
         }
 
         await EnsureActiveMembershipAsync(dbContext, mobileUser, now, logger, cancellationToken);
+        await EnsureExpiringMembershipScenarioAsync(dbContext, capacityFillUsers, now, logger, cancellationToken);
         await EnsureReminderScenarioAsync(dbContext, mobileUser, trainings, trainers, halls, now, logger, cancellationToken);
         await EnsurePendingConfirmScenarioAsync(dbContext, mobileUser, trainings, trainers, halls, now, logger, cancellationToken);
         await EnsureCompletableScenarioAsync(dbContext, mobileUser, trainings, trainers, halls, now, logger, cancellationToken);
@@ -137,6 +139,62 @@ public static class DatabaseInitializer
             await dbContext.SaveChangesAsync(cancellationToken);
             logger.LogInformation("Extended the demo client's active membership so it remains valid.");
         }
+    }
+
+    private static async Task EnsureExpiringMembershipScenarioAsync(
+        FitBookDbContext dbContext, List<UserAccount> candidateUsers, DateTime now, ILogger logger, CancellationToken cancellationToken)
+    {
+        if (candidateUsers.Count == 0)
+        {
+            return;
+        }
+
+        var alreadyExpiring = await dbContext.UserMemberships.AnyAsync(
+            m => m.Status == MembershipStatus.Active
+                 && m.IsActive
+                 && m.EndDateUtc > now
+                 && m.EndDateUtc <= now.AddDays(3),
+            cancellationToken);
+
+        if (alreadyExpiring)
+        {
+            return;
+        }
+
+        var package = await dbContext.MembershipPackages.Where(p => p.IsActive).OrderBy(p => p.Id).FirstOrDefaultAsync(cancellationToken);
+        if (package is null)
+        {
+            return;
+        }
+
+        var candidateIds = candidateUsers.Select(u => u.Id).ToList();
+        var usersWithMembership = await dbContext.UserMemberships
+            .Where(m => candidateIds.Contains(m.UserAccountId)
+                        && !m.IsDeleted
+                        && (m.Status == MembershipStatus.Active || m.Status == MembershipStatus.Pending))
+            .Select(m => m.UserAccountId)
+            .ToListAsync(cancellationToken);
+
+        var targetUser = candidateUsers.Find(u => !usersWithMembership.Contains(u.Id));
+        if (targetUser is null)
+        {
+            return;
+        }
+
+        dbContext.UserMemberships.Add(new UserMembership
+        {
+            Status = MembershipStatus.Active,
+            IsActive = true,
+            StartDateUtc = now.AddDays(-27),
+            EndDateUtc = now.AddDays(2),
+            NextPaymentDateUtc = now.AddDays(2),
+            CreatedAtUtc = now.AddDays(-27),
+            UserAccountId = targetUser.Id,
+            MembershipPackageId = package.Id,
+        });
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        logger.LogInformation("Seeded an active membership expiring within the reminder window for user {UserId} (expiry-reminder demo).", targetUser.Id);
     }
 
     private static async Task EnsureReminderScenarioAsync(
@@ -347,7 +405,7 @@ public static class DatabaseInitializer
 
     private static void AddConfirmationSideEffects(FitBookDbContext dbContext, int userAccountId, int reservationId, Training training, TrainingTerm term, DateTime now)
     {
-        var termStartFormatted = term.StartTimeUtc.ToString("yyyy-MM-dd HH:mm") + " UTC";
+        var termStartFormatted = LocalTimeProvider.FormatDateTime(term.StartTimeUtc);
 
         dbContext.SystemNotifications.Add(new SystemNotification
         {

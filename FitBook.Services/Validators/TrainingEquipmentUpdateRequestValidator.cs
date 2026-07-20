@@ -7,9 +7,8 @@ public class TrainingEquipmentUpdateRequestValidator : AbstractValidator<Trainin
 {
     public TrainingEquipmentUpdateRequestValidator()
     {
-        RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("Naziv opreme je obavezan.")
-            .MaximumLength(120).WithMessage("Naziv opreme ne smije biti duži od 120 karaktera.");
+        RuleFor(x => x.EquipmentId)
+            .GreaterThan(0).WithMessage("Oprema je obavezna.");
 
         RuleFor(x => x.Note)
             .MaximumLength(300).WithMessage("Napomena ne smije biti duža od 300 karaktera.")
