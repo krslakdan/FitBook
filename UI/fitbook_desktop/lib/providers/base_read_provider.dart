@@ -19,10 +19,4 @@ abstract class BaseReadProvider<T> extends BaseProvider {
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;
     return PageResult<T>.fromJson(decoded, (json) => fromJson(json as Map<String, dynamic>));
   }
-
-  Future<T> getById(int id) async {
-    final response = await apiGet('$endpoint/$id');
-    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-    return fromJson(decoded);
-  }
 }
