@@ -99,12 +99,6 @@ class _ReservationsScreenState extends State<ReservationsScreen>
     }
   }
 
-  void _selectTab(int index) {
-    if (index == _tabIndex) return;
-    setState(() => _tabIndex = index);
-    _tabController.animateTo(index);
-  }
-
   Future<void> _openDetails(ReservationResponse reservation) async {
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => ReservationDetailsScreen(reservation: reservation)),
@@ -125,11 +119,11 @@ class _ReservationsScreenState extends State<ReservationsScreen>
       subtitle: 'Vaše rezervacije treninga',
       child: Column(
         children: [
-          _SegmentedTabs(
+          _ReservationsTabBar(
+            controller: _tabController,
             currentIndex: _tabIndex,
             activeCount: hasData ? _activeItems.length : null,
             pastCount: hasData ? _pastItems.length : null,
-            onChanged: _selectTab,
           ),
           Expanded(child: _buildBody()),
         ],
@@ -199,85 +193,60 @@ class _ReservationsScreenState extends State<ReservationsScreen>
   }
 }
 
-class _SegmentedTabs extends StatelessWidget {
-  const _SegmentedTabs({
+class _ReservationsTabBar extends StatelessWidget {
+  const _ReservationsTabBar({
+    required this.controller,
     required this.currentIndex,
     required this.activeCount,
     required this.pastCount,
-    required this.onChanged,
   });
 
+  final TabController controller;
   final int currentIndex;
   final int? activeCount;
   final int? pastCount;
-  final ValueChanged<int> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-      child: Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: AppColors.neutralSoft,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          children: [
-            Expanded(child: _segment(0, 'Aktivne', activeCount)),
-            Expanded(child: _segment(1, 'Prošle', pastCount)),
-          ],
-        ),
+    return TabBar(
+      controller: controller,
+      indicator: const UnderlineTabIndicator(
+        borderSide: BorderSide(color: AppColors.primary, width: 2.5),
+        insets: EdgeInsets.symmetric(horizontal: 44),
       ),
+      indicatorSize: TabBarIndicatorSize.tab,
+      labelColor: AppColors.primaryDark,
+      unselectedLabelColor: AppColors.textSecondary,
+      dividerColor: AppColors.border,
+      labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+      unselectedLabelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+      splashBorderRadius: BorderRadius.circular(12),
+      tabs: [
+        _buildTab('Aktivne', activeCount, currentIndex == 0),
+        _buildTab('Prošle', pastCount, currentIndex == 1),
+      ],
     );
   }
 
-  Widget _segment(int index, String label, int? count) {
-    final selected = index == currentIndex;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => onChanged(index),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
-        padding: const EdgeInsets.symmetric(vertical: 9),
-        decoration: BoxDecoration(
-          color: selected ? AppColors.surface : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: selected
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13.5,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
-                color: selected ? AppColors.primaryDark : AppColors.textSecondary,
-              ),
-            ),
-            if (count != null) ...[
-              const SizedBox(width: 6),
-              _CountBadge(count: count, selected: selected),
-            ],
+  Widget _buildTab(String label, int? count, bool selected) {
+    return Tab(
+      height: 48,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label),
+          if (count != null) ...[
+            const SizedBox(width: 7),
+            _TabCountBadge(count: count, selected: selected),
           ],
-        ),
+        ],
       ),
     );
   }
 }
 
-class _CountBadge extends StatelessWidget {
-  const _CountBadge({required this.count, required this.selected});
+class _TabCountBadge extends StatelessWidget {
+  const _TabCountBadge({required this.count, required this.selected});
 
   final int count;
   final bool selected;
@@ -285,15 +254,15 @@ class _CountBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1.5),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
       decoration: BoxDecoration(
-        color: selected ? AppColors.primarySoft : AppColors.surface,
+        color: selected ? AppColors.primarySoft : AppColors.neutralSoft,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
         '$count',
         style: TextStyle(
-          fontSize: 11,
+          fontSize: 11.5,
           fontWeight: FontWeight.w700,
           color: selected ? AppColors.onPrimarySoft : AppColors.textSecondary,
         ),
