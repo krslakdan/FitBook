@@ -2,91 +2,96 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../layouts/master_screen.dart';
+import '../models/responses/user_account_response.dart';
 import '../providers/auth_provider.dart';
+import '../providers/user_account_provider.dart';
 import '../theme/app_theme.dart';
+import '../utils/api_client_exception.dart';
+import '../utils/app_config.dart';
 import '../widgets/status_chip.dart';
+import 'change_password_screen.dart';
+import 'edit_profile_screen.dart';
 import 'notifications_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final auth = context.read<AuthProvider>();
-    final firstName = auth.currentFirstName ?? '';
-    final lastName = auth.currentLastName ?? '';
-    final fullName = '$firstName $lastName'.trim();
-    final email = auth.currentEmail ?? '';
-    final username = auth.currentUsername ?? '';
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
 
-    return MasterScreen(
-      title: 'Profil',
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _ProfileHeader(
-              fullName: fullName.isEmpty ? 'Korisnik' : fullName,
-              email: email,
-              username: username,
-              initials: _initials(firstName, lastName, username),
-            ),
-            const SizedBox(height: 20),
-            _MenuCard(
-              children: [
-                _MenuTile(
-                  icon: Icons.person_outline,
-                  label: 'Uredi profil',
-                  onTap: () => _showComingSoon(context),
-                ),
-                const _MenuDivider(),
-                _MenuTile(
-                  icon: Icons.lock_outline,
-                  label: 'Promijeni lozinku',
-                  onTap: () => _showComingSoon(context),
-                ),
-                const _MenuDivider(),
-                _MenuTile(
-                  icon: Icons.notifications_none,
-                  label: 'Notifikacije',
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            _MenuCard(
-              children: [
-                _MenuTile(
-                  icon: Icons.logout,
-                  label: 'Odjava',
-                  danger: true,
-                  onTap: () => _confirmLogout(context),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+class _ProfileScreenState extends State<ProfileScreen> {
+  UserAccountResponse? _user;
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final userId = context.read<AuthProvider>().currentUserId;
+    if (userId == null) {
+      setState(() {
+        _loading = false;
+        _error = 'Nije moguće učitati profil. Prijavite se ponovo.';
+      });
+      return;
+    }
+
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final user = await context.read<UserAccountProvider>().getById(userId);
+      if (!mounted) return;
+      setState(() {
+        _user = user;
+        _loading = false;
+      });
+    } on ApiClientException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.message;
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _openEditProfile() async {
+    final user = _user;
+    if (user == null) return;
+    final message = await Navigator.of(context).push<String>(
+      MaterialPageRoute(builder: (_) => EditProfileScreen(user: user)),
+    );
+    if (message == null || !mounted) return;
+    await _load();
+    if (mounted) _showMessage(message);
+  }
+
+  Future<void> _openChangePassword() async {
+    final message = await Navigator.of(context).push<String>(
+      MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
+    );
+    if (message == null || !mounted) return;
+    _showMessage(message);
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _openNotifications() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const NotificationsScreen()),
     );
   }
 
-  String _initials(String firstName, String lastName, String username) {
-    String pick(String value) => value.trim().isEmpty ? '' : value.trim()[0].toUpperCase();
-    final initials = '${pick(firstName)}${pick(lastName)}';
-    if (initials.isNotEmpty) return initials;
-    return pick(username).isEmpty ? '?' : pick(username);
-  }
-
-  void _showComingSoon(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Ova funkcionalnost je u pripremi.')),
-    );
-  }
-
-  Future<void> _confirmLogout(BuildContext context) async {
+  Future<void> _confirmLogout() async {
     final shouldLogout = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -106,8 +111,89 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
 
-    if (shouldLogout != true || !context.mounted) return;
+    if (shouldLogout != true || !mounted) return;
     await context.read<AuthProvider>().logout();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MasterScreen(
+      title: 'Profil',
+      child: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_user == null) {
+      return _ErrorView(
+        message: _error ?? 'Nije moguće učitati profil.',
+        onRetry: _load,
+      );
+    }
+
+    final user = _user!;
+    final fullName = '${user.firstName} ${user.lastName}'.trim();
+
+    return RefreshIndicator(
+      onRefresh: _load,
+      color: AppColors.primary,
+      child: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          _ProfileHeader(
+            fullName: fullName.isEmpty ? 'Korisnik' : fullName,
+            email: user.email,
+            username: user.username,
+            imageUrl: AppConfig.absoluteFileUrl(user.profileImageUrl),
+            initials: _initials(user),
+          ),
+          const SizedBox(height: 20),
+          _MenuCard(
+            children: [
+              _MenuTile(
+                icon: Icons.person_outline,
+                label: 'Uredi profil',
+                onTap: _openEditProfile,
+              ),
+              const _MenuDivider(),
+              _MenuTile(
+                icon: Icons.lock_outline,
+                label: 'Promijeni lozinku',
+                onTap: _openChangePassword,
+              ),
+              const _MenuDivider(),
+              _MenuTile(
+                icon: Icons.notifications_none,
+                label: 'Notifikacije',
+                onTap: _openNotifications,
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _MenuCard(
+            children: [
+              _MenuTile(
+                icon: Icons.logout,
+                label: 'Odjava',
+                danger: true,
+                onTap: _confirmLogout,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _initials(UserAccountResponse user) {
+    String pick(String value) => value.trim().isEmpty ? '' : value.trim()[0].toUpperCase();
+    final initials = '${pick(user.firstName)}${pick(user.lastName)}';
+    if (initials.isNotEmpty) return initials;
+    return pick(user.username).isEmpty ? '?' : pick(user.username);
   }
 }
 
@@ -116,12 +202,14 @@ class _ProfileHeader extends StatelessWidget {
     required this.fullName,
     required this.email,
     required this.username,
+    required this.imageUrl,
     required this.initials,
   });
 
   final String fullName;
   final String email;
   final String username;
+  final String? imageUrl;
   final String initials;
 
   @override
@@ -142,34 +230,7 @@ class _ProfileHeader extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Container(
-            width: 84,
-            height: 84,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [AppColors.primary, AppColors.primaryDark],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.3),
-                  blurRadius: 18,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Text(
-              initials,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 30,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
+          _Avatar(imageUrl: imageUrl, initials: initials),
           const SizedBox(height: 16),
           Text(
             fullName,
@@ -200,6 +261,69 @@ class _ProfileHeader extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _Avatar extends StatelessWidget {
+  const _Avatar({required this.imageUrl, required this.initials});
+
+  final String? imageUrl;
+  final String initials;
+
+  static const double _size = 84;
+
+  @override
+  Widget build(BuildContext context) {
+    if (imageUrl != null) {
+      return Container(
+        width: _size,
+        height: _size,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.border, width: 2),
+        ),
+        child: Image.network(
+          imageUrl!,
+          width: _size,
+          height: _size,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => _initialsAvatar(),
+        ),
+      );
+    }
+    return _initialsAvatar();
+  }
+
+  Widget _initialsAvatar() {
+    return Container(
+      width: _size,
+      height: _size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.primary, AppColors.primaryDark],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.3),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Text(
+        initials,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 30,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }
@@ -270,5 +394,39 @@ class _MenuDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Divider(height: 1, thickness: 1, indent: 52, color: AppColors.border);
+  }
+}
+
+class _ErrorView extends StatelessWidget {
+  const _ErrorView({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.cloud_off_outlined, size: 52, color: AppColors.textSecondary),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 14, height: 1.4, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 20),
+            OutlinedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('Pokušaj ponovo'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
