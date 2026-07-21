@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
+import '../providers/main_navigation_controller.dart';
 import '../providers/system_notification_provider.dart';
 import '../screens/home_screen.dart';
 import '../screens/membership_screen.dart';
@@ -18,8 +19,6 @@ class MainNavigation extends StatefulWidget {
 }
 
 class _MainNavigationState extends State<MainNavigation> {
-  int _selectedIndex = 0;
-
   @override
   void initState() {
     super.initState();
@@ -55,17 +54,14 @@ class _MainNavigationState extends State<MainNavigation> {
     AppBottomNavItem(icon: Icons.person_outline, activeIcon: Icons.person, label: 'Profil'),
   ];
 
-  void _onItemTapped(int index) {
-    setState(() => _selectedIndex = index);
-  }
-
   @override
   Widget build(BuildContext context) {
+    final selectedIndex = context.watch<MainNavigationController>().selectedIndex;
     return Scaffold(
-      body: IndexedStack(index: _selectedIndex, children: _screens),
+      body: IndexedStack(index: selectedIndex, children: _screens),
       bottomNavigationBar: AppBottomNav(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
+        currentIndex: selectedIndex,
+        onTap: (index) => context.read<MainNavigationController>().select(index),
         items: _items,
       ),
     );
