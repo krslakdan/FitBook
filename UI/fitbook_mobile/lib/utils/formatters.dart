@@ -11,6 +11,18 @@ String formatDate(DateTime? date) {
   return '${_two(date.day)}.${_two(date.month)}.${date.year}.';
 }
 
+const List<String> _weekdayShort = ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned'];
+
+String weekdayShort(DateTime? date) {
+  if (date == null) return '';
+  return _weekdayShort[date.weekday - 1];
+}
+
+String formatDateWithWeekday(DateTime? date) {
+  if (date == null) return '';
+  return '${weekdayShort(date)}, ${formatDate(date)}';
+}
+
 String formatRelativeTime(DateTime? utc) {
   if (utc == null) return '—';
   final diff = DateTime.now().difference(utc.toLocal());
