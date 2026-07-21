@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../layouts/master_screen.dart';
 import '../models/enums/notification_type.dart';
 import '../models/responses/system_notification_response.dart';
+import '../providers/main_navigation_controller.dart';
 import '../providers/system_notification_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/api_client_exception.dart';
@@ -49,6 +50,32 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       if (mounted) _showError(e.message);
     }
   }
+
+  static const int _reservationsTab = 2;
+  static const int _membershipTab = 3;
+
+  void _openTarget(SystemNotificationResponse notification) {
+    if (!notification.isRead) _markAsRead(notification.id);
+    final targetTab = _targetTabFor(notification.notificationType);
+    if (targetTab == null) return;
+    context.read<MainNavigationController>().select(targetTab);
+    Navigator.of(context).popUntil((route) => route.isFirst);
+  }
+
+  int? _targetTabFor(NotificationType type) => switch (type) {
+    NotificationType.reservationCreated ||
+    NotificationType.reservationConfirmed ||
+    NotificationType.reservationCancelled ||
+    NotificationType.reservationCompleted ||
+    NotificationType.reservationReminder ||
+    NotificationType.trainingTermCancelled => _reservationsTab,
+    NotificationType.membershipPaid ||
+    NotificationType.membershipExpiringSoon ||
+    NotificationType.membershipExpired ||
+    NotificationType.membershipCancelled ||
+    NotificationType.membershipPaymentFailed => _membershipTab,
+    NotificationType.newsPublished => null,
+  };
 
   Future<void> _markAllAsRead() async {
     setState(() => _markingAll = true);
@@ -120,7 +147,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 final notification = provider.notifications[index];
                 return _NotificationTile(
                   notification: notification,
-                  onTap: notification.isRead ? null : () => _markAsRead(notification.id),
+                  onTap: () => _openTarget(notification),
                 );
               },
             ),
