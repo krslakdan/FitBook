@@ -6,6 +6,7 @@ import '../providers/auth_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/api_client_exception.dart';
 import '../widgets/auth_scaffold.dart';
+import 'forgot_password_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -89,6 +90,20 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
+  Future<void> _openForgotPassword() async {
+    final didReset = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+    );
+
+    if (!mounted || didReset != true) return;
+
+    setState(() {
+      _passwordController.clear();
+      _serverError = null;
+      _successMessage = 'Lozinka je uspješno promijenjena. Prijavite se novom lozinkom.';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return AuthScaffold(
@@ -149,7 +164,24 @@ class _LoginScreenState extends State<LoginScreen> {
                       validator: _validatePassword,
                       onFieldSubmitted: (_) => _submit(),
                     ),
-                    const SizedBox(height: 26),
+                    const SizedBox(height: 6),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: _isSubmitting ? null : _openForgotPassword,
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.primaryDark,
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: const Text(
+                          'Zaboravili ste lozinku?',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
                     FilledButton(
                       onPressed: _isSubmitting ? null : _submit,
                       style: FilledButton.styleFrom(
