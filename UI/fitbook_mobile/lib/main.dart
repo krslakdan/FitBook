@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'layouts/main_navigation.dart';
 import 'providers/auth_provider.dart';
 import 'providers/difficulty_level_provider.dart';
 import 'providers/equipment_provider.dart';
@@ -21,7 +22,6 @@ import 'providers/training_term_provider.dart';
 import 'providers/user_account_provider.dart';
 import 'providers/user_membership_provider.dart';
 import 'screens/login_screen.dart';
-import 'screens/placeholder_home_screen.dart';
 import 'theme/app_theme.dart';
 import 'widgets/auth_scaffold.dart';
 
@@ -92,7 +92,7 @@ class _AuthGateState extends State<AuthGate> {
         }
         return Consumer<AuthProvider>(
           builder: (context, auth, _) {
-            return auth.isAuthenticated ? const PlaceholderHomeScreen() : const LoginScreen();
+            return auth.isAuthenticated ? const MainNavigation() : const LoginScreen();
           },
         );
       },
