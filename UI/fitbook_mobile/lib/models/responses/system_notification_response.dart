@@ -34,4 +34,19 @@ class SystemNotificationResponse {
       _$SystemNotificationResponseFromJson(json);
 
   Map<String, dynamic> toJson() => _$SystemNotificationResponseToJson(this);
+
+  SystemNotificationResponse copyWith({bool? isRead, DateTime? readAtUtc}) {
+    return SystemNotificationResponse(
+      id: id,
+      title: title,
+      content: content,
+      isRead: isRead ?? this.isRead,
+      readAtUtc: readAtUtc ?? this.readAtUtc,
+      notificationType: notificationType,
+      userAccountId: userAccountId,
+      userFullName: userFullName,
+      createdAtUtc: createdAtUtc,
+      updatedAtUtc: updatedAtUtc,
+    );
+  }
 }
