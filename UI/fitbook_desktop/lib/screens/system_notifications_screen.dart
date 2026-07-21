@@ -225,7 +225,7 @@ class _SystemNotificationsScreenState extends State<SystemNotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     return MasterScreen(
-      title: 'Obavijesti',
+      title: 'Historija obavijesti',
       subtitle: 'Pregled sistemskih obavijesti korisnika',
       child: Padding(
         padding: const EdgeInsets.all(16),

@@ -295,7 +295,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildActivitiesCard(DashboardSummaryResponse summary) {
     return _DashboardCard(
-      title: 'Obavijesti',
+      title: 'Historija obavijesti',
       trailing: _SeeAllButton(
         onPressed: () => _navigateTo(const SystemNotificationsScreen()),
       ),
