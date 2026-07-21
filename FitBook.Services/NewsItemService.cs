@@ -1,3 +1,5 @@
+using FitBook.Model.Constants;
+using FitBook.Model.Enums;
 using FitBook.Model.Requests.NewsItems;
 using FitBook.Model.Responses.NewsItems;
 using FitBook.Model.SearchObjects;
@@ -6,6 +8,7 @@ using FitBook.Services.Database.Entities;
 using FitBook.Services.Interfaces;
 using FluentValidation;
 using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace FitBook.Services;
@@ -47,10 +50,49 @@ public class NewsItemService
         return query;
     }
 
-    protected override Task BeforeInsert(NewsItemInsertRequest request, NewsItem entity, CancellationToken cancellationToken)
+    protected override async Task BeforeInsert(NewsItemInsertRequest request, NewsItem entity, CancellationToken cancellationToken)
     {
         entity.PublishedAtUtc = DateTime.UtcNow;
-        return Task.CompletedTask;
+
+        if (entity.IsActive)
+        {
+            await AddNewsPublishedNotificationsAsync(entity.Title, cancellationToken);
+        }
+    }
+
+    protected override async Task BeforeUpdate(int id, NewsItemUpdateRequest request, NewsItem entity, CancellationToken cancellationToken)
+    {
+        if (!entity.IsActive && request.IsActive)
+        {
+            await AddNewsPublishedNotificationsAsync(request.Title, cancellationToken);
+        }
+    }
+
+    private async Task AddNewsPublishedNotificationsAsync(string title, CancellationToken cancellationToken)
+    {
+        var recipientIds = await _dbContext.UserAccounts
+            .Where(x => x.Role == Roles.User && x.IsActive && !x.IsDeleted)
+            .Select(x => x.Id)
+            .ToListAsync(cancellationToken);
+
+        if (recipientIds.Count == 0)
+        {
+            return;
+        }
+
+        var createdAtUtc = DateTime.UtcNow;
+        foreach (var userAccountId in recipientIds)
+        {
+            _dbContext.SystemNotifications.Add(new SystemNotification
+            {
+                UserAccountId = userAccountId,
+                NotificationType = NotificationType.NewsPublished,
+                Title = "Nova obavijest",
+                Content = $"Objavljena je nova obavijest: {title}",
+                IsRead = false,
+                CreatedAtUtc = createdAtUtc,
+            });
+        }
     }
 
     protected override IOrderedQueryable<NewsItem> ApplyOrdering(IQueryable<NewsItem> query, NewsItemSearchObject search)
