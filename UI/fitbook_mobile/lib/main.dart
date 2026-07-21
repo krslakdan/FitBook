@@ -7,6 +7,7 @@ import 'providers/difficulty_level_provider.dart';
 import 'providers/equipment_provider.dart';
 import 'providers/file_provider.dart';
 import 'providers/hall_provider.dart';
+import 'providers/main_navigation_controller.dart';
 import 'providers/membership_package_provider.dart';
 import 'providers/membership_payment_provider.dart';
 import 'providers/news_item_provider.dart';
@@ -37,6 +38,7 @@ class FitBookMobileApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => MainNavigationController()),
         ChangeNotifierProvider(create: (_) => DifficultyLevelProvider()),
         ChangeNotifierProvider(create: (_) => EquipmentProvider()),
         ChangeNotifierProvider(create: (_) => FileProvider()),

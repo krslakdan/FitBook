@@ -14,6 +14,7 @@ import '../theme/app_theme.dart';
 import '../utils/api_client_exception.dart';
 import '../utils/formatters.dart';
 import '../widgets/status_chip.dart';
+import 'term_details_screen.dart';
 
 class TrainingDetailsScreen extends StatefulWidget {
   const TrainingDetailsScreen({super.key, required this.training});
@@ -183,10 +184,16 @@ class _TrainingDetailsScreenState extends State<TrainingDetailsScreen> {
 
     return [
       for (final term in _terms) ...[
-        _TermCard(term: term),
+        _TermCard(term: term, onTap: () => _openTerm(term)),
         const SizedBox(height: 10),
       ],
     ];
+  }
+
+  Future<void> _openTerm(TrainingTermResponse term) {
+    return Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => TermDetailsScreen(term: term)),
+    );
   }
 
   List<Widget> _buildEquipment() {
@@ -340,67 +347,72 @@ class _Stat extends StatelessWidget {
 }
 
 class _TermCard extends StatelessWidget {
-  const _TermCard({required this.term});
+  const _TermCard({required this.term, required this.onTap});
 
   final TrainingTermResponse term;
-
-  String get _timeRange {
-    final start = term.startTimeUtc.toLocal();
-    final end = term.endTimeUtc.toLocal();
-    String two(int v) => v.toString().padLeft(2, '0');
-    return '${two(start.hour)}:${two(start.minute)} - ${two(end.hour)}:${two(end.minute)}';
-  }
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final trainer = '${term.trainerFirstName} ${term.trainerLastName}'.trim();
 
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: AppColors.infoSoft,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.event_outlined, size: 22, color: AppColors.onInfoSoft),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.border),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  formatDateWithWeekday(term.startTimeUtc.toLocal()),
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.infoSoft,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  _timeRange,
-                  style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                child: const Icon(Icons.event_outlined, size: 22, color: AppColors.onInfoSoft),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      formatDateWithWeekday(term.startTimeUtc.toLocal()),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      formatTimeRange(term.startTimeUtc, term.endTimeUtc),
+                      style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                    ),
+                    const SizedBox(height: 8),
+                    _Line(icon: Icons.person_outline, text: trainer.isEmpty ? 'Trener' : trainer),
+                    const SizedBox(height: 4),
+                    _Line(icon: Icons.place_outlined, text: term.hallName),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                _Line(icon: Icons.person_outline, text: trainer.isEmpty ? 'Trener' : trainer),
-                const SizedBox(height: 4),
-                _Line(icon: Icons.place_outlined, text: term.hallName),
-              ],
-            ),
+              ),
+              const Padding(
+                padding: EdgeInsets.only(left: 6, top: 2),
+                child: Icon(Icons.chevron_right, size: 20, color: AppColors.textSecondary),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

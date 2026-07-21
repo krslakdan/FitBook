@@ -18,9 +18,24 @@ String weekdayShort(DateTime? date) {
   return _weekdayShort[date.weekday - 1];
 }
 
+const List<String> _monthShort = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Avg', 'Sep', 'Okt', 'Nov', 'Dec',
+];
+
+String monthShort(DateTime? date) {
+  if (date == null) return '';
+  return _monthShort[date.month - 1];
+}
+
 String formatDateWithWeekday(DateTime? date) {
   if (date == null) return '';
   return '${weekdayShort(date)}, ${formatDate(date)}';
+}
+
+String formatTimeRange(DateTime startUtc, DateTime endUtc) {
+  final start = startUtc.toLocal();
+  final end = endUtc.toLocal();
+  return '${_two(start.hour)}:${_two(start.minute)} - ${_two(end.hour)}:${_two(end.minute)}';
 }
 
 String formatRelativeTime(DateTime? utc) {
