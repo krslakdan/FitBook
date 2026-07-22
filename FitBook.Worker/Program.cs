@@ -22,10 +22,12 @@ builder.Services.AddSingleton<IEmailNotificationPublisher, RabbitMqEmailNotifica
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<FitBookDbContext>(options => options.UseSqlServer(connectionString));
 builder.Services.AddScoped<IReminderService, ReminderService>();
+builder.Services.AddScoped<IMembershipExpiryService, MembershipExpiryService>();
 
 builder.Services.AddHostedService<EmailNotificationConsumer>();
 builder.Services.AddHostedService<ReservationReminderBackgroundService>();
 builder.Services.AddHostedService<MembershipExpiryReminderBackgroundService>();
+builder.Services.AddHostedService<MembershipExpiryBackgroundService>();
 
 var host = builder.Build();
 host.Run();
