@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../layouts/master_screen.dart';
 import '../models/responses/reservation_response.dart';
 import '../models/search_objects/reservation_search_object.dart';
+import '../providers/auth_provider.dart';
 import '../providers/reservation_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/api_client_exception.dart';
@@ -66,14 +67,18 @@ class _ReservationsScreenState extends State<ReservationsScreen>
       _error = null;
     });
 
+    final provider = context.read<ReservationProvider>();
+    final userId = context.read<AuthProvider>().currentUserId;
+
     try {
       final collected = <ReservationResponse>[];
       var page = 1;
       while (true) {
-        final result = await context.read<ReservationProvider>().get(
+        final result = await provider.get(
           filter: ReservationSearchObject(
             page: page,
             pageSize: _pageSize,
+            userAccountId: userId,
             includeTotalCount: true,
           ),
         );
