@@ -15,6 +15,7 @@ using FluentValidation;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Stripe;
 
 namespace FitBook.Services;
 
@@ -189,13 +190,25 @@ public class UserMembershipService
         EnsureValidTransition(membership.Status, MembershipStatus.Cancelled);
 
         var completedPayment = membership.Payments.FirstOrDefault(p => p.Status == PaymentStatus.Completed);
+        var refundIssued = false;
         if (completedPayment != null)
         {
-            
-            await _stripePaymentService.CreateRefundAsync(completedPayment.PaymentIntentId, completedPayment.Amount, cancellationToken);
-            completedPayment.Status = PaymentStatus.Refunded;
-            completedPayment.RefundedAtUtc = DateTime.UtcNow;
-            completedPayment.RefundAmount = completedPayment.Amount;
+            try
+            {
+                await _stripePaymentService.CreateRefundAsync(completedPayment.PaymentIntentId, completedPayment.Amount, cancellationToken);
+                completedPayment.Status = PaymentStatus.Refunded;
+                completedPayment.RefundedAtUtc = DateTime.UtcNow;
+                completedPayment.RefundAmount = completedPayment.Amount;
+                refundIssued = true;
+            }
+            catch (StripeException ex)
+            {
+                _logger.LogError(ex,
+                    "Stripe refund failed for Payment {PaymentId} (PaymentIntent {PaymentIntentId}) while cancelling Membership {MembershipId}. Cancellation proceeds without refund.",
+                    completedPayment.Id,
+                    completedPayment.PaymentIntentId,
+                    membership.Id);
+            }
         }
 
         membership.Status = MembershipStatus.Cancelled;
@@ -207,7 +220,7 @@ public class UserMembershipService
             UserAccountId = membership.UserAccountId,
             NotificationType = NotificationType.MembershipCancelled,
             Title = "Članarina je otkazana",
-            Content = $"Vaša članarina je otkazana. Razlog: {request.Reason}{(completedPayment != null ? " Izvršen je povrat sredstava." : "")}",
+            Content = $"Vaša članarina je otkazana. Razlog: {request.Reason}{(refundIssued ? " Izvršen je povrat sredstava." : "")}",
             IsRead = false,
             CreatedAtUtc = DateTime.UtcNow,
         });
@@ -216,8 +229,8 @@ public class UserMembershipService
 
         if (membership.UserAccount is not null)
         {
-            var refundNote = completedPayment != null
-                ? $" Izvršen je povrat sredstava u iznosu od {completedPayment.Amount:0.00} {completedPayment.Currency}."
+            var refundNote = refundIssued
+                ? $" Izvršen je povrat sredstava u iznosu od {completedPayment!.Amount:0.00} {completedPayment.Currency}."
                 : string.Empty;
 
             await _emailNotificationPublisher.PublishAsync(new EmailNotificationMessage
@@ -234,7 +247,7 @@ public class UserMembershipService
             membership.Id,
             _currentUserService.GetRequiredUserId(),
             request.Reason,
-            completedPayment != null);
+            refundIssued);
 
         return await GetByIdAsync(id, cancellationToken);
     }
@@ -324,7 +337,8 @@ public class UserMembershipService
 
             if (existingIntent.Status == "succeeded")
             {
-                throw new BusinessException("Uplata je već zabilježena kao uspješna na Stripe-u. Sistem će se uskoro automatski ažurirati.");
+                await MarkPaymentSuccessfulAsync(existingActivePayment.PaymentIntentId, cancellationToken);
+                throw new BusinessException("Ova članarina je već uspješno plaćena.");
             }
             else if (existingIntent.Status == "canceled")
             {
@@ -392,6 +406,55 @@ public class UserMembershipService
         };
     }
 
+    public async Task<UserMembershipResponse> ConfirmPaymentAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var membership = await _dbContext.UserMemberships
+            .Include(x => x.Payments)
+            .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted, cancellationToken);
+
+        if (membership is null)
+        {
+            throw new NotFoundException($"Članarina sa ID {id} nije pronađena.");
+        }
+
+        var currentUserId = _currentUserService.GetRequiredUserId();
+        bool isOwner = membership.UserAccountId == currentUserId;
+
+        if (!_currentUserService.IsAdmin() && !isOwner)
+        {
+            throw new BusinessException("Nemate pravo potvrditi plaćanje ove članarine.");
+        }
+
+        var pendingPayment = membership.Payments
+            .Where(p => p.Status == PaymentStatus.Pending)
+            .OrderByDescending(p => p.CreatedAtUtc)
+            .FirstOrDefault();
+
+        if (pendingPayment is not null)
+        {
+            var intent = await _stripePaymentService.GetPaymentIntentAsync(pendingPayment.PaymentIntentId, cancellationToken);
+
+            if (intent.Status == "succeeded")
+            {
+                await MarkPaymentSuccessfulAsync(pendingPayment.PaymentIntentId, cancellationToken);
+            }
+            else if (intent.Status == "canceled")
+            {
+                await MarkPaymentFailedAsync(pendingPayment.PaymentIntentId, cancellationToken);
+            }
+            else
+            {
+                _logger.LogInformation(
+                    "ConfirmPayment for Membership {MembershipId}: PaymentIntent {PaymentIntentId} still in status {Status}.",
+                    id,
+                    pendingPayment.PaymentIntentId,
+                    intent.Status);
+            }
+        }
+
+        return await GetByIdAsync(id, cancellationToken);
+    }
+
     private async Task<bool> HasActivePaymentAsync(int userMembershipId, int excludePaymentId, CancellationToken cancellationToken)
     {
         return await _dbContext.MembershipPayments.AsNoTracking().AnyAsync(
@@ -401,7 +464,7 @@ public class UserMembershipService
             cancellationToken);
     }
 
-    public async Task MarkPaymentSuccessfulAsync(string paymentIntentId, CancellationToken cancellationToken = default)
+    private async Task MarkPaymentSuccessfulAsync(string paymentIntentId, CancellationToken cancellationToken = default)
     {
         var payment = await _dbContext.MembershipPayments
             .Include(x => x.UserMembership)
@@ -418,7 +481,7 @@ public class UserMembershipService
 
         if (payment.Status == PaymentStatus.Completed)
         {
-            _logger.LogInformation("Webhook idempotency: Payment {PaymentId} is already Completed.", payment.Id);
+            _logger.LogInformation("Idempotency: Payment {PaymentId} is already Completed.", payment.Id);
             return;
         }
 
@@ -477,7 +540,7 @@ public class UserMembershipService
         }
     }
 
-    public async Task MarkPaymentFailedAsync(string paymentIntentId, CancellationToken cancellationToken = default)
+    private async Task MarkPaymentFailedAsync(string paymentIntentId, CancellationToken cancellationToken = default)
     {
         var payment = await _dbContext.MembershipPayments
             .Include(x => x.UserAccount)
@@ -492,7 +555,7 @@ public class UserMembershipService
         if (payment.Status != PaymentStatus.Pending)
         {
             _logger.LogInformation(
-                "Webhook idempotency: Payment {PaymentId} is already {Status}, ignoring payment_intent.payment_failed.",
+                "Idempotency: Payment {PaymentId} is already {Status}, skipping fail transition.",
                 payment.Id,
                 payment.Status);
             return;
@@ -524,7 +587,7 @@ public class UserMembershipService
             }, cancellationToken);
         }
 
-        _logger.LogInformation("Payment {PaymentId} marked as Failed via webhook.", payment.Id);
+        _logger.LogInformation("Payment {PaymentId} marked as Failed.", payment.Id);
     }
 
     private void EnsureValidTransition(MembershipStatus from, MembershipStatus to)
