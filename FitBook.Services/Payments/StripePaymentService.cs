@@ -29,18 +29,22 @@ public class StripePaymentService : IStripePaymentService
         return await service.GetAsync(paymentIntentId, null, requestOptions: null, cancellationToken: ct);
     }
 
-    public async Task<Refund> CreateRefundAsync(string paymentIntentId, decimal amount, CancellationToken ct)
+    public async Task<decimal> CreateRefundAsync(string paymentIntentId, CancellationToken ct)
     {
         var options = new RefundCreateOptions
         {
-            PaymentIntent = paymentIntentId,
-            Amount = ToSmallestCurrencyUnit(amount)
+            PaymentIntent = paymentIntentId
         };
 
         var service = new RefundService();
-        return await service.CreateAsync(options, null, ct);
+        var refund = await service.CreateAsync(options, null, ct);
+
+        return FromSmallestCurrencyUnit(refund.Amount);
     }
 
     private static long ToSmallestCurrencyUnit(decimal amount) =>
         (long)Math.Round(amount * 100, 0, MidpointRounding.AwayFromZero);
+
+    private static decimal FromSmallestCurrencyUnit(long amount) =>
+        amount / 100m;
 }

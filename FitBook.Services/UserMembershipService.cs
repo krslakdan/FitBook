@@ -37,6 +37,9 @@ public class UserMembershipService
         MembershipStatus.Active,
     ];
 
+    private const string StripeIntentSucceeded = "succeeded";
+    private const string StripeIntentCanceled = "canceled";
+
     private readonly ICurrentUserService _currentUserService;
     private readonly IValidator<UserMembershipCancelRequest> _cancelValidator;
     private readonly IStripePaymentService _stripePaymentService;
@@ -179,35 +182,36 @@ public class UserMembershipService
             throw new NotFoundException($"Članarina sa ID {id} nije pronađena.");
         }
 
-        var currentUserId = _currentUserService.GetRequiredUserId();
-        bool isOwner = membership.UserAccountId == currentUserId;
-
-        if (!_currentUserService.IsAdmin() && !isOwner)
-        {
-            throw new BusinessException("Nemate pravo otkazati ovu članarinu.");
-        }
+        EnsureOwnerOrAdmin(membership, "Nemate pravo otkazati ovu članarinu.");
 
         EnsureValidTransition(membership.Status, MembershipStatus.Cancelled);
 
         var completedPayment = membership.Payments.FirstOrDefault(p => p.Status == PaymentStatus.Completed);
-        var refundIssued = false;
+        decimal? refundedAmount = null;
         if (completedPayment != null)
         {
             try
             {
-                await _stripePaymentService.CreateRefundAsync(completedPayment.PaymentIntentId, completedPayment.Amount, cancellationToken);
+                refundedAmount = await _stripePaymentService.CreateRefundAsync(completedPayment.PaymentIntentId, cancellationToken);
                 completedPayment.Status = PaymentStatus.Refunded;
                 completedPayment.RefundedAtUtc = DateTime.UtcNow;
-                completedPayment.RefundAmount = completedPayment.Amount;
-                refundIssued = true;
+                completedPayment.RefundAmount = refundedAmount;
+            }
+            catch (StripeException ex) when (ex.StripeError?.Code == "resource_missing")
+            {
+                _logger.LogWarning(ex,
+                    "Refund skipped for Membership {MembershipId}: PaymentIntent {PaymentIntentId} does not exist on Stripe (non-real payment). Cancellation proceeds.",
+                    membership.Id,
+                    completedPayment.PaymentIntentId);
             }
             catch (StripeException ex)
             {
                 _logger.LogError(ex,
-                    "Stripe refund failed for Payment {PaymentId} (PaymentIntent {PaymentIntentId}) while cancelling Membership {MembershipId}. Cancellation proceeds without refund.",
+                    "Stripe refund failed for Payment {PaymentId} (PaymentIntent {PaymentIntentId}) while cancelling Membership {MembershipId}.",
                     completedPayment.Id,
                     completedPayment.PaymentIntentId,
                     membership.Id);
+                throw new BusinessException("Povrat sredstava putem Stripe-a nije uspio, pa članarina nije otkazana. Pokušajte ponovo kasnije.");
             }
         }
 
@@ -220,7 +224,7 @@ public class UserMembershipService
             UserAccountId = membership.UserAccountId,
             NotificationType = NotificationType.MembershipCancelled,
             Title = "Članarina je otkazana",
-            Content = $"Vaša članarina je otkazana. Razlog: {request.Reason}{(refundIssued ? " Izvršen je povrat sredstava." : "")}",
+            Content = $"Vaša članarina je otkazana. Razlog: {request.Reason}{(refundedAmount != null ? " Izvršen je povrat sredstava." : "")}",
             IsRead = false,
             CreatedAtUtc = DateTime.UtcNow,
         });
@@ -229,8 +233,8 @@ public class UserMembershipService
 
         if (membership.UserAccount is not null)
         {
-            var refundNote = refundIssued
-                ? $" Izvršen je povrat sredstava u iznosu od {completedPayment!.Amount:0.00} {completedPayment.Currency}."
+            var refundNote = refundedAmount != null
+                ? $" Izvršen je povrat sredstava u iznosu od {refundedAmount.Value:0.00} {completedPayment!.Currency}."
                 : string.Empty;
 
             await _emailNotificationPublisher.PublishAsync(new EmailNotificationMessage
@@ -247,53 +251,7 @@ public class UserMembershipService
             membership.Id,
             _currentUserService.GetRequiredUserId(),
             request.Reason,
-            refundIssued);
-
-        return await GetByIdAsync(id, cancellationToken);
-    }
-
-    public async Task<UserMembershipResponse> ExpireAsync(int id, CancellationToken cancellationToken = default)
-    {
-        var membership = await _dbContext.UserMemberships
-            .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted, cancellationToken);
-
-        if (membership is null)
-        {
-            throw new NotFoundException($"Članarina sa ID {id} nije pronađena.");
-        }
-
-        if (!_currentUserService.IsAdmin())
-        {
-            throw new BusinessException("Samo administratori mogu ručno isteći članarinu.");
-        }
-
-        EnsureValidTransition(membership.Status, MembershipStatus.Expired);
-
-        if (membership.EndDateUtc > DateTime.UtcNow)
-        {
-            throw new BusinessException("Članarina još nije istekla (EndDateUtc je u budućnosti).");
-        }
-
-        membership.Status = MembershipStatus.Expired;
-        membership.IsActive = false;
-        membership.UpdatedAtUtc = DateTime.UtcNow;
-
-        _dbContext.SystemNotifications.Add(new SystemNotification
-        {
-            UserAccountId = membership.UserAccountId,
-            NotificationType = NotificationType.MembershipExpired,
-            Title = "Članarina je istekla",
-            Content = "Vaša članarina je istekla.",
-            IsRead = false,
-            CreatedAtUtc = DateTime.UtcNow,
-        });
-
-        await _dbContext.SaveChangesAsync(cancellationToken);
-
-        _logger.LogInformation(
-            "Membership {MembershipId} expired manually by Admin {UserId}.",
-            membership.Id,
-            _currentUserService.GetRequiredUserId());
+            refundedAmount != null);
 
         return await GetByIdAsync(id, cancellationToken);
     }
@@ -310,13 +268,7 @@ public class UserMembershipService
             throw new NotFoundException($"Članarina sa ID {id} nije pronađena.");
         }
 
-        var currentUserId = _currentUserService.GetRequiredUserId();
-        bool isOwner = membership.UserAccountId == currentUserId;
-
-        if (!_currentUserService.IsAdmin() && !isOwner)
-        {
-            throw new BusinessException("Nemate pravo platiti ovu članarinu.");
-        }
+        EnsureOwnerOrAdmin(membership, "Nemate pravo platiti ovu članarinu.");
         
         if (membership.Status != MembershipStatus.Pending && membership.Status != MembershipStatus.Active)
         {
@@ -335,12 +287,12 @@ public class UserMembershipService
 
             var existingIntent = await _stripePaymentService.GetPaymentIntentAsync(existingActivePayment.PaymentIntentId, cancellationToken);
 
-            if (existingIntent.Status == "succeeded")
+            if (existingIntent.Status == StripeIntentSucceeded)
             {
                 await MarkPaymentSuccessfulAsync(existingActivePayment.PaymentIntentId, cancellationToken);
                 throw new BusinessException("Ova članarina je već uspješno plaćena.");
             }
-            else if (existingIntent.Status == "canceled")
+            else if (existingIntent.Status == StripeIntentCanceled)
             {
                 paymentToMarkFailed = existingActivePayment;
             }
@@ -396,7 +348,7 @@ public class UserMembershipService
         _logger.LogInformation(
             "PaymentIntent created for Membership {MembershipId} by user {UserId}. PaymentIntentId: {PaymentIntentId}",
             id,
-            currentUserId,
+            _currentUserService.GetRequiredUserId(),
             intent.Id);
 
         return new CreatePaymentIntentResponse
@@ -417,13 +369,7 @@ public class UserMembershipService
             throw new NotFoundException($"Članarina sa ID {id} nije pronađena.");
         }
 
-        var currentUserId = _currentUserService.GetRequiredUserId();
-        bool isOwner = membership.UserAccountId == currentUserId;
-
-        if (!_currentUserService.IsAdmin() && !isOwner)
-        {
-            throw new BusinessException("Nemate pravo potvrditi plaćanje ove članarine.");
-        }
+        EnsureOwnerOrAdmin(membership, "Nemate pravo potvrditi plaćanje ove članarine.");
 
         var pendingPayment = membership.Payments
             .Where(p => p.Status == PaymentStatus.Pending)
@@ -434,11 +380,11 @@ public class UserMembershipService
         {
             var intent = await _stripePaymentService.GetPaymentIntentAsync(pendingPayment.PaymentIntentId, cancellationToken);
 
-            if (intent.Status == "succeeded")
+            if (intent.Status == StripeIntentSucceeded)
             {
                 await MarkPaymentSuccessfulAsync(pendingPayment.PaymentIntentId, cancellationToken);
             }
-            else if (intent.Status == "canceled")
+            else if (intent.Status == StripeIntentCanceled)
             {
                 await MarkPaymentFailedAsync(pendingPayment.PaymentIntentId, cancellationToken);
             }
@@ -495,10 +441,21 @@ public class UserMembershipService
         if (membership.Status == MembershipStatus.Cancelled || membership.Status == MembershipStatus.Expired)
         {
             _logger.LogWarning("Payment succeeded for Membership {MembershipId} which is already {Status}. Refunding automatically.", membership.Id, membership.Status);
-            await _stripePaymentService.CreateRefundAsync(paymentIntentId, payment.Amount, cancellationToken);
-            payment.Status = PaymentStatus.Refunded;
-            payment.RefundedAtUtc = DateTime.UtcNow;
-            payment.RefundAmount = payment.Amount;
+            try
+            {
+                payment.RefundAmount = await _stripePaymentService.CreateRefundAsync(paymentIntentId, cancellationToken);
+                payment.Status = PaymentStatus.Refunded;
+                payment.RefundedAtUtc = DateTime.UtcNow;
+            }
+            catch (StripeException ex)
+            {
+                _logger.LogError(ex,
+                    "Stripe auto-refund failed for Payment {PaymentId} (PaymentIntent {PaymentIntentId}) on already-{Status} Membership {MembershipId}. Payment left as Completed for manual reconciliation.",
+                    payment.Id,
+                    paymentIntentId,
+                    membership.Status,
+                    membership.Id);
+            }
         }
         else
         {
@@ -588,6 +545,14 @@ public class UserMembershipService
         }
 
         _logger.LogInformation("Payment {PaymentId} marked as Failed.", payment.Id);
+    }
+
+    private void EnsureOwnerOrAdmin(UserMembership membership, string errorMessage)
+    {
+        if (!_currentUserService.IsAdmin() && membership.UserAccountId != _currentUserService.GetRequiredUserId())
+        {
+            throw new BusinessException(errorMessage);
+        }
     }
 
     private void EnsureValidTransition(MembershipStatus from, MembershipStatus to)

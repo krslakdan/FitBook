@@ -9,7 +9,6 @@ public interface IUserMembershipService
     : IBaseCRUDService<UserMembershipResponse, MembershipSearchObject, UserMembershipInsertRequest, UserMembershipUpdateRequest>
 {
     Task<UserMembershipResponse> CancelAsync(int id, UserMembershipCancelRequest request, CancellationToken cancellationToken = default);
-    Task<UserMembershipResponse> ExpireAsync(int id, CancellationToken cancellationToken = default);
     Task<CreatePaymentIntentResponse> CreatePaymentIntentAsync(int id, CancellationToken cancellationToken = default);
     Task<UserMembershipResponse> ConfirmPaymentAsync(int id, CancellationToken cancellationToken = default);
 }
