@@ -27,4 +27,9 @@ class UserMembershipProvider extends BaseReadProvider<UserMembershipResponse> {
     final response = await apiPost('$endpoint/$id/payment/intent');
     return CreatePaymentIntentResponse.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
+
+  Future<UserMembershipResponse> confirmPayment(int id) async {
+    final response = await apiPost('$endpoint/$id/payment/confirm');
+    return fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+  }
 }
