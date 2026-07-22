@@ -6,6 +6,12 @@ class AppConfig {
     defaultValue: 'http://10.0.2.2:5121/api',
   );
 
+  static const String stripePublishableKey = String.fromEnvironment(
+    'STRIPE_PUBLISHABLE_KEY',
+    defaultValue:
+        'pk_test_51TsPeX2Fg2hb3c521Laj2FVq5zPonsha0mIKGoqetNrcEsLxtirpRF3r5JlgMTs93uhq1iGDKz5gX0M8jXhXUT1100qtXUy6pQ',
+  );
+
   static String get serverBaseUrl {
     final base = apiBaseUrl.endsWith('/') ? apiBaseUrl.substring(0, apiBaseUrl.length - 1) : apiBaseUrl;
     return base.endsWith('/api') ? base.substring(0, base.length - 4) : base;
