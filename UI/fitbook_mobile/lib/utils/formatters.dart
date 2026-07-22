@@ -38,6 +38,42 @@ String formatTimeRange(DateTime startUtc, DateTime endUtc) {
   return '${_two(start.hour)}:${_two(start.minute)} - ${_two(end.hour)}:${_two(end.minute)}';
 }
 
+String formatMoney(num amount, [String currency = 'USD']) {
+  final normalized = currency.trim().toUpperCase();
+  final value = amount.toStringAsFixed(2);
+  return switch (normalized) {
+    'USD' => '\$$value',
+    'EUR' => '€$value',
+    'GBP' => '£$value',
+    'BAM' || 'KM' => '$value KM',
+    _ => '$value $normalized',
+  };
+}
+
+String formatMembershipDuration(int days) {
+  if (days > 0 && days % 365 == 0) {
+    final years = days ~/ 365;
+    if (years == 1) return '1 godina';
+    if (years < 5) return '$years godine';
+    return '$years godina';
+  }
+  if (days > 0 && days % 30 == 0) {
+    final months = days ~/ 30;
+    if (months == 1) return '1 mjesec';
+    if (months < 5) return '$months mjeseca';
+    return '$months mjeseci';
+  }
+  if (days == 1) return '1 dan';
+  return '$days dana';
+}
+
+String formatDaysRemaining(int days) {
+  if (days <= 0) return 'Istječe danas';
+  if (days == 1) return 'Još 1 dan';
+  if (days < 5) return 'Još $days dana';
+  return 'Još $days dana';
+}
+
 String formatRelativeTime(DateTime? utc) {
   if (utc == null) return '—';
   final diff = DateTime.now().difference(utc.toLocal());
