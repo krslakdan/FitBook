@@ -11,6 +11,5 @@ public interface IUserMembershipService
     Task<UserMembershipResponse> CancelAsync(int id, UserMembershipCancelRequest request, CancellationToken cancellationToken = default);
     Task<UserMembershipResponse> ExpireAsync(int id, CancellationToken cancellationToken = default);
     Task<CreatePaymentIntentResponse> CreatePaymentIntentAsync(int id, CancellationToken cancellationToken = default);
-    Task MarkPaymentSuccessfulAsync(string paymentIntentId, CancellationToken cancellationToken = default);
-    Task MarkPaymentFailedAsync(string paymentIntentId, CancellationToken cancellationToken = default);
+    Task<UserMembershipResponse> ConfirmPaymentAsync(int id, CancellationToken cancellationToken = default);
 }

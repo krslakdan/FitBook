@@ -41,11 +41,6 @@ public class StripePaymentService : IStripePaymentService
         return await service.CreateAsync(options, null, ct);
     }
 
-    public Event ConstructWebhookEvent(string payload, string signatureHeader, string secret)
-    {
-        return EventUtility.ConstructEvent(payload, signatureHeader, secret);
-    }
-
     private static long ToSmallestCurrencyUnit(decimal amount) =>
         (long)Math.Round(amount * 100, 0, MidpointRounding.AwayFromZero);
 }
