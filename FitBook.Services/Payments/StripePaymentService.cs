@@ -36,8 +36,13 @@ public class StripePaymentService : IStripePaymentService
             PaymentIntent = paymentIntentId
         };
 
+        var requestOptions = new RequestOptions
+        {
+            IdempotencyKey = $"refund_{paymentIntentId}"
+        };
+
         var service = new RefundService();
-        var refund = await service.CreateAsync(options, null, ct);
+        var refund = await service.CreateAsync(options, requestOptions, ct);
 
         return FromSmallestCurrencyUnit(refund.Amount);
     }

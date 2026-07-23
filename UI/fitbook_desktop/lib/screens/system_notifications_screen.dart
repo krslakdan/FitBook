@@ -28,7 +28,6 @@ String notificationTypeLabel(NotificationType type) => switch (type) {
   NotificationType.newsPublished => 'Novost objavljena',
   NotificationType.membershipCancelled => 'Članarina otkazana',
   NotificationType.membershipExpired => 'Članarina istekla',
-  NotificationType.trainingTermCancelled => 'Termin otkazan',
   NotificationType.membershipPaymentFailed => 'Neuspjelo plaćanje',
   NotificationType.reservationReminder => 'Podsjetnik za trening',
 };
@@ -43,7 +42,6 @@ ChipTone notificationTypeTone(NotificationType type) => switch (type) {
   NotificationType.newsPublished => ChipTone.purple,
   NotificationType.membershipCancelled => ChipTone.danger,
   NotificationType.membershipExpired => ChipTone.neutral,
-  NotificationType.trainingTermCancelled => ChipTone.danger,
   NotificationType.membershipPaymentFailed => ChipTone.danger,
   NotificationType.reservationReminder => ChipTone.info,
 };

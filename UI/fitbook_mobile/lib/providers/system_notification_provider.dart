@@ -122,4 +122,10 @@ class SystemNotificationProvider extends BaseReadProvider<SystemNotificationResp
     _pollTimer?.cancel();
     _pollTimer = null;
   }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    super.dispose();
+  }
 }

@@ -908,13 +908,6 @@ class _ActivityRow extends StatelessWidget {
         AppColors.neutralSoft,
         AppColors.onNeutralSoft,
       ),
-      NotificationType.trainingTermCancelled => _ActivityStyle(
-        'Otkazan termin',
-        '$user — termin treninga je otkazan',
-        Icons.calendar_month_outlined,
-        AppColors.warningSoft,
-        AppColors.onWarningSoft,
-      ),
       NotificationType.membershipPaymentFailed => _ActivityStyle(
         'Neuspjelo plaćanje',
         '$user — uplata članarine nije uspjela',

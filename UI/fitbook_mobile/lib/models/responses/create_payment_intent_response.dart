@@ -4,10 +4,15 @@ part 'create_payment_intent_response.g.dart';
 
 @JsonSerializable()
 class CreatePaymentIntentResponse {
-  CreatePaymentIntentResponse({required this.clientSecret, required this.paymentId});
+  CreatePaymentIntentResponse({
+    required this.clientSecret,
+    required this.paymentId,
+    required this.publishableKey,
+  });
 
   final String clientSecret;
   final int paymentId;
+  final String publishableKey;
 
   factory CreatePaymentIntentResponse.fromJson(Map<String, dynamic> json) =>
       _$CreatePaymentIntentResponseFromJson(json);

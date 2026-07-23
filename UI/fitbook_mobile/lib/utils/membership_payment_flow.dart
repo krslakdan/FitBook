@@ -5,7 +5,6 @@ import '../models/enums/membership_status.dart';
 import '../models/responses/user_membership_response.dart';
 import '../providers/user_membership_provider.dart';
 import 'api_client_exception.dart';
-import 'app_config.dart';
 
 enum MembershipPaymentOutcome { paid, processing, cancelled, failed, notConfigured }
 
@@ -24,17 +23,17 @@ class MembershipPaymentFlow {
     required UserMembershipProvider provider,
     required int membershipId,
   }) async {
-    if (AppConfig.stripePublishableKey.isEmpty) {
-      return const MembershipPaymentResult(
-        MembershipPaymentOutcome.notConfigured,
-        message: 'Plaćanje karticom trenutno nije konfigurisano.',
-      );
-    }
-
     try {
-      Stripe.publishableKey = AppConfig.stripePublishableKey;
-
       final intent = await provider.createPaymentIntent(membershipId);
+
+      if (intent.publishableKey.isEmpty) {
+        return const MembershipPaymentResult(
+          MembershipPaymentOutcome.notConfigured,
+          message: 'Plaćanje karticom trenutno nije konfigurisano.',
+        );
+      }
+
+      Stripe.publishableKey = intent.publishableKey;
 
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
