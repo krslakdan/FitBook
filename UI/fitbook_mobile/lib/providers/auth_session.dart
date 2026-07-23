@@ -11,6 +11,8 @@ class AuthSession {
 
   static Future<bool> Function()? refreshHandler;
 
+  static Future<bool>? _inFlightRefresh;
+
   static Future<void> persist() async {
     final prefs = await SharedPreferences.getInstance();
     if (accessToken == null || refreshToken == null) {
@@ -34,9 +36,17 @@ class AuthSession {
     await persist();
   }
 
-  static Future<bool> tryRefresh() async {
+  static Future<bool> tryRefresh() {
     final handler = refreshHandler;
-    if (handler == null) return false;
-    return handler();
+    if (handler == null) return Future.value(false);
+    return _inFlightRefresh ??= _runRefresh(handler);
+  }
+
+  static Future<bool> _runRefresh(Future<bool> Function() handler) async {
+    try {
+      return await handler();
+    } finally {
+      _inFlightRefresh = null;
+    }
   }
 }
