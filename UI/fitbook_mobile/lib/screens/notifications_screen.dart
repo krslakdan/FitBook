@@ -67,8 +67,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     NotificationType.reservationConfirmed ||
     NotificationType.reservationCancelled ||
     NotificationType.reservationCompleted ||
-    NotificationType.reservationReminder ||
-    NotificationType.trainingTermCancelled => _reservationsTab,
+    NotificationType.reservationReminder => _reservationsTab,
     NotificationType.membershipPaid ||
     NotificationType.membershipExpiringSoon ||
     NotificationType.membershipExpired ||
@@ -286,11 +285,6 @@ _NotificationVisuals _visualsFor(NotificationType type) {
       AppColors.onWarningSoft,
     ),
     NotificationType.reservationCancelled => const _NotificationVisuals(
-      Icons.event_busy_outlined,
-      AppColors.dangerSoft,
-      AppColors.onDangerSoft,
-    ),
-    NotificationType.trainingTermCancelled => const _NotificationVisuals(
       Icons.event_busy_outlined,
       AppColors.dangerSoft,
       AppColors.onDangerSoft,

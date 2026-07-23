@@ -11,6 +11,7 @@ CreatePaymentIntentResponse _$CreatePaymentIntentResponseFromJson(
 ) => CreatePaymentIntentResponse(
   clientSecret: json['clientSecret'] as String,
   paymentId: (json['paymentId'] as num).toInt(),
+  publishableKey: json['publishableKey'] as String,
 );
 
 Map<String, dynamic> _$CreatePaymentIntentResponseToJson(
@@ -18,4 +19,5 @@ Map<String, dynamic> _$CreatePaymentIntentResponseToJson(
 ) => <String, dynamic>{
   'clientSecret': instance.clientSecret,
   'paymentId': instance.paymentId,
+  'publishableKey': instance.publishableKey,
 };

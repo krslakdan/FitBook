@@ -14,8 +14,10 @@ using FitBook.Services.Messaging;
 using FluentValidation;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Stripe;
+using System.Collections.Concurrent;
 
 namespace FitBook.Services;
 
@@ -37,6 +39,8 @@ public class UserMembershipService
         MembershipStatus.Active,
     ];
 
+    private static readonly ConcurrentDictionary<int, SemaphoreSlim> _userMembershipLocks = new();
+
     private const string StripeIntentSucceeded = "succeeded";
     private const string StripeIntentCanceled = "canceled";
 
@@ -44,6 +48,7 @@ public class UserMembershipService
     private readonly IValidator<UserMembershipCancelRequest> _cancelValidator;
     private readonly IStripePaymentService _stripePaymentService;
     private readonly IEmailNotificationPublisher _emailNotificationPublisher;
+    private readonly string _stripePublishableKey;
 
     public UserMembershipService(
         FitBookDbContext dbContext,
@@ -54,13 +59,30 @@ public class UserMembershipService
         IValidator<UserMembershipUpdateRequest> updateValidator,
         IValidator<UserMembershipCancelRequest> cancelValidator,
         IStripePaymentService stripePaymentService,
-        IEmailNotificationPublisher emailNotificationPublisher)
+        IEmailNotificationPublisher emailNotificationPublisher,
+        IConfiguration configuration)
         : base(dbContext, mapper, loggerFactory, insertValidator, updateValidator)
     {
         _currentUserService = currentUserService;
         _cancelValidator = cancelValidator;
         _stripePaymentService = stripePaymentService;
         _emailNotificationPublisher = emailNotificationPublisher;
+        _stripePublishableKey = configuration["Stripe:PublishableKey"] ?? string.Empty;
+    }
+
+    public override async Task<UserMembershipResponse> InsertAsync(UserMembershipInsertRequest request, CancellationToken cancellationToken = default)
+    {
+        var userId = _currentUserService.GetRequiredUserId();
+        var userLock = _userMembershipLocks.GetOrAdd(userId, static _ => new SemaphoreSlim(1, 1));
+        await userLock.WaitAsync(cancellationToken);
+        try
+        {
+            return await base.InsertAsync(request, cancellationToken);
+        }
+        finally
+        {
+            userLock.Release();
+        }
     }
 
     protected override IQueryable<UserMembership> ApplyFilter(IQueryable<UserMembership> query, MembershipSearchObject search)
@@ -301,7 +323,8 @@ public class UserMembershipService
                 return new CreatePaymentIntentResponse
                 {
                     ClientSecret = existingIntent.ClientSecret,
-                    PaymentId = existingActivePayment.Id
+                    PaymentId = existingActivePayment.Id,
+                    PublishableKey = _stripePublishableKey
                 };
             }
         }
@@ -354,7 +377,8 @@ public class UserMembershipService
         return new CreatePaymentIntentResponse
         {
             ClientSecret = intent.ClientSecret,
-            PaymentId = payment.Id
+            PaymentId = payment.Id,
+            PublishableKey = _stripePublishableKey
         };
     }
 
