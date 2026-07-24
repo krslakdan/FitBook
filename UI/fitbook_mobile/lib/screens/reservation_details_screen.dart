@@ -77,6 +77,7 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
     final reservation = _reservation;
     final reason = reservation.cancellationReason?.trim() ?? '';
     final showReason = reservation.status == ReservationStatus.cancelled && reason.isNotEmpty;
+    final trainer = '${reservation.trainerFirstName} ${reservation.trainerLastName}'.trim();
 
     final rows = <(IconData, String, String)>[
       (
@@ -92,6 +93,8 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
           reservation.trainingTermEndTimeUtc,
         ),
       ),
+      (Icons.person_outline, 'Trener', trainer.isEmpty ? '—' : trainer),
+      (Icons.place_outlined, 'Sala', reservation.hallName.isEmpty ? '—' : reservation.hallName),
       (Icons.bookmark_added_outlined, 'Rezervisano', formatDateTime(reservation.reservedAtUtc)),
       if (reservation.confirmedAtUtc != null)
         (Icons.check_circle_outline, 'Potvrđeno', formatDateTime(reservation.confirmedAtUtc)),

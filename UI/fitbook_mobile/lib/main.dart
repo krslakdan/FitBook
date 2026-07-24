@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'layouts/main_navigation.dart';
+import 'layouts/trainer_navigation.dart';
 import 'providers/auth_provider.dart';
 import 'providers/difficulty_level_provider.dart';
 import 'providers/equipment_provider.dart';
@@ -24,6 +25,7 @@ import 'providers/user_account_provider.dart';
 import 'providers/user_membership_provider.dart';
 import 'screens/login_screen.dart';
 import 'theme/app_theme.dart';
+import 'utils/app_roles.dart';
 import 'widgets/auth_scaffold.dart';
 
 void main() {
@@ -94,7 +96,9 @@ class _AuthGateState extends State<AuthGate> {
         }
         return Consumer<AuthProvider>(
           builder: (context, auth, _) {
-            return auth.isAuthenticated ? const MainNavigation() : const LoginScreen();
+            if (!auth.isAuthenticated) return const LoginScreen();
+            if (auth.currentRole == AppRoles.trainer) return const TrainerNavigation();
+            return const MainNavigation();
           },
         );
       },

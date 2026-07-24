@@ -8,6 +8,7 @@ import '../providers/user_account_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/api_client_exception.dart';
 import '../utils/app_config.dart';
+import '../utils/app_roles.dart';
 import '../widgets/status_chip.dart';
 import 'change_password_screen.dart';
 import 'edit_profile_screen.dart';
@@ -150,6 +151,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             username: user.username,
             imageUrl: AppConfig.absoluteFileUrl(user.profileImageUrl),
             initials: _initials(user),
+            roleLabel: AppRoles.displayName(user.role),
           ),
           const SizedBox(height: 20),
           _MenuCard(
@@ -204,6 +206,7 @@ class _ProfileHeader extends StatelessWidget {
     required this.username,
     required this.imageUrl,
     required this.initials,
+    required this.roleLabel,
   });
 
   final String fullName;
@@ -211,6 +214,7 @@ class _ProfileHeader extends StatelessWidget {
   final String username;
   final String? imageUrl;
   final String initials;
+  final String roleLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -253,7 +257,7 @@ class _ProfileHeader extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const StatusChip(label: 'Član', tone: ChipTone.success),
+              StatusChip(label: roleLabel, tone: ChipTone.success),
               if (username.isNotEmpty) ...[
                 const SizedBox(width: 8),
                 StatusChip(label: '@$username', tone: ChipTone.neutral),

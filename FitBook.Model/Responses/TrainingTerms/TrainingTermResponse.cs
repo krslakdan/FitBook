@@ -8,6 +8,7 @@ public class TrainingTermResponse : IEntityResponse
     public DateTime StartTimeUtc { get; set; }
     public DateTime EndTimeUtc { get; set; }
     public int MaxParticipants { get; set; }
+    public int ReservedCount { get; set; }
     public TrainingTermStatus Status { get; set; }
     public bool IsActive { get; set; }
     public int TrainingId { get; set; }

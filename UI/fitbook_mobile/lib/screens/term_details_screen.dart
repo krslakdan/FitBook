@@ -24,14 +24,18 @@ class _TermDetailsScreenState extends State<TermDetailsScreen> {
   bool _checking = true;
   bool _alreadyReserved = false;
   bool _reserving = false;
+  late int _reservedCount;
 
   @override
   void initState() {
     super.initState();
+    _reservedCount = widget.term.reservedCount;
     _checkExisting();
   }
 
   bool get _isPast => !widget.term.startTimeUtc.isAfter(DateTime.now().toUtc());
+
+  bool get _isFull => _reservedCount >= widget.term.maxParticipants;
 
   Future<void> _checkExisting() async {
     setState(() => _checking = true);
@@ -89,6 +93,7 @@ class _TermDetailsScreenState extends State<TermDetailsScreen> {
       if (!mounted) return;
       setState(() {
         _alreadyReserved = true;
+        _reservedCount = _reservedCount + 1;
         _reserving = false;
       });
       _showMessage('Rezervacija je kreirana i čeka potvrdu.');
@@ -144,16 +149,13 @@ class _TermDetailsScreenState extends State<TermDetailsScreen> {
                   icon: Icons.place_outlined,
                   label: 'Sala',
                   value: term.hallName,
-                ),
-                _Line(
-                  icon: Icons.people_outline,
-                  label: 'Max učesnika',
-                  value: '${term.maxParticipants}',
                   last: true,
                 ),
               ],
             ),
           ),
+          const SizedBox(height: 16),
+          _CapacityCard(reserved: _reservedCount, max: term.maxParticipants),
           const SizedBox(height: 24),
           _buildReserveSection(),
         ],
@@ -191,6 +193,14 @@ class _TermDetailsScreenState extends State<TermDetailsScreen> {
       );
     }
 
+    if (_isFull) {
+      return const _InfoBanner(
+        icon: Icons.block,
+        message: 'Nema slobodnih mjesta za ovaj termin.',
+        tone: _BannerTone.danger,
+      );
+    }
+
     return FilledButton.icon(
       onPressed: _reserving ? null : _reserve,
       style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
@@ -206,7 +216,7 @@ class _TermDetailsScreenState extends State<TermDetailsScreen> {
   }
 }
 
-enum _BannerTone { success, muted }
+enum _BannerTone { success, muted, danger }
 
 class _InfoBanner extends StatelessWidget {
   const _InfoBanner({required this.icon, required this.message, required this.tone});
@@ -220,6 +230,7 @@ class _InfoBanner extends StatelessWidget {
     final (background, foreground) = switch (tone) {
       _BannerTone.success => (AppColors.primarySoft, AppColors.onPrimarySoft),
       _BannerTone.muted => (AppColors.neutralSoft, AppColors.textSecondary),
+      _BannerTone.danger => (AppColors.dangerSoft, AppColors.onDangerSoft),
     };
 
     return Container(
@@ -236,6 +247,74 @@ class _InfoBanner extends StatelessWidget {
             child: Text(
               message,
               style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, color: foreground),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CapacityCard extends StatelessWidget {
+  const _CapacityCard({required this.reserved, required this.max});
+
+  final int reserved;
+  final int max;
+
+  @override
+  Widget build(BuildContext context) {
+    final free = (max - reserved).clamp(0, max);
+    final isFull = reserved >= max;
+    final ratio = max <= 0 ? 0.0 : (reserved / max).clamp(0.0, 1.0);
+    final accent = isFull ? AppColors.danger : AppColors.primary;
+    final track = isFull ? AppColors.dangerSoft : AppColors.primarySoft;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.people_alt_outlined, size: 18, color: accent),
+              const SizedBox(width: 8),
+              const Text(
+                'Popunjenost',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '$reserved / $max',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: accent),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: ratio,
+              minHeight: 9,
+              backgroundColor: track,
+              valueColor: AlwaysStoppedAnimation<Color>(accent),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            isFull ? 'Nema slobodnih mjesta' : 'Slobodna mjesta: $free',
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: isFull ? AppColors.danger : AppColors.textSecondary,
             ),
           ),
         ],

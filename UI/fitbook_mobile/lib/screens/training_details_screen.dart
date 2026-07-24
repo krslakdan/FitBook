@@ -403,6 +403,8 @@ class _TermCard extends StatelessWidget {
                     _Line(icon: Icons.person_outline, text: trainer.isEmpty ? 'Trener' : trainer),
                     const SizedBox(height: 4),
                     _Line(icon: Icons.place_outlined, text: term.hallName),
+                    const SizedBox(height: 8),
+                    _CapacityPill(reserved: term.reservedCount, max: term.maxParticipants),
                   ],
                 ),
               ),
@@ -413,6 +415,41 @@ class _TermCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _CapacityPill extends StatelessWidget {
+  const _CapacityPill({required this.reserved, required this.max});
+
+  final int reserved;
+  final int max;
+
+  @override
+  Widget build(BuildContext context) {
+    final free = (max - reserved).clamp(0, max);
+    final isFull = reserved >= max;
+    final (background, foreground) = isFull
+        ? (AppColors.dangerSoft, AppColors.onDangerSoft)
+        : (AppColors.primarySoft, AppColors.onPrimarySoft);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(isFull ? Icons.block : Icons.people_alt_outlined, size: 13, color: foreground),
+          const SizedBox(width: 5),
+          Text(
+            isFull ? 'Popunjeno · $reserved/$max' : '$free slobodnih · $reserved/$max',
+            style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: foreground),
+          ),
+        ],
       ),
     );
   }

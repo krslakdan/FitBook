@@ -188,6 +188,14 @@ public class UserAccountService
 
         await SetPasswordAndRevokeTokensAsync(user, request.NewPassword, cancellationToken);
         _logger.LogInformation("User {UserId} changed own password successfully.", userId);
+
+        await _emailNotificationPublisher.PublishAsync(new EmailNotificationMessage
+        {
+            ToEmail = user.Email,
+            ToName = $"{user.FirstName} {user.LastName}",
+            Subject = "Vaša lozinka je promijenjena",
+            Body = $"Poštovani {user.FirstName}, Vaša lozinka za FitBook nalog je upravo uspješno promijenjena. Ako niste vi izvršili ovu izmjenu, odmah kontaktirajte administratora.",
+        }, cancellationToken);
     }
 
     public async Task AdminResetPasswordAsync(int userId, UserAccountAdminPasswordResetRequest request, CancellationToken cancellationToken = default)

@@ -20,6 +20,9 @@ class ReservationResponse {
     required this.userEmail,
     required this.trainingTermId,
     required this.trainingName,
+    required this.trainerFirstName,
+    required this.trainerLastName,
+    required this.hallName,
     required this.trainingTermStartTimeUtc,
     required this.trainingTermEndTimeUtc,
     this.lastStatusChangedByUserAccountId,
@@ -40,6 +43,9 @@ class ReservationResponse {
   final String userEmail;
   final int trainingTermId;
   final String trainingName;
+  final String trainerFirstName;
+  final String trainerLastName;
+  final String hallName;
   final DateTime trainingTermStartTimeUtc;
   final DateTime trainingTermEndTimeUtc;
   final int? lastStatusChangedByUserAccountId;

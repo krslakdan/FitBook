@@ -9,6 +9,7 @@ import '../models/responses/user_membership_response.dart';
 import '../models/search_objects/membership_package_search_object.dart';
 import '../models/search_objects/membership_search_object.dart';
 import '../providers/auth_provider.dart';
+import '../providers/main_navigation_controller.dart';
 import '../providers/membership_package_provider.dart';
 import '../providers/user_membership_provider.dart';
 import '../theme/app_theme.dart';
@@ -28,17 +29,43 @@ class MembershipScreen extends StatefulWidget {
 }
 
 class _MembershipScreenState extends State<MembershipScreen> {
+  static const int _navTabIndex = 3;
+
   final List<UserMembershipResponse> _memberships = [];
   List<MembershipPackageResponse> _packages = const [];
 
   bool _loading = true;
   bool _busy = false;
   String? _error;
+  MainNavigationController? _navigation;
 
   @override
   void initState() {
     super.initState();
     _load();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final navigation = context.read<MainNavigationController>();
+    if (!identical(navigation, _navigation)) {
+      _navigation?.removeListener(_onNavigationChanged);
+      _navigation = navigation;
+      _navigation!.addListener(_onNavigationChanged);
+    }
+  }
+
+  void _onNavigationChanged() {
+    if (mounted && !_loading && _navigation?.selectedIndex == _navTabIndex) {
+      _load();
+    }
+  }
+
+  @override
+  void dispose() {
+    _navigation?.removeListener(_onNavigationChanged);
+    super.dispose();
   }
 
   UserMembershipResponse? get _currentMembership {
