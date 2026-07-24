@@ -21,7 +21,6 @@ import '../utils/formatters.dart';
 import '../utils/membership_display.dart';
 import '../utils/reservation_display.dart';
 import '../widgets/notification_bell.dart';
-import '../widgets/status_chip.dart';
 import 'notifications_screen.dart';
 import 'reservation_details_screen.dart';
 import 'training_details_screen.dart';
@@ -36,6 +35,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   static const int _navTabIndex = 0;
   static const int _trainingsTab = 1;
+  static const int _reservationsTab = 2;
   static const int _membershipTab = 3;
 
   late final SystemNotificationProvider _notifications;
@@ -43,6 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   UserMembershipResponse? _membership;
   ReservationResponse? _nextReservation;
+  int _activeReservationsCount = 0;
   List<TrainingRecommendationResponse> _recommendations = const [];
 
   bool _loading = true;
@@ -93,13 +94,15 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final results = await Future.wait<Object?>([
         _fetchMembership(userId),
-        _fetchNextReservation(userId),
+        _fetchActiveReservations(userId),
         _fetchRecommendations(),
       ]);
       if (!mounted) return;
+      final activeReservations = results[1] as List<ReservationResponse>;
       setState(() {
         _membership = results[0] as UserMembershipResponse?;
-        _nextReservation = results[1] as ReservationResponse?;
+        _nextReservation = activeReservations.isEmpty ? null : activeReservations.first;
+        _activeReservationsCount = activeReservations.length;
         _recommendations = results[2] as List<TrainingRecommendationResponse>;
         _loading = false;
       });
@@ -126,13 +129,12 @@ class _HomeScreenState extends State<HomeScreen> {
     return current.isEmpty ? null : current.first;
   }
 
-  Future<ReservationResponse?> _fetchNextReservation(int? userId) async {
+  Future<List<ReservationResponse>> _fetchActiveReservations(int? userId) async {
     final result = await context.read<ReservationProvider>().get(
       filter: ReservationSearchObject(page: 1, pageSize: 50, userAccountId: userId),
     );
-    final upcoming = result.items.where(isActiveReservation).toList()
+    return result.items.where(isActiveReservation).toList()
       ..sort((a, b) => a.trainingTermStartTimeUtc.compareTo(b.trainingTermStartTimeUtc));
-    return upcoming.isEmpty ? null : upcoming.first;
   }
 
   Future<List<TrainingRecommendationResponse>> _fetchRecommendations() {
@@ -177,11 +179,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final firstName = context.read<AuthProvider>().currentFirstName;
-
     return MasterScreen(
       title: 'FitBook',
-      subtitle: firstName == null ? 'Vaš pregled aktivnosti' : 'Zdravo, $firstName',
       actions: [NotificationBell(onTap: _openNotifications)],
       child: _buildBody(),
     );
@@ -210,21 +209,31 @@ class _HomeScreenState extends State<HomeScreen> {
             membership: _membership,
             onTap: () => _selectTab(_membershipTab),
           ),
-          const SizedBox(height: 24),
-          const _SectionTitle('Sljedeći trening'),
-          const SizedBox(height: 12),
-          if (_nextReservation != null)
-            _NextTrainingCard(
-              reservation: _nextReservation!,
-              onTap: () => _openReservation(_nextReservation!),
-            )
-          else
-            _EmptyHint(
-              icon: Icons.event_available_outlined,
-              message: 'Nemate nadolazećih rezervacija.',
-              actionLabel: 'Pregledaj treninge',
-              onAction: () => _selectTab(_trainingsTab),
+          const SizedBox(height: 22),
+          _GreetingBlock(firstName: context.read<AuthProvider>().currentFirstName),
+          const SizedBox(height: 16),
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: _NextTrainingMiniCard(
+                    reservation: _nextReservation,
+                    onTap: _nextReservation != null
+                        ? () => _openReservation(_nextReservation!)
+                        : () => _selectTab(_trainingsTab),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _ActiveReservationsCard(
+                    count: _activeReservationsCount,
+                    onTap: () => _selectTab(_reservationsTab),
+                  ),
+                ),
+              ],
             ),
+          ),
           const SizedBox(height: 24),
           const _SectionTitle('Preporučeno za vas'),
           const SizedBox(height: 12),
@@ -350,103 +359,188 @@ class _MembershipSummaryCard extends StatelessWidget {
   }
 }
 
-class _NextTrainingCard extends StatelessWidget {
-  const _NextTrainingCard({required this.reservation, required this.onTap});
+class _GreetingBlock extends StatelessWidget {
+  const _GreetingBlock({required this.firstName});
 
-  final ReservationResponse reservation;
+  final String? firstName;
+
+  @override
+  Widget build(BuildContext context) {
+    final name = firstName?.trim() ?? '';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          name.isEmpty ? 'Zdravo!' : 'Zdravo, $name!',
+          style: const TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          'Spremni za trening danas?',
+          style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+        ),
+      ],
+    );
+  }
+}
+
+class _CardLabel extends StatelessWidget {
+  const _CardLabel({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: AppColors.primary),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _NextTrainingMiniCard extends StatelessWidget {
+  const _NextTrainingMiniCard({required this.reservation, required this.onTap});
+
+  final ReservationResponse? reservation;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final start = reservation.trainingTermStartTimeUtc.toLocal();
-    final (statusLabel, statusTone) = reservationStatusDisplay(reservation.status);
-    final (background, foreground) = reservationStatusColors(reservation.status);
-    final trainer = '${reservation.trainerFirstName} ${reservation.trainerLastName}'.trim();
-
+    final r = reservation;
     return Material(
       color: AppColors.surface,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(color: AppColors.border),
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 54,
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  color: background,
-                  borderRadius: BorderRadius.circular(14),
+              const _CardLabel(icon: Icons.event_outlined, label: 'Sljedeći trening'),
+              const SizedBox(height: 12),
+              if (r != null) ...[
+                Text(
+                  r.trainingName,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    height: 1.2,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '${start.day}',
-                      style: TextStyle(
-                        fontSize: 20,
-                        height: 1,
-                        fontWeight: FontWeight.w800,
-                        color: foreground,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      monthShort(start).toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.6,
-                        color: foreground,
-                      ),
-                    ),
-                  ],
+                const SizedBox(height: 8),
+                _MetaRow(
+                  icon: Icons.calendar_today_outlined,
+                  text: formatDate(r.trainingTermStartTimeUtc.toLocal()),
+                ),
+                const SizedBox(height: 4),
+                _MetaRow(
+                  icon: Icons.schedule_outlined,
+                  text: formatTimeRange(
+                    r.trainingTermStartTimeUtc,
+                    r.trainingTermEndTimeUtc,
+                  ),
+                ),
+              ] else ...[
+                const Text(
+                  'Nema nadolazećih',
+                  style: TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Rezervišite trening',
+                  style: TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ActiveReservationsCard extends StatelessWidget {
+  const _ActiveReservationsCard({required this.count, required this.onTap});
+
+  final int count;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const _CardLabel(
+                icon: Icons.event_available_outlined,
+                label: 'Aktivne rezervacije',
+              ),
+              const SizedBox(height: 12),
+              Text(
+                '$count',
+                style: const TextStyle(
+                  fontSize: 30,
+                  height: 1,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.primary,
                 ),
               ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            reservation.trainingName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        StatusChip(label: statusLabel, tone: statusTone),
-                      ],
+              const SizedBox(height: 8),
+              Row(
+                children: const [
+                  Text(
+                    'Pogledaj sve',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
                     ),
-                    const SizedBox(height: 8),
-                    _MetaRow(
-                      icon: Icons.schedule_outlined,
-                      text: formatTimeRange(
-                        reservation.trainingTermStartTimeUtc,
-                        reservation.trainingTermEndTimeUtc,
-                      ),
-                    ),
-                    if (trainer.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      _MetaRow(icon: Icons.person_outline, text: trainer),
-                    ],
-                  ],
-                ),
+                  ),
+                  Icon(Icons.chevron_right, size: 16, color: AppColors.textSecondary),
+                ],
               ),
             ],
           ),
@@ -596,17 +690,10 @@ class _SectionTitle extends StatelessWidget {
 }
 
 class _EmptyHint extends StatelessWidget {
-  const _EmptyHint({
-    required this.icon,
-    required this.message,
-    this.actionLabel,
-    this.onAction,
-  });
+  const _EmptyHint({required this.icon, required this.message});
 
   final IconData icon;
   final String message;
-  final String? actionLabel;
-  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
@@ -627,10 +714,6 @@ class _EmptyHint extends StatelessWidget {
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 13.5, height: 1.4, color: AppColors.textSecondary),
           ),
-          if (actionLabel != null && onAction != null) ...[
-            const SizedBox(height: 14),
-            OutlinedButton(onPressed: onAction, child: Text(actionLabel!)),
-          ],
         ],
       ),
     );

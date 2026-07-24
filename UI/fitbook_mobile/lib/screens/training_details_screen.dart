@@ -190,10 +190,12 @@ class _TrainingDetailsScreenState extends State<TrainingDetailsScreen> {
     ];
   }
 
-  Future<void> _openTerm(TrainingTermResponse term) {
-    return Navigator.of(context).push(
+  Future<void> _openTerm(TrainingTermResponse term) async {
+    await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => TermDetailsScreen(term: term)),
     );
+    if (!mounted) return;
+    _loadTerms();
   }
 
   List<Widget> _buildEquipment() {
