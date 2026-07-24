@@ -5,6 +5,7 @@ import '../layouts/master_screen.dart';
 import '../models/responses/reservation_response.dart';
 import '../models/search_objects/reservation_search_object.dart';
 import '../providers/auth_provider.dart';
+import '../providers/main_navigation_controller.dart';
 import '../providers/reservation_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/api_client_exception.dart';
@@ -23,8 +24,10 @@ class ReservationsScreen extends StatefulWidget {
 class _ReservationsScreenState extends State<ReservationsScreen>
     with SingleTickerProviderStateMixin {
   static const int _pageSize = 50;
+  static const int _navTabIndex = 2;
 
   late final TabController _tabController;
+  MainNavigationController? _navigation;
   final List<ReservationResponse> _all = [];
 
   int _tabIndex = 0;
@@ -44,7 +47,25 @@ class _ReservationsScreenState extends State<ReservationsScreen>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final navigation = context.read<MainNavigationController>();
+    if (!identical(navigation, _navigation)) {
+      _navigation?.removeListener(_onNavigationChanged);
+      _navigation = navigation;
+      _navigation!.addListener(_onNavigationChanged);
+    }
+  }
+
+  void _onNavigationChanged() {
+    if (mounted && !_loading && _navigation?.selectedIndex == _navTabIndex) {
+      _load();
+    }
+  }
+
+  @override
   void dispose() {
+    _navigation?.removeListener(_onNavigationChanged);
     _tabController.dispose();
     super.dispose();
   }

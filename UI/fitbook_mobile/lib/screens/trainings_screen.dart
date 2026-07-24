@@ -304,6 +304,8 @@ class _TrainingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final (accentBackground, accentForeground) =
+        _categoryAccent(training.trainingCategoryId);
     return Material(
       color: AppColors.surface,
       borderRadius: BorderRadius.circular(16),
@@ -324,13 +326,13 @@ class _TrainingCard extends StatelessWidget {
                 height: 48,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: AppColors.primarySoft,
+                  color: accentBackground,
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(
-                  Icons.fitness_center,
+                child: Icon(
+                  _categoryIcon(training.trainingCategoryName),
                   size: 24,
-                  color: AppColors.onPrimarySoft,
+                  color: accentForeground,
                 ),
               ),
               const SizedBox(width: 14),
@@ -478,4 +480,55 @@ class _ErrorView extends StatelessWidget {
       ),
     );
   }
+}
+
+const List<(Color, Color)> _categoryAccents = [
+  (AppColors.primarySoft, AppColors.onPrimarySoft),
+  (AppColors.infoSoft, AppColors.onInfoSoft),
+  (AppColors.purpleSoft, AppColors.onPurpleSoft),
+  (AppColors.warningSoft, AppColors.onWarningSoft),
+];
+
+(Color, Color) _categoryAccent(int categoryId) =>
+    _categoryAccents[categoryId.abs() % _categoryAccents.length];
+
+IconData _categoryIcon(String categoryName) {
+  final name = categoryName.toLowerCase();
+  if (name.contains('joga') ||
+      name.contains('yoga') ||
+      name.contains('pilates') ||
+      name.contains('mobil') ||
+      name.contains('istez') ||
+      name.contains('stretch')) {
+    return Icons.self_improvement;
+  }
+  if (name.contains('kardio') ||
+      name.contains('cardio') ||
+      name.contains('trč') ||
+      name.contains('run') ||
+      name.contains('spin')) {
+    return Icons.directions_run;
+  }
+  if (name.contains('hiit') ||
+      name.contains('intenz') ||
+      name.contains('cross') ||
+      name.contains('funkcion')) {
+    return Icons.bolt;
+  }
+  if (name.contains('ples') || name.contains('dance') || name.contains('zumba')) {
+    return Icons.music_note;
+  }
+  if (name.contains('boks') ||
+      name.contains('box') ||
+      name.contains('borila') ||
+      name.contains('martial')) {
+    return Icons.sports_mma;
+  }
+  if (name.contains('pliv') || name.contains('swim') || name.contains('bazen')) {
+    return Icons.pool;
+  }
+  if (name.contains('grup')) {
+    return Icons.groups;
+  }
+  return Icons.fitness_center;
 }

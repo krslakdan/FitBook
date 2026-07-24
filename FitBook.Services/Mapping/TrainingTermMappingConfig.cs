@@ -1,3 +1,4 @@
+using FitBook.Model.Enums;
 using FitBook.Model.Requests.TrainingTerms;
 using FitBook.Model.Responses.TrainingTerms;
 using FitBook.Services.Database.Entities;
@@ -17,7 +18,9 @@ public class TrainingTermMappingConfig : IRegister
             .Map(dest => dest.TrainerLastName,
                 src => src.Trainer != null ? src.Trainer.LastName : string.Empty)
             .Map(dest => dest.HallName,
-                src => src.Hall != null ? src.Hall.Name : string.Empty);
+                src => src.Hall != null ? src.Hall.Name : string.Empty)
+            .Map(dest => dest.ReservedCount,
+                src => src.Reservations.Count(r => r.Status == ReservationStatus.Pending || r.Status == ReservationStatus.Confirmed));
 
 #pragma warning disable CS8603
         config.NewConfig<TrainingTermInsertRequest, TrainingTerm>()

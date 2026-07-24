@@ -11,6 +11,7 @@ class TrainingTermResponse {
     required this.startTimeUtc,
     required this.endTimeUtc,
     required this.maxParticipants,
+    required this.reservedCount,
     required this.status,
     required this.isActive,
     required this.trainingId,
@@ -28,6 +29,7 @@ class TrainingTermResponse {
   final DateTime startTimeUtc;
   final DateTime endTimeUtc;
   final int maxParticipants;
+  final int reservedCount;
   final TrainingTermStatus status;
   final bool isActive;
   final int trainingId;

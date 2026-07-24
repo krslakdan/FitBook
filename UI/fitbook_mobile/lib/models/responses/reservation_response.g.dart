@@ -27,6 +27,9 @@ ReservationResponse _$ReservationResponseFromJson(Map<String, dynamic> json) =>
       userEmail: json['userEmail'] as String,
       trainingTermId: (json['trainingTermId'] as num).toInt(),
       trainingName: json['trainingName'] as String,
+      trainerFirstName: json['trainerFirstName'] as String,
+      trainerLastName: json['trainerLastName'] as String,
+      hallName: json['hallName'] as String,
       trainingTermStartTimeUtc: DateTime.parse(
         json['trainingTermStartTimeUtc'] as String,
       ),
@@ -57,6 +60,9 @@ Map<String, dynamic> _$ReservationResponseToJson(
   'userEmail': instance.userEmail,
   'trainingTermId': instance.trainingTermId,
   'trainingName': instance.trainingName,
+  'trainerFirstName': instance.trainerFirstName,
+  'trainerLastName': instance.trainerLastName,
+  'hallName': instance.hallName,
   'trainingTermStartTimeUtc': instance.trainingTermStartTimeUtc
       .toIso8601String(),
   'trainingTermEndTimeUtc': instance.trainingTermEndTimeUtc.toIso8601String(),
