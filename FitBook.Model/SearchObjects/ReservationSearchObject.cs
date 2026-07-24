@@ -6,6 +6,7 @@ public class ReservationSearchObject : BaseSearchObject
 {
     public int? UserAccountId { get; set; }
     public int? TrainingTermId { get; set; }
+    public int? TrainerId { get; set; }
     public ReservationStatus? Status { get; set; }
     public DateTime? ReservedFromUtc { get; set; }
     public DateTime? ReservedToUtc { get; set; }

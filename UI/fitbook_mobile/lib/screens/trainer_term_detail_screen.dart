@@ -4,13 +4,17 @@ import 'package:provider/provider.dart';
 
 import '../layouts/master_screen.dart';
 import '../models/enums/reservation_status.dart';
+import '../models/enums/training_term_status.dart';
 import '../models/requests/reservation_cancel_request.dart';
+import '../models/requests/training_term_cancel_request.dart';
 import '../models/responses/reservation_response.dart';
 import '../models/responses/training_term_response.dart';
 import '../models/search_objects/reservation_search_object.dart';
 import '../providers/reservation_provider.dart';
+import '../providers/training_term_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/api_client_exception.dart';
+import '../utils/app_config.dart';
 import '../utils/formatters.dart';
 import '../utils/reservation_display.dart';
 import '../widgets/status_chip.dart';
@@ -26,7 +30,9 @@ class TrainerTermDetailScreen extends StatefulWidget {
 
 class _TrainerTermDetailScreenState extends State<TrainerTermDetailScreen> {
   final List<ReservationResponse> _reservations = [];
+  late TrainingTermResponse _term = widget.term;
   bool _loading = true;
+  bool _termBusy = false;
   String? _error;
   int? _busyId;
 
@@ -36,7 +42,7 @@ class _TrainerTermDetailScreenState extends State<TrainerTermDetailScreen> {
     _load();
   }
 
-  bool get _termEnded => widget.term.endTimeUtc.isBefore(DateTime.now().toUtc());
+  bool get _termEnded => _term.endTimeUtc.isBefore(DateTime.now().toUtc());
 
   int get _activeCount => _reservations
       .where((r) =>
@@ -52,7 +58,7 @@ class _TrainerTermDetailScreenState extends State<TrainerTermDetailScreen> {
     try {
       final result = await context.read<ReservationProvider>().get(
         filter: ReservationSearchObject(
-          trainingTermId: widget.term.id,
+          trainingTermId: _term.id,
           pageSize: 100,
           includeTotalCount: true,
         ),
@@ -155,6 +161,53 @@ class _TrainerTermDetailScreenState extends State<TrainerTermDetailScreen> {
     }
   }
 
+  Future<void> _completeTerm() async {
+    final provider = context.read<TrainingTermProvider>();
+    final ok = await _confirmDialog(
+      'Završavanje termina',
+      'Označiti ovaj termin kao završen? Ova radnja se ne može poništiti.',
+      'Završi',
+    );
+    if (ok != true) return;
+    await _runTermAction(() => provider.complete(_term.id), 'Termin je označen kao završen.');
+  }
+
+  Future<void> _cancelTerm() async {
+    final provider = context.read<TrainingTermProvider>();
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (_) => const _ReasonDialog(
+        title: 'Otkazivanje termina',
+        message: 'Unesite razlog otkazivanja termina. Sve aktivne rezervacije će biti otkazane:',
+        confirmLabel: 'Otkaži termin',
+      ),
+    );
+    if (reason == null) return;
+    await _runTermAction(
+      () => provider.cancel(_term.id, TrainingTermCancelRequest(reason: reason)),
+      'Termin je otkazan.',
+    );
+  }
+
+  Future<void> _runTermAction(
+    Future<TrainingTermResponse> Function() action,
+    String successMessage,
+  ) async {
+    setState(() => _termBusy = true);
+    try {
+      final updated = await action();
+      if (!mounted) return;
+      setState(() => _term = updated);
+      _showMessage(successMessage);
+      await _load();
+    } on ApiClientException catch (e) {
+      if (!mounted) return;
+      _showMessage(e.message);
+    } finally {
+      if (mounted) setState(() => _termBusy = false);
+    }
+  }
+
   Future<bool?> _confirmDialog(String title, String message, String confirmLabel) {
     return showDialog<bool>(
       context: context,
@@ -181,10 +234,8 @@ class _TrainerTermDetailScreenState extends State<TrainerTermDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final term = widget.term;
-
     return MasterScreen(
-      title: term.trainingName,
+      title: _term.trainingName,
       subtitle: 'Rezervacije termina',
       showBackButton: true,
       child: _buildBody(),
@@ -208,10 +259,17 @@ class _TrainerTermDetailScreenState extends State<TrainerTermDetailScreen> {
         padding: const EdgeInsets.all(20),
         children: [
           _TermInfoCard(
-            term: widget.term,
+            term: _term,
             activeCount: _activeCount,
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: 16),
+          _TermActions(
+            status: _term.status,
+            ended: _termEnded,
+            busy: _termBusy,
+            onComplete: _completeTerm,
+            onCancel: _cancelTerm,
+          ),
           Text(
             'Rezervacije (${_reservations.length})',
             style: const TextStyle(
@@ -320,6 +378,125 @@ class _TermInfoCard extends StatelessWidget {
   }
 }
 
+class _TermActions extends StatelessWidget {
+  const _TermActions({
+    required this.status,
+    required this.ended,
+    required this.busy,
+    required this.onComplete,
+    required this.onCancel,
+  });
+
+  final TrainingTermStatus status;
+  final bool ended;
+  final bool busy;
+  final VoidCallback onComplete;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheduled = status == TrainingTermStatus.scheduled;
+    final canComplete = scheduled && ended;
+    final canCancel = scheduled && !ended;
+
+    final Widget inner;
+    if (busy) {
+      inner = const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8),
+        child: Center(
+          child: SizedBox(
+            height: 24,
+            width: 24,
+            child: CircularProgressIndicator(strokeWidth: 2.4),
+          ),
+        ),
+      );
+    } else if (canComplete) {
+      inner = SizedBox(
+        width: double.infinity,
+        child: FilledButton.icon(
+          onPressed: onComplete,
+          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+          icon: const Icon(Icons.check, size: 18),
+          label: const Text('Završi termin'),
+        ),
+      );
+    } else if (canCancel) {
+      inner = SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          onPressed: onCancel,
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+            foregroundColor: AppColors.danger,
+            side: BorderSide(color: AppColors.danger.withValues(alpha: 0.5)),
+          ),
+          icon: const Icon(Icons.close, size: 18),
+          label: const Text('Otkaži termin'),
+        ),
+      );
+    } else {
+      inner = _TermStatusNote(status: status);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 22),
+      child: inner,
+    );
+  }
+}
+
+class _TermStatusNote extends StatelessWidget {
+  const _TermStatusNote({required this.status});
+
+  final TrainingTermStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final (icon, background, foreground, text) = switch (status) {
+      TrainingTermStatus.completed => (
+        Icons.task_alt,
+        AppColors.neutralSoft,
+        AppColors.onNeutralSoft,
+        'Ovaj termin je označen kao završen.',
+      ),
+      TrainingTermStatus.cancelled => (
+        Icons.event_busy_outlined,
+        AppColors.dangerSoft,
+        AppColors.onDangerSoft,
+        'Ovaj termin je otkazan.',
+      ),
+      TrainingTermStatus.scheduled => (
+        Icons.info_outline,
+        AppColors.neutralSoft,
+        AppColors.onNeutralSoft,
+        'Termin je zakazan.',
+      ),
+    };
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: foreground),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: foreground),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ReservationActionTile extends StatelessWidget {
   const _ReservationActionTile({
     required this.reservation,
@@ -361,15 +538,9 @@ class _ReservationActionTile extends StatelessWidget {
         children: [
           Row(
             children: [
-              Container(
-                width: 42,
-                height: 42,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: AppColors.neutralSoft,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.person_outline, size: 22, color: AppColors.textSecondary),
+              _UserAvatar(
+                imageUrl: AppConfig.absoluteFileUrl(reservation.userProfileImageUrl),
+                name: userName,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -420,6 +591,63 @@ class _ReservationActionTile extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _UserAvatar extends StatelessWidget {
+  const _UserAvatar({required this.imageUrl, required this.name});
+
+  final String? imageUrl;
+  final String name;
+
+  static const double _size = 42;
+
+  @override
+  Widget build(BuildContext context) {
+    final url = imageUrl;
+    if (url != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.network(
+          url,
+          width: _size,
+          height: _size,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => _fallback(),
+        ),
+      );
+    }
+    return _fallback();
+  }
+
+  Widget _fallback() {
+    final initials = _initials(name);
+    return Container(
+      width: _size,
+      height: _size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: AppColors.primarySoft,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: initials.isEmpty
+          ? const Icon(Icons.person_outline, size: 22, color: AppColors.onPrimarySoft)
+          : Text(
+              initials,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                color: AppColors.onPrimarySoft,
+              ),
+            ),
+    );
+  }
+
+  String _initials(String value) {
+    final parts = value.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+    if (parts.isEmpty) return '';
+    if (parts.length == 1) return parts.first[0].toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
   }
 }
 
@@ -549,7 +777,15 @@ class _EmptyReservations extends StatelessWidget {
 }
 
 class _ReasonDialog extends StatefulWidget {
-  const _ReasonDialog();
+  const _ReasonDialog({
+    this.title = 'Otkazivanje rezervacije',
+    this.message = 'Unesite razlog otkazivanja rezervacije:',
+    this.confirmLabel = 'Otkaži rezervaciju',
+  });
+
+  final String title;
+  final String message;
+  final String confirmLabel;
 
   @override
   State<_ReasonDialog> createState() => _ReasonDialogState();
@@ -577,12 +813,12 @@ class _ReasonDialogState extends State<_ReasonDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Otkazivanje rezervacije'),
+      title: Text(widget.title),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Unesite razlog otkazivanja rezervacije:'),
+          Text(widget.message),
           const SizedBox(height: 12),
           TextField(
             controller: _controller,
@@ -604,7 +840,7 @@ class _ReasonDialogState extends State<_ReasonDialog> {
         FilledButton(
           onPressed: _submit,
           style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
-          child: const Text('Otkaži rezervaciju'),
+          child: Text(widget.confirmLabel),
         ),
       ],
     );

@@ -7,11 +7,13 @@ class AppBottomNavItem {
     required this.icon,
     required this.activeIcon,
     required this.label,
+    this.badgeCount,
   });
 
   final IconData icon;
   final IconData activeIcon;
   final String label;
+  final int? badgeCount;
 }
 
 class AppBottomNav extends StatelessWidget {
@@ -81,15 +83,44 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeOut,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-              decoration: BoxDecoration(
-                color: selected ? AppColors.primarySoft : Colors.transparent,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Icon(selected ? item.activeIcon : item.icon, size: 24, color: color),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOut,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: selected ? AppColors.primarySoft : Colors.transparent,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Icon(selected ? item.activeIcon : item.icon, size: 24, color: color),
+                ),
+                if (item.badgeCount != null && item.badgeCount! > 0)
+                  Positioned(
+                    top: -3,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                      constraints: const BoxConstraints(minWidth: 17),
+                      decoration: BoxDecoration(
+                        color: AppColors.danger,
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: AppColors.surface, width: 1.5),
+                      ),
+                      child: Text(
+                        item.badgeCount! > 99 ? '99+' : '${item.badgeCount}',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9.5,
+                          height: 1.3,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 4),
             Text(

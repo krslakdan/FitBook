@@ -12,6 +12,7 @@ import '../utils/app_roles.dart';
 import '../widgets/status_chip.dart';
 import 'change_password_screen.dart';
 import 'edit_profile_screen.dart';
+import 'news_screen.dart';
 import 'notifications_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -89,6 +90,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _openNotifications() {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+    );
+  }
+
+  void _openNews() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const NewsScreen()),
     );
   }
 
@@ -172,6 +179,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 icon: Icons.notifications_none,
                 label: 'Notifikacije',
                 onTap: _openNotifications,
+              ),
+              const _MenuDivider(),
+              _MenuTile(
+                icon: Icons.campaign_outlined,
+                label: 'Novosti',
+                onTap: _openNews,
               ),
             ],
           ),

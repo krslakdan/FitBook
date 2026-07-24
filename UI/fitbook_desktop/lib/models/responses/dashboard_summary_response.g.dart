@@ -148,6 +148,9 @@ const _$NotificationTypeEnumMap = {
   NotificationType.membershipExpired: 9,
   NotificationType.membershipPaymentFailed: 11,
   NotificationType.reservationReminder: 12,
+  NotificationType.trainerReservationCreated: 13,
+  NotificationType.trainerReservationCancelled: 14,
+  NotificationType.trainerTermReminder: 15,
 };
 
 DashboardRecentPayment _$DashboardRecentPaymentFromJson(

@@ -929,6 +929,27 @@ class _ActivityRow extends StatelessWidget {
         AppColors.infoSoft,
         AppColors.onInfoSoft,
       ),
+      NotificationType.trainerReservationCreated => _ActivityStyle(
+        'Nova rezervacija (trener)',
+        '$user — nova rezervacija na terminu',
+        Icons.event_available_outlined,
+        AppColors.infoSoft,
+        AppColors.onInfoSoft,
+      ),
+      NotificationType.trainerReservationCancelled => _ActivityStyle(
+        'Otkazana rezervacija (trener)',
+        '$user — rezervacija na terminu je otkazana',
+        Icons.event_busy_outlined,
+        AppColors.warningSoft,
+        AppColors.onWarningSoft,
+      ),
+      NotificationType.trainerTermReminder => _ActivityStyle(
+        'Podsjetnik za termin (trener)',
+        '$user — termin uskoro počinje',
+        Icons.notifications_outlined,
+        AppColors.infoSoft,
+        AppColors.onInfoSoft,
+      ),
     };
   }
 

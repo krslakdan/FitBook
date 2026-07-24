@@ -9,6 +9,7 @@ public class TrainingTerm : BaseEntity
     public int MaxParticipants { get; set; }
     public TrainingTermStatus Status { get; set; }
     public bool IsActive { get; set; }
+    public DateTime? TrainerReminderSentAtUtc { get; set; }
 
     public int TrainingId { get; set; }
     public Training? Training { get; set; }

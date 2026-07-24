@@ -36,14 +36,14 @@ public class TrainingTermsController : BaseCRUDController<TrainingTermResponse, 
     }
 
     [HttpPost("{id}/cancel")]
-    [Authorize(Roles = Roles.Admin)]
+    [Authorize(Roles = Roles.Admin + "," + Roles.Trainer)]
     public async Task<TrainingTermResponse> Cancel(int id, [FromBody] TrainingTermCancelRequest request, CancellationToken cancellationToken = default)
     {
         return await _trainingTermService.CancelAsync(id, request, cancellationToken);
     }
 
     [HttpPost("{id}/complete")]
-    [Authorize(Roles = Roles.Admin)]
+    [Authorize(Roles = Roles.Admin + "," + Roles.Trainer)]
     public async Task<TrainingTermResponse> Complete(int id, CancellationToken cancellationToken = default)
     {
         return await _trainingTermService.CompleteAsync(id, cancellationToken);

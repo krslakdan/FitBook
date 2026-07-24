@@ -13,7 +13,9 @@ import '../utils/api_client_exception.dart';
 import '../utils/formatters.dart';
 
 class NotificationsScreen extends StatefulWidget {
-  const NotificationsScreen({super.key});
+  const NotificationsScreen({super.key, this.embedded = false});
+
+  final bool embedded;
 
   @override
   State<NotificationsScreen> createState() => _NotificationsScreenState();
@@ -56,6 +58,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   void _openTarget(SystemNotificationResponse notification) {
     if (!notification.isRead) _markAsRead(notification.id);
+    if (widget.embedded) return;
     final targetTab = _targetTabFor(notification.notificationType);
     if (targetTab == null) return;
     context.read<MainNavigationController>().select(targetTab);
@@ -73,7 +76,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     NotificationType.membershipExpired ||
     NotificationType.membershipCancelled ||
     NotificationType.membershipPaymentFailed => _membershipTab,
-    NotificationType.newsPublished => null,
+    NotificationType.newsPublished ||
+    NotificationType.trainerReservationCreated ||
+    NotificationType.trainerReservationCancelled ||
+    NotificationType.trainerTermReminder => null,
   };
 
   Future<void> _markAllAsRead() async {
@@ -98,7 +104,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return MasterScreen(
       title: 'Notifikacije',
       subtitle: provider.hasUnread ? '${provider.unreadCount} nepročitanih' : null,
-      showBackButton: true,
+      showBackButton: !widget.embedded,
       actions: [
         if (provider.hasUnread)
           Padding(
@@ -318,6 +324,21 @@ _NotificationVisuals _visualsFor(NotificationType type) {
       Icons.campaign_outlined,
       AppColors.purpleSoft,
       AppColors.onPurpleSoft,
+    ),
+    NotificationType.trainerReservationCreated => const _NotificationVisuals(
+      Icons.event_available_outlined,
+      AppColors.infoSoft,
+      AppColors.onInfoSoft,
+    ),
+    NotificationType.trainerReservationCancelled => const _NotificationVisuals(
+      Icons.event_busy_outlined,
+      AppColors.dangerSoft,
+      AppColors.onDangerSoft,
+    ),
+    NotificationType.trainerTermReminder => const _NotificationVisuals(
+      Icons.alarm,
+      AppColors.warningSoft,
+      AppColors.onWarningSoft,
     ),
   };
 }

@@ -50,8 +50,12 @@ public class ReservationMappingConfig : IRegister
                 ? source.UserAccount.LastName : string.Empty)
             .Map(
                 destination => destination.UserEmail,
-                source => source.UserAccount != null 
-                ? source.UserAccount.Email : string.Empty);
+                source => source.UserAccount != null
+                ? source.UserAccount.Email : string.Empty)
+            .Map(
+                destination => destination.UserProfileImageUrl,
+                source => source.UserAccount != null
+                ? source.UserAccount.ProfileImageUrl : null);
 
 #pragma warning disable CS8603
         config.NewConfig<ReservationInsertRequest, Reservation>()
