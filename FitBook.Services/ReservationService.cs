@@ -118,6 +118,11 @@ public class ReservationService
             query = query.Where(r => r.TrainingTermId == search.TrainingTermId.Value);
         }
 
+        if (search.TrainerId.HasValue)
+        {
+            query = query.Where(r => r.TrainingTerm != null && r.TrainingTerm.TrainerId == search.TrainerId.Value);
+        }
+
         if (search.Status.HasValue)
         {
             query = query.Where(r => r.Status == search.Status.Value);
@@ -335,6 +340,26 @@ public class ReservationService
         EnsureValidTransition(reservation.Status, ReservationStatus.Cancelled);
 
         ApplyCancellation(reservation, request.Reason);
+
+        if (isOwner && reservation.TrainingTerm?.Trainer is not null
+            && reservation.TrainingTerm.Trainer.UserAccountId != reservation.UserAccountId)
+        {
+            var memberName = reservation.UserAccount is not null
+                ? $"{reservation.UserAccount.FirstName} {reservation.UserAccount.LastName}".Trim()
+                : "Korisnik";
+            var trainingName = reservation.TrainingTerm.Training?.Name ?? "trening";
+            var termStartFormatted = LocalTimeProvider.FormatDateTime(reservation.TrainingTerm.StartTimeUtc);
+
+            _dbContext.SystemNotifications.Add(new SystemNotification
+            {
+                UserAccountId = reservation.TrainingTerm.Trainer.UserAccountId,
+                NotificationType = NotificationType.TrainerReservationCancelled,
+                Title = "Rezervacija je otkazana",
+                Content = $"{memberName} je otkazao/la rezervaciju za vaš termin \"{trainingName}\" ({termStartFormatted}).",
+                IsRead = false,
+                CreatedAtUtc = DateTime.UtcNow,
+            });
+        }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -554,6 +579,7 @@ public class ReservationService
     {
         var term = await _dbContext.TrainingTerms
             .Include(t => t.Training)
+            .Include(t => t.Trainer)
             .FirstOrDefaultAsync(t => t.Id == entity.TrainingTermId, cancellationToken);
         var termStartFormatted = term is not null ? LocalTimeProvider.FormatDateTime(term.StartTimeUtc) : $"termin #{entity.TrainingTermId}";
 
@@ -566,6 +592,26 @@ public class ReservationService
             IsRead = false,
             CreatedAtUtc = DateTime.UtcNow,
         });
+
+        if (term?.Trainer is not null && term.Trainer.UserAccountId != entity.UserAccountId)
+        {
+            var member = await _dbContext.UserAccounts
+                .FirstOrDefaultAsync(u => u.Id == entity.UserAccountId, cancellationToken);
+            var memberName = member is not null
+                ? $"{member.FirstName} {member.LastName}".Trim()
+                : "Korisnik";
+            var trainingName = term.Training?.Name ?? "trening";
+
+            _dbContext.SystemNotifications.Add(new SystemNotification
+            {
+                UserAccountId = term.Trainer.UserAccountId,
+                NotificationType = NotificationType.TrainerReservationCreated,
+                Title = "Nova rezervacija na vašem terminu",
+                Content = $"{memberName} je rezervisao/la vaš termin \"{trainingName}\" ({termStartFormatted}) i čeka potvrdu.",
+                IsRead = false,
+                CreatedAtUtc = DateTime.UtcNow,
+            });
+        }
 
         if (term?.Training is not null)
         {

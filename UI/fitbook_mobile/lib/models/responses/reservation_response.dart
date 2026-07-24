@@ -18,6 +18,7 @@ class ReservationResponse {
     required this.userFirstName,
     required this.userLastName,
     required this.userEmail,
+    this.userProfileImageUrl,
     required this.trainingTermId,
     required this.trainingName,
     required this.trainerFirstName,
@@ -41,6 +42,7 @@ class ReservationResponse {
   final String userFirstName;
   final String userLastName;
   final String userEmail;
+  final String? userProfileImageUrl;
   final int trainingTermId;
   final String trainingName;
   final String trainerFirstName;

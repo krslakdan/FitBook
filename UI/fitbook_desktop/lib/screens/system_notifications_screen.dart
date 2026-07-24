@@ -30,6 +30,9 @@ String notificationTypeLabel(NotificationType type) => switch (type) {
   NotificationType.membershipExpired => 'Članarina istekla',
   NotificationType.membershipPaymentFailed => 'Neuspjelo plaćanje',
   NotificationType.reservationReminder => 'Podsjetnik za trening',
+  NotificationType.trainerReservationCreated => 'Nova rezervacija (trener)',
+  NotificationType.trainerReservationCancelled => 'Otkazana rezervacija (trener)',
+  NotificationType.trainerTermReminder => 'Podsjetnik za termin (trener)',
 };
 
 ChipTone notificationTypeTone(NotificationType type) => switch (type) {
@@ -44,6 +47,9 @@ ChipTone notificationTypeTone(NotificationType type) => switch (type) {
   NotificationType.membershipExpired => ChipTone.neutral,
   NotificationType.membershipPaymentFailed => ChipTone.danger,
   NotificationType.reservationReminder => ChipTone.info,
+  NotificationType.trainerReservationCreated => ChipTone.info,
+  NotificationType.trainerReservationCancelled => ChipTone.warning,
+  NotificationType.trainerTermReminder => ChipTone.info,
 };
 
 class SystemNotificationsScreen extends StatefulWidget {

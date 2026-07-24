@@ -1,3 +1,4 @@
+using FitBook.Model.Constants;
 using FitBook.Model.Enums;
 using FitBook.Model.Exceptions;
 using FitBook.Model.Requests.TrainingTerms;
@@ -154,12 +155,15 @@ public class TrainingTermService
         await _cancelValidator.ValidateAndThrowAsync(request, cancellationToken);
 
         var term = await _dbContext.TrainingTerms
+            .Include(t => t.Trainer)
             .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
 
         if (term is null)
         {
             throw new NotFoundException($"Trening termin sa ID {id} nije pronađen.");
         }
+
+        EnsureCanManageTerm(term);
 
         if (term.Status == TrainingTermStatus.Cancelled)
         {
@@ -198,12 +202,15 @@ public class TrainingTermService
     public async Task<TrainingTermResponse> CompleteAsync(int id, CancellationToken cancellationToken = default)
     {
         var term = await _dbContext.TrainingTerms
+            .Include(t => t.Trainer)
             .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
 
         if (term is null)
         {
             throw new NotFoundException($"Trening termin sa ID {id} nije pronađen.");
         }
+
+        EnsureCanManageTerm(term);
 
         if (term.Status == TrainingTermStatus.Completed)
         {
@@ -228,6 +235,24 @@ public class TrainingTermService
         _logger.LogInformation("TrainingTerm {TermId} marked as completed.", id);
 
         return await GetByIdAsync(id, cancellationToken);
+    }
+
+    private void EnsureCanManageTerm(TrainingTerm term)
+    {
+        if (_currentUserService.IsAdmin())
+        {
+            return;
+        }
+
+        var currentUserId = _currentUserService.GetRequiredUserId();
+        var isOwningTrainer = _currentUserService.IsInRole(Roles.Trainer)
+            && term.Trainer is not null
+            && term.Trainer.UserAccountId == currentUserId;
+
+        if (!isOwningTrainer)
+        {
+            throw new BusinessException("Nemate pravo upravljati ovim terminom.");
+        }
     }
 
     private async Task ValidateForeignKeys(int trainingId, int trainerId, int hallId, int maxParticipants, CancellationToken cancellationToken)
