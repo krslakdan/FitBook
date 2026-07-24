@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/requests/auth/user_login_request.dart';
 import '../providers/auth_provider.dart';
+import '../providers/main_navigation_controller.dart';
 import '../theme/app_theme.dart';
 import '../utils/api_client_exception.dart';
 import '../widgets/auth_scaffold.dart';
@@ -67,6 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
           password: _passwordController.text,
         ),
       );
+      if (mounted) context.read<MainNavigationController>().select(0);
     } on ApiClientException catch (e) {
       if (!mounted) return;
       setState(() => _serverError = e.message);
