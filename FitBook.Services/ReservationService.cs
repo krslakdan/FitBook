@@ -361,6 +361,8 @@ public class ReservationService
             });
         }
 
+        await RemoveRecommendationSignalsForReservationsAsync(new[] { reservation.Id }, cancellationToken);
+
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         await PublishCancellationEmailAsync(reservation, request.Reason, cancellationToken);
@@ -387,6 +389,10 @@ public class ReservationService
             EnsureValidTransition(reservation.Status, ReservationStatus.Cancelled);
             ApplyCancellation(reservation, reason);
         }
+
+        await RemoveRecommendationSignalsForReservationsAsync(
+            reservations.Select(r => r.Id).ToList(),
+            cancellationToken);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -425,6 +431,25 @@ public class ReservationService
             IsRead = false,
             CreatedAtUtc = DateTime.UtcNow,
         });
+    }
+
+    private async Task RemoveRecommendationSignalsForReservationsAsync(
+        IReadOnlyCollection<int> reservationIds,
+        CancellationToken cancellationToken)
+    {
+        if (reservationIds.Count == 0)
+        {
+            return;
+        }
+
+        var signals = await _dbContext.RecommendationSignals
+            .Where(s => s.ReservationId != null && reservationIds.Contains(s.ReservationId.Value))
+            .ToListAsync(cancellationToken);
+
+        if (signals.Count > 0)
+        {
+            _dbContext.RecommendationSignals.RemoveRange(signals);
+        }
     }
 
     private async Task PublishCancellationEmailAsync(Reservation reservation, string? reason, CancellationToken cancellationToken)

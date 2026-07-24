@@ -39,13 +39,12 @@ public class RecommendationService : IRecommendationService
             .ToDictionaryAsync(x => x.TrainingCategoryId, x => x.TotalWeight, cancellationToken);
 
         var popularityCounts = await _dbContext.Reservations
-            .Where(r => r.Status == ReservationStatus.Completed)
             .GroupBy(r => r.TrainingTerm!.TrainingId)
-            .Select(g => new { TrainingId = g.Key, CompletedCount = g.Count() })
-            .ToDictionaryAsync(x => x.TrainingId, x => x.CompletedCount, cancellationToken);
+            .Select(g => new { TrainingId = g.Key, ReservationCount = g.Count() })
+            .ToDictionaryAsync(x => x.TrainingId, x => x.ReservationCount, cancellationToken);
 
         var alreadyReservedTrainingIds = await _dbContext.Reservations
-            .Where(r => r.UserAccountId == userId)
+            .Where(r => r.UserAccountId == userId && r.Status != ReservationStatus.Cancelled)
             .Select(r => r.TrainingTerm!.TrainingId)
             .Distinct()
             .ToListAsync(cancellationToken);
@@ -74,10 +73,10 @@ public class RecommendationService : IRecommendationService
         foreach (var candidate in candidates)
         {
             var categoryAffinity = categoryAffinities.GetValueOrDefault(candidate.TrainingCategoryId, 0m);
-            var completedCount = popularityCounts.GetValueOrDefault(candidate.Id, 0);
+            var reservationCount = popularityCounts.GetValueOrDefault(candidate.Id, 0);
 
             var contentScore = maxCategoryAffinity > 0 ? categoryAffinity / maxCategoryAffinity : 0m;
-            var popularityScore = maxPopularityCount > 0 ? (decimal)completedCount / maxPopularityCount : 0m;
+            var popularityScore = maxPopularityCount > 0 ? (decimal)reservationCount / maxPopularityCount : 0m;
 
             var contentContribution = contentScore * ContentBasedWeight;
             var totalScore = contentContribution + popularityScore * PopularityWeight;
@@ -87,7 +86,7 @@ public class RecommendationService : IRecommendationService
                 && contentContribution / totalScore > ContentDominantThreshold;
 
             var explanation = isContentDominant
-                ? $"Preporučeno jer često rezervišete treninge iz kategorije {candidate.CategoryName}."
+                ? $"Preporučeno jer često birate treninge iz kategorije {candidate.CategoryName}."
                 : "Popularan trening među ostalim korisnicima.";
 
             recommendations.Add(new TrainingRecommendationResponse
