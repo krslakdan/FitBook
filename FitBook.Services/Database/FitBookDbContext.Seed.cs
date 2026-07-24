@@ -32,29 +32,29 @@ public partial class FitBookDbContext
     private void SeedDifficultyLevels(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<DifficultyLevel>().HasData(
-            new DifficultyLevel { Id = 1, Name = "Beginner", SortOrder = 1, IsActive = true },
-            new DifficultyLevel { Id = 2, Name = "Intermediate", SortOrder = 2, IsActive = true },
-            new DifficultyLevel { Id = 3, Name = "Advanced", SortOrder = 3, IsActive = true }
+            new DifficultyLevel { Id = 1, Name = "Početni", SortOrder = 1, IsActive = true },
+            new DifficultyLevel { Id = 2, Name = "Srednji", SortOrder = 2, IsActive = true },
+            new DifficultyLevel { Id = 3, Name = "Napredni", SortOrder = 3, IsActive = true }
         );
     }
 
     private void SeedSpecializations(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Specialization>().HasData(
-            new Specialization { Id = 1, Name = "Strength & Conditioning", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Specialization { Id = 2, Name = "Yoga & Pilates", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Specialization { Id = 3, Name = "Cardio & HIIT", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Specialization { Id = 1, Name = "Snaga i kondicija", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Specialization { Id = 2, Name = "Joga i pilates", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Specialization { Id = 3, Name = "Kardio i HIIT", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
             new Specialization { Id = 4, Name = "CrossFit", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Specialization { Id = 5, Name = "Bodybuilding", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
+            new Specialization { Id = 5, Name = "Bodibilding", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
         );
     }
 
     private void SeedHalls(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Hall>().HasData(
-            new Hall { Id = 1, Name = "Main Gym Hall", Capacity = 30, LocationDescription = "Ground Floor, Zone A", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Hall { Id = 2, Name = "Yoga & Pilates Studio", Capacity = 15, LocationDescription = "First Floor, Zone B", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Hall { Id = 3, Name = "Spinning Room", Capacity = 20, LocationDescription = "First Floor, Zone C", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
+            new Hall { Id = 1, Name = "Glavna teretana", Capacity = 30, LocationDescription = "Prizemlje, Zona A", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Hall { Id = 2, Name = "Studio za jogu i pilates", Capacity = 15, LocationDescription = "Prvi sprat, Zona B", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Hall { Id = 3, Name = "Sala za spinning", Capacity = 20, LocationDescription = "Prvi sprat, Zona C", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
         );
     }
 
@@ -194,7 +194,7 @@ public partial class FitBookDbContext
                 FirstName = "John",
                 LastName = "Doe",
                 SpecializationId = 1,
-                Biography = "Certified trainer with 8+ years of experience in athletic training.",
+                Biography = "Certificirani trener sa preko 8 godina iskustva u atletskom treningu.",
                 ImageUrl = "uploads/trainers/trainer1.jpg",
                 IsAvailable = true,
                 IsActive = true,
@@ -207,7 +207,7 @@ public partial class FitBookDbContext
                 FirstName = "Jane",
                 LastName = "Smith",
                 SpecializationId = 2,
-                Biography = "Passionate about helping people find balance and flexibility.",
+                Biography = "Posvećena pomaganju ljudima da pronađu ravnotežu i fleksibilnost.",
                 ImageUrl = "uploads/trainers/trainer2.jpg",
                 IsAvailable = true,
                 IsActive = true,
@@ -220,7 +220,7 @@ public partial class FitBookDbContext
                 FirstName = "Mike",
                 LastName = "Jones",
                 SpecializationId = 3,
-                Biography = "Energy-packed HIIT workouts to keep you burning calories.",
+                Biography = "Energični HIIT treninzi koji vas drže u sagorijevanju kalorija.",
                 ImageUrl = "uploads/trainers/trainer3.jpg",
                 IsAvailable = true,
                 IsActive = true,
@@ -233,11 +233,11 @@ public partial class FitBookDbContext
     private void SeedTrainingCategories(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<TrainingCategory>().HasData(
-            new TrainingCategory { Id = 1, Name = "Cardio", Description = "Workouts designed to improve heart health and stamina.", IsActive = true },
-            new TrainingCategory { Id = 2, Name = "Strength", Description = "Resistance training designed to build muscle mass.", IsActive = true },
-            new TrainingCategory { Id = 3, Name = "Mind & Body", Description = "Yoga, stretching, and mindfulness practices.", IsActive = true },
-            new TrainingCategory { Id = 4, Name = "Recovery & Mobility", Description = "Low-impact recovery, stretching, and mobility work.", IsActive = true },
-            new TrainingCategory { Id = 5, Name = "Combat Sports", Description = "Boxing and martial-arts inspired conditioning.", IsActive = true }
+            new TrainingCategory { Id = 1, Name = "Kardio", Description = "Treninzi za poboljšanje zdravlja srca i izdržljivosti.", IsActive = true },
+            new TrainingCategory { Id = 2, Name = "Snaga", Description = "Trening s opterećenjem za izgradnju mišićne mase.", IsActive = true },
+            new TrainingCategory { Id = 3, Name = "Tijelo i um", Description = "Joga, istezanje i vježbe svjesnosti.", IsActive = true },
+            new TrainingCategory { Id = 4, Name = "Oporavak i mobilnost", Description = "Lagani oporavak, istezanje i vježbe mobilnosti.", IsActive = true },
+            new TrainingCategory { Id = 5, Name = "Borilački sportovi", Description = "Kondicija inspirisana boksom i borilačkim vještinama.", IsActive = true }
         );
     }
 
@@ -247,8 +247,8 @@ public partial class FitBookDbContext
             new Training
             {
                 Id = 1,
-                Name = "HIIT Blast",
-                Description = "High Intensity Interval Training to boost metabolism.",
+                Name = "HIIT Eksplozija",
+                Description = "Intervalni trening visokog intenziteta za ubrzanje metabolizma.",
                 DurationMinutes = 45,
                 MaxParticipants = 20,
                 IsActive = true,
@@ -259,8 +259,8 @@ public partial class FitBookDbContext
             new Training
             {
                 Id = 2,
-                Name = "Power Lifting",
-                Description = "Learn and execute proper barbell techniques.",
+                Name = "Dizanje tegova",
+                Description = "Naučite i izvodite pravilnu tehniku dizanja s tegovima.",
                 DurationMinutes = 60,
                 MaxParticipants = 10,
                 IsActive = true,
@@ -271,8 +271,8 @@ public partial class FitBookDbContext
             new Training
             {
                 Id = 3,
-                Name = "Vinyasa Yoga",
-                Description = "Flowing sequences of yoga poses with breath control.",
+                Name = "Vinyasa joga",
+                Description = "Tečne sekvence joga poza uz kontrolu disanja.",
                 DurationMinutes = 60,
                 MaxParticipants = 15,
                 IsActive = true,
@@ -283,8 +283,8 @@ public partial class FitBookDbContext
             new Training
             {
                 Id = 4,
-                Name = "Foam Rolling & Mobility",
-                Description = "Guided self-myofascial release and joint mobility drills.",
+                Name = "Opuštanje i mobilnost",
+                Description = "Vođeno miofascijalno opuštanje i vježbe mobilnosti zglobova.",
                 DurationMinutes = 30,
                 MaxParticipants = 12,
                 IsActive = true,
@@ -295,8 +295,8 @@ public partial class FitBookDbContext
             new Training
             {
                 Id = 5,
-                Name = "Boxing Fundamentals",
-                Description = "Footwork, combinations, and pad work for beginners and intermediates.",
+                Name = "Osnove boksa",
+                Description = "Rad nogu, kombinacije i rad na fokuserima za početnike i srednji nivo.",
                 DurationMinutes = 50,
                 MaxParticipants = 14,
                 IsActive = true,
@@ -307,8 +307,8 @@ public partial class FitBookDbContext
             new Training
             {
                 Id = 6,
-                Name = "Morning Run Club",
-                Description = "Coached outdoor interval running session to start the day.",
+                Name = "Jutarnji klub trčanja",
+                Description = "Vođeni intervalni trening trčanja na otvorenom za početak dana.",
                 DurationMinutes = 40,
                 MaxParticipants = 25,
                 IsActive = true,
@@ -319,8 +319,8 @@ public partial class FitBookDbContext
             new Training
             {
                 Id = 7,
-                Name = "Deadlift Technique",
-                Description = "Barbell deadlift form clinic for lifters ready to add weight safely.",
+                Name = "Tehnika mrtvog dizanja",
+                Description = "Radionica tehnike mrtvog dizanja za sigurno povećanje opterećenja.",
                 DurationMinutes = 60,
                 MaxParticipants = 8,
                 IsActive = true,
@@ -334,22 +334,22 @@ public partial class FitBookDbContext
     private void SeedEquipment(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Equipment>().HasData(
-            new Equipment { Id = 1, Name = "Kettlebell", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Equipment { Id = 2, Name = "Barbell Set", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Equipment { Id = 3, Name = "Yoga Mat", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Equipment { Id = 4, Name = "Foam Roller", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Equipment { Id = 5, Name = "Boxing Gloves", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
+            new Equipment { Id = 1, Name = "Girja", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Equipment { Id = 2, Name = "Set tegova", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Equipment { Id = 3, Name = "Prostirka za jogu", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Equipment { Id = 4, Name = "Pjenasti valjak", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Equipment { Id = 5, Name = "Bokserske rukavice", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
         );
     }
 
     private void SeedTrainingEquipment(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<TrainingEquipment>().HasData(
-            new TrainingEquipment { Id = 1, EquipmentId = 1, IsRequired = true, Note = "Recommended 8kg-16kg", TrainingId = 1, CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc) },
-            new TrainingEquipment { Id = 2, EquipmentId = 2, IsRequired = true, Note = "Belts provided in hall", TrainingId = 2, CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc) },
-            new TrainingEquipment { Id = 3, EquipmentId = 3, IsRequired = false, Note = "Mats are available in studio, or bring your own", TrainingId = 3, CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc) },
-            new TrainingEquipment { Id = 4, EquipmentId = 4, IsRequired = true, Note = "Provided in studio", TrainingId = 4, CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc) },
-            new TrainingEquipment { Id = 5, EquipmentId = 5, IsRequired = true, Note = "Bring your own or rent at front desk", TrainingId = 5, CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc) }
+            new TrainingEquipment { Id = 1, EquipmentId = 1, IsRequired = true, Note = "Preporučeno 8kg-16kg", TrainingId = 1, CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingEquipment { Id = 2, EquipmentId = 2, IsRequired = true, Note = "Pojasevi su dostupni u sali", TrainingId = 2, CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingEquipment { Id = 3, EquipmentId = 3, IsRequired = false, Note = "Prostirke su dostupne u studiju ili ponesite svoju", TrainingId = 3, CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingEquipment { Id = 4, EquipmentId = 4, IsRequired = true, Note = "Dostupno u studiju", TrainingId = 4, CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingEquipment { Id = 5, EquipmentId = 5, IsRequired = true, Note = "Ponesite svoje ili iznajmite na recepciji", TrainingId = 5, CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc) }
         );
     }
 
@@ -430,33 +430,33 @@ public partial class FitBookDbContext
             new MembershipPackage
             {
                 Id = 1,
-                Name = "1 Month Basic",
+                Name = "Mjesečni Osnovni",
                 DurationDays = 30,
                 Price = 50.00m,
                 SavingsAmount = 0.00m,
-                IncludedBenefits = "Access to main hall, 3 group trainings per week.",
+                IncludedBenefits = "Pristup glavnoj sali, 3 grupna treninga sedmično.",
                 IsActive = true,
                 CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
             },
             new MembershipPackage
             {
                 Id = 2,
-                Name = "3 Month Premium",
+                Name = "Tromjesečni Premium",
                 DurationDays = 90,
                 Price = 120.00m,
                 SavingsAmount = 30.00m,
-                IncludedBenefits = "Unlimited group trainings, sauna access, 1 free personal session.",
+                IncludedBenefits = "Neograničeni grupni treninzi, pristup sauni, 1 besplatan personalni trening.",
                 IsActive = true,
                 CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
             },
             new MembershipPackage
             {
                 Id = 3,
-                Name = "1 Year VIP",
+                Name = "Godišnji VIP",
                 DurationDays = 365,
                 Price = 400.00m,
                 SavingsAmount = 200.00m,
-                IncludedBenefits = "Unlimited group trainings, sauna access, 4 free personal sessions, priority booking.",
+                IncludedBenefits = "Neograničeni grupni treninzi, pristup sauni, 4 besplatna personalna treninga, prioritetno rezervisanje.",
                 IsActive = true,
                 CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
             }
@@ -628,7 +628,7 @@ public partial class FitBookDbContext
                 PreviousStatus = ReservationStatus.Pending,
                 NewStatus = ReservationStatus.Confirmed,
                 ChangedAtUtc = new DateTime(2026, 6, 21, 15, 10, 0, DateTimeKind.Utc),
-                Reason = "Auto-confirmed on successful payment and active membership check",
+                Reason = "Automatski potvrđeno nakon uspješne uplate i provjere aktivne članarine",
                 ReservationId = 1,
                 ChangedByUserAccountId = 1
             },
@@ -638,7 +638,7 @@ public partial class FitBookDbContext
                 PreviousStatus = ReservationStatus.Confirmed,
                 NewStatus = ReservationStatus.Completed,
                 ChangedAtUtc = new DateTime(2026, 6, 25, 11, 0, 0, DateTimeKind.Utc),
-                Reason = "Marked as completed after class finish",
+                Reason = "Označeno kao završeno nakon završetka termina",
                 ReservationId = 1,
                 ChangedByUserAccountId = 5
             },
@@ -648,7 +648,7 @@ public partial class FitBookDbContext
                 PreviousStatus = ReservationStatus.Confirmed,
                 NewStatus = ReservationStatus.Completed,
                 ChangedAtUtc = new DateTime(2026, 7, 5, 9, 5, 0, DateTimeKind.Utc),
-                Reason = "Marked as completed after class finish",
+                Reason = "Označeno kao završeno nakon završetka termina",
                 ReservationId = 3,
                 ChangedByUserAccountId = 4
             },
@@ -658,7 +658,7 @@ public partial class FitBookDbContext
                 PreviousStatus = ReservationStatus.Confirmed,
                 NewStatus = ReservationStatus.Completed,
                 ChangedAtUtc = new DateTime(2026, 6, 28, 9, 40, 0, DateTimeKind.Utc),
-                Reason = "Marked as completed after class finish",
+                Reason = "Označeno kao završeno nakon završetka termina",
                 ReservationId = 4,
                 ChangedByUserAccountId = 5
             },
@@ -668,7 +668,7 @@ public partial class FitBookDbContext
                 PreviousStatus = ReservationStatus.Confirmed,
                 NewStatus = ReservationStatus.Completed,
                 ChangedAtUtc = new DateTime(2026, 7, 2, 18, 50, 0, DateTimeKind.Utc),
-                Reason = "Marked as completed after class finish",
+                Reason = "Označeno kao završeno nakon završetka termina",
                 ReservationId = 5,
                 ChangedByUserAccountId = 3
             },
@@ -691,8 +691,8 @@ public partial class FitBookDbContext
             new SystemNotification
             {
                 Id = 1,
-                Title = "Reservation Confirmed",
-                Content = "Your reservation for Vinyasa Yoga has been successfully confirmed.",
+                Title = "Rezervacija potvrđena",
+                Content = "Vaša rezervacija za Vinyasa joga je uspješno potvrđena.",
                 IsRead = false,
                 CreatedAtUtc = new DateTime(2026, 6, 23, 10, 15, 0, DateTimeKind.Utc),
                 NotificationType = NotificationType.ReservationConfirmed,
@@ -733,7 +733,7 @@ public partial class FitBookDbContext
             {
                 Id = 5,
                 Title = "Trening je završen",
-                Content = "Vaš trening za Morning Run Club je uspješno završen. Hvala na dolasku!",
+                Content = "Vaš trening za Jutarnji klub trčanja je uspješno završen. Hvala na dolasku!",
                 IsRead = true,
                 ReadAtUtc = new DateTime(2026, 6, 28, 12, 0, 0, DateTimeKind.Utc),
                 CreatedAtUtc = new DateTime(2026, 6, 28, 9, 40, 0, DateTimeKind.Utc),
@@ -744,7 +744,7 @@ public partial class FitBookDbContext
             {
                 Id = 6,
                 Title = "Trening je završen",
-                Content = "Vaš trening za Boxing Fundamentals je uspješno završen. Hvala na dolasku!",
+                Content = "Vaš trening za Osnove boksa je uspješno završen. Hvala na dolasku!",
                 IsRead = false,
                 CreatedAtUtc = new DateTime(2026, 7, 2, 18, 50, 0, DateTimeKind.Utc),
                 NotificationType = NotificationType.ReservationCompleted,
@@ -754,7 +754,7 @@ public partial class FitBookDbContext
             {
                 Id = 7,
                 Title = "Vaša rezervacija je otkazana",
-                Content = "Vaša rezervacija za Morning Run Club je otkazana. Razlog: Promjena rasporeda korisnika.",
+                Content = "Vaša rezervacija za Jutarnji klub trčanja je otkazana. Razlog: Promjena rasporeda korisnika.",
                 IsRead = false,
                 CreatedAtUtc = new DateTime(2026, 6, 27, 9, 0, 0, DateTimeKind.Utc),
                 NotificationType = NotificationType.ReservationCancelled,
@@ -769,8 +769,8 @@ public partial class FitBookDbContext
             new NewsItem
             {
                 Id = 1,
-                Title = "Grand Opening of our Yoga Studio!",
-                Content = "We are thrilled to announce that our new premium Yoga & Pilates studio on the first floor is now open for bookings.",
+                Title = "Veliko otvorenje našeg joga studija!",
+                Content = "Sa zadovoljstvom objavljujemo da je naš novi premium studio za jogu i pilates na prvom spratu sada otvoren za rezervacije.",
                 ImageUrl = "uploads/news/yoga_opening.jpg",
                 PublishedAtUtc = new DateTime(2026, 6, 15, 9, 0, 0, DateTimeKind.Utc),
                 IsActive = true
@@ -787,8 +787,8 @@ public partial class FitBookDbContext
             new NewsItem
             {
                 Id = 3,
-                Title = "Uvodimo Boxing Fundamentals i Morning Run Club!",
-                Content = "Od ovog mjeseca u ponudi su dva nova programa: Boxing Fundamentals za sve nivoe i Morning Run Club za ljubitelje trčanja. Rezervišite svoje mjesto već danas.",
+                Title = "Uvodimo Osnove boksa i Jutarnji klub trčanja!",
+                Content = "Od ovog mjeseca u ponudi su dva nova programa: Osnove boksa za sve nivoe i Jutarnji klub trčanja za ljubitelje trčanja. Rezervišite svoje mjesto već danas.",
                 ImageUrl = "uploads/news/yoga_opening.jpg",
                 PublishedAtUtc = new DateTime(2026, 6, 20, 9, 0, 0, DateTimeKind.Utc),
                 IsActive = true
