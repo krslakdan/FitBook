@@ -95,6 +95,59 @@ public class ReminderService : IReminderService
         return dueReservations.Count;
     }
 
+    public async Task<int> SendDueTrainerTermRemindersAsync(TimeSpan reminderLeadTime, CancellationToken cancellationToken = default)
+    {
+        var now = DateTime.UtcNow;
+        var reminderCutoff = now.Add(reminderLeadTime);
+
+        var dueTerms = await _dbContext.TrainingTerms
+            .Include(t => t.Training)
+            .Include(t => t.Trainer)
+            .Where(t => t.Status == TrainingTermStatus.Scheduled
+                        && t.IsActive
+                        && t.TrainerReminderSentAtUtc == null
+                        && t.StartTimeUtc > now
+                        && t.StartTimeUtc <= reminderCutoff)
+            .ToListAsync(cancellationToken);
+
+        if (dueTerms.Count == 0)
+        {
+            return 0;
+        }
+
+        foreach (var term in dueTerms)
+        {
+            term.TrainerReminderSentAtUtc = now;
+
+            if (term.Trainer is null)
+            {
+                continue;
+            }
+
+            var termStartFormatted = LocalTimeProvider.FormatDateTime(term.StartTimeUtc);
+            var trainingName = term.Training?.Name ?? "trening";
+
+            _dbContext.SystemNotifications.Add(new SystemNotification
+            {
+                UserAccountId = term.Trainer.UserAccountId,
+                NotificationType = NotificationType.TrainerTermReminder,
+                Title = "Podsjetnik: termin uskoro počinje",
+                Content = $"Podsjetnik: vaš termin \"{trainingName}\" zakazan za {termStartFormatted} uskoro počinje.",
+                IsRead = false,
+                CreatedAtUtc = now,
+            });
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Sent {Count} trainer term reminder(s) for terms starting within {LeadTime}.",
+            dueTerms.Count,
+            reminderLeadTime);
+
+        return dueTerms.Count;
+    }
+
     public async Task<int> SendDueMembershipExpiryRemindersAsync(TimeSpan reminderLeadTime, CancellationToken cancellationToken = default)
     {
         var now = DateTime.UtcNow;

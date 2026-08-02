@@ -20,4 +20,14 @@ class ReservationProvider extends BaseReadProvider<ReservationResponse> {
     final response = await apiPost('$endpoint/$id/cancel', body: request);
     return fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
+
+  Future<ReservationResponse> confirm(int id) async {
+    final response = await apiPost('$endpoint/$id/confirm');
+    return fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+  }
+
+  Future<ReservationResponse> complete(int id) async {
+    final response = await apiPost('$endpoint/$id/complete');
+    return fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+  }
 }

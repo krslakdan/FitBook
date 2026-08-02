@@ -19,12 +19,16 @@ enum NotificationType {
   membershipCancelled,
   @JsonValue(9)
   membershipExpired,
-  @JsonValue(10)
-  trainingTermCancelled,
   @JsonValue(11)
   membershipPaymentFailed,
   @JsonValue(12)
-  reservationReminder;
+  reservationReminder,
+  @JsonValue(13)
+  trainerReservationCreated,
+  @JsonValue(14)
+  trainerReservationCancelled,
+  @JsonValue(15)
+  trainerTermReminder;
 
   int get value => switch (this) {
     NotificationType.reservationCreated => 1,
@@ -36,8 +40,10 @@ enum NotificationType {
     NotificationType.newsPublished => 7,
     NotificationType.membershipCancelled => 8,
     NotificationType.membershipExpired => 9,
-    NotificationType.trainingTermCancelled => 10,
     NotificationType.membershipPaymentFailed => 11,
     NotificationType.reservationReminder => 12,
+    NotificationType.trainerReservationCreated => 13,
+    NotificationType.trainerReservationCancelled => 14,
+    NotificationType.trainerTermReminder => 15,
   };
 }

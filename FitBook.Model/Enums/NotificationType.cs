@@ -11,7 +11,9 @@ public enum NotificationType
     NewsPublished = 7,
     MembershipCancelled = 8,
     MembershipExpired = 9,
-    TrainingTermCancelled = 10,
     MembershipPaymentFailed = 11,
-    ReservationReminder = 12
+    ReservationReminder = 12,
+    TrainerReservationCreated = 13,
+    TrainerReservationCancelled = 14,
+    TrainerTermReminder = 15
 }

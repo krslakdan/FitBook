@@ -1,4 +1,3 @@
-using FitBook.Model.Constants;
 using FitBook.Model.Requests.UserMemberships;
 using FitBook.Model.Responses;
 using FitBook.Model.Responses.Payments;
@@ -71,20 +70,6 @@ public class UserMembershipsController
         return Ok(result);
     }
 
-    [HttpPost("{id:int}/expire")]
-    [Authorize(Roles = Roles.Admin)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<UserMembershipResponse>> Expire(
-        int id, 
-        CancellationToken cancellationToken = default)
-    {
-        var result = await Service.ExpireAsync(id, cancellationToken);
-        return Ok(result);
-    }
-
     [HttpPost("{id:int}/payment/intent")]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -92,10 +77,24 @@ public class UserMembershipsController
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CreatePaymentIntentResponse>> CreatePaymentIntent(
-        int id, 
+        int id,
         CancellationToken cancellationToken = default)
     {
         var result = await Service.CreatePaymentIntentAsync(id, cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpPost("{id:int}/payment/confirm")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<UserMembershipResponse>> ConfirmPayment(
+        int id,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await Service.ConfirmPaymentAsync(id, cancellationToken);
         return Ok(result);
     }
 }

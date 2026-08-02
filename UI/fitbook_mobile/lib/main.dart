@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'layouts/main_navigation.dart';
+import 'layouts/trainer_navigation.dart';
 import 'providers/auth_provider.dart';
 import 'providers/difficulty_level_provider.dart';
 import 'providers/equipment_provider.dart';
 import 'providers/file_provider.dart';
 import 'providers/hall_provider.dart';
+import 'providers/main_navigation_controller.dart';
 import 'providers/membership_package_provider.dart';
 import 'providers/membership_payment_provider.dart';
 import 'providers/news_item_provider.dart';
@@ -21,8 +24,8 @@ import 'providers/training_term_provider.dart';
 import 'providers/user_account_provider.dart';
 import 'providers/user_membership_provider.dart';
 import 'screens/login_screen.dart';
-import 'screens/placeholder_home_screen.dart';
 import 'theme/app_theme.dart';
+import 'utils/app_roles.dart';
 import 'widgets/auth_scaffold.dart';
 
 void main() {
@@ -37,6 +40,7 @@ class FitBookMobileApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => MainNavigationController()),
         ChangeNotifierProvider(create: (_) => DifficultyLevelProvider()),
         ChangeNotifierProvider(create: (_) => EquipmentProvider()),
         ChangeNotifierProvider(create: (_) => FileProvider()),
@@ -92,7 +96,9 @@ class _AuthGateState extends State<AuthGate> {
         }
         return Consumer<AuthProvider>(
           builder: (context, auth, _) {
-            return auth.isAuthenticated ? const PlaceholderHomeScreen() : const LoginScreen();
+            if (!auth.isAuthenticated) return const LoginScreen();
+            if (auth.currentRole == AppRoles.trainer) return const TrainerNavigation();
+            return const MainNavigation();
           },
         );
       },

@@ -295,7 +295,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildActivitiesCard(DashboardSummaryResponse summary) {
     return _DashboardCard(
-      title: 'Obavijesti',
+      title: 'Historija obavijesti',
       trailing: _SeeAllButton(
         onPressed: () => _navigateTo(const SystemNotificationsScreen()),
       ),
@@ -908,13 +908,6 @@ class _ActivityRow extends StatelessWidget {
         AppColors.neutralSoft,
         AppColors.onNeutralSoft,
       ),
-      NotificationType.trainingTermCancelled => _ActivityStyle(
-        'Otkazan termin',
-        '$user — termin treninga je otkazan',
-        Icons.calendar_month_outlined,
-        AppColors.warningSoft,
-        AppColors.onWarningSoft,
-      ),
       NotificationType.membershipPaymentFailed => _ActivityStyle(
         'Neuspjelo plaćanje',
         '$user — uplata članarine nije uspjela',
@@ -932,6 +925,27 @@ class _ActivityRow extends StatelessWidget {
       NotificationType.reservationReminder => _ActivityStyle(
         'Podsjetnik',
         '$user — poslan je podsjetnik za termin',
+        Icons.notifications_outlined,
+        AppColors.infoSoft,
+        AppColors.onInfoSoft,
+      ),
+      NotificationType.trainerReservationCreated => _ActivityStyle(
+        'Nova rezervacija (trener)',
+        '$user — nova rezervacija na terminu',
+        Icons.event_available_outlined,
+        AppColors.infoSoft,
+        AppColors.onInfoSoft,
+      ),
+      NotificationType.trainerReservationCancelled => _ActivityStyle(
+        'Otkazana rezervacija (trener)',
+        '$user — rezervacija na terminu je otkazana',
+        Icons.event_busy_outlined,
+        AppColors.warningSoft,
+        AppColors.onWarningSoft,
+      ),
+      NotificationType.trainerTermReminder => _ActivityStyle(
+        'Podsjetnik za termin (trener)',
+        '$user — termin uskoro počinje',
         Icons.notifications_outlined,
         AppColors.infoSoft,
         AppColors.onInfoSoft,

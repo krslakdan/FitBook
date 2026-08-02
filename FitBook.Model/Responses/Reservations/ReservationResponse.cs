@@ -19,9 +19,13 @@ public class ReservationResponse : IEntityResponse
     public string UserFirstName { get; set; } = string.Empty;
     public string UserLastName { get; set; } = string.Empty;
     public string UserEmail { get; set; } = string.Empty;
+    public string? UserProfileImageUrl { get; set; }
     public int TrainingTermId { get; set; }
 
     public string TrainingName { get; set; } = string.Empty;
+    public string TrainerFirstName { get; set; } = string.Empty;
+    public string TrainerLastName { get; set; } = string.Empty;
+    public string HallName { get; set; } = string.Empty;
     public DateTime TrainingTermStartTimeUtc { get; set; }
     public DateTime TrainingTermEndTimeUtc { get; set; }
 

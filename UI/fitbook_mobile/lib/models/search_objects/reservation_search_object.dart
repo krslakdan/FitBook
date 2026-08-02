@@ -9,6 +9,7 @@ class ReservationSearchObject extends BaseSearchObject {
     super.includeTotalCount,
     this.userAccountId,
     this.trainingTermId,
+    this.trainerId,
     this.status,
     this.reservedFromUtc,
     this.reservedToUtc,
@@ -16,6 +17,7 @@ class ReservationSearchObject extends BaseSearchObject {
 
   final int? userAccountId;
   final int? trainingTermId;
+  final int? trainerId;
   final ReservationStatus? status;
   final DateTime? reservedFromUtc;
   final DateTime? reservedToUtc;
@@ -25,6 +27,7 @@ class ReservationSearchObject extends BaseSearchObject {
     final params = super.toQueryParameters();
     if (userAccountId != null) params['userAccountId'] = userAccountId;
     if (trainingTermId != null) params['trainingTermId'] = trainingTermId;
+    if (trainerId != null) params['trainerId'] = trainerId;
     if (status != null) params['status'] = status!.value;
     if (reservedFromUtc != null) {
       params['reservedFromUtc'] = reservedFromUtc!.toIso8601String();

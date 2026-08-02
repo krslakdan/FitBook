@@ -30,6 +30,7 @@ public class ReservationReminderBackgroundService : BackgroundService
                 using var scope = _scopeFactory.CreateScope();
                 var reminderService = scope.ServiceProvider.GetRequiredService<IReminderService>();
                 await reminderService.SendDueReservationRemindersAsync(ReminderLeadTime, stoppingToken);
+                await reminderService.SendDueTrainerTermRemindersAsync(ReminderLeadTime, stoppingToken);
             }
             catch (Exception ex)
             {

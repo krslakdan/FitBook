@@ -60,7 +60,7 @@ namespace FitBook.Services.Migrations
                             Id = 1,
                             CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
-                            Name = "Beginner",
+                            Name = "Početni",
                             SortOrder = 1
                         },
                         new
@@ -68,7 +68,7 @@ namespace FitBook.Services.Migrations
                             Id = 2,
                             CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
-                            Name = "Intermediate",
+                            Name = "Srednji",
                             SortOrder = 2
                         },
                         new
@@ -76,7 +76,7 @@ namespace FitBook.Services.Migrations
                             Id = 3,
                             CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             IsActive = true,
-                            Name = "Advanced",
+                            Name = "Napredni",
                             SortOrder = 3
                         });
                 });
@@ -116,35 +116,35 @@ namespace FitBook.Services.Migrations
                             Id = 1,
                             CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
-                            Name = "Kettlebell"
+                            Name = "Girja"
                         },
                         new
                         {
                             Id = 2,
                             CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
-                            Name = "Barbell Set"
+                            Name = "Set tegova"
                         },
                         new
                         {
                             Id = 3,
                             CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
-                            Name = "Yoga Mat"
+                            Name = "Prostirka za jogu"
                         },
                         new
                         {
                             Id = 4,
                             CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
-                            Name = "Foam Roller"
+                            Name = "Pjenasti valjak"
                         },
                         new
                         {
                             Id = 5,
                             CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
-                            Name = "Boxing Gloves"
+                            Name = "Bokserske rukavice"
                         });
                 });
 
@@ -191,8 +191,8 @@ namespace FitBook.Services.Migrations
                             Capacity = 30,
                             CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
-                            LocationDescription = "Ground Floor, Zone A",
-                            Name = "Main Gym Hall"
+                            LocationDescription = "Prizemlje, Zona A",
+                            Name = "Glavna teretana"
                         },
                         new
                         {
@@ -200,8 +200,8 @@ namespace FitBook.Services.Migrations
                             Capacity = 15,
                             CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
-                            LocationDescription = "First Floor, Zone B",
-                            Name = "Yoga & Pilates Studio"
+                            LocationDescription = "Prvi sprat, Zona B",
+                            Name = "Studio za jogu i pilates"
                         },
                         new
                         {
@@ -209,8 +209,8 @@ namespace FitBook.Services.Migrations
                             Capacity = 20,
                             CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
-                            LocationDescription = "First Floor, Zone C",
-                            Name = "Spinning Room"
+                            LocationDescription = "Prvi sprat, Zona C",
+                            Name = "Sala za spinning"
                         });
                 });
 
@@ -266,10 +266,10 @@ namespace FitBook.Services.Migrations
                             Id = 1,
                             CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             DurationDays = 30,
-                            IncludedBenefits = "Access to main hall, 3 group trainings per week.",
+                            IncludedBenefits = "Pristup glavnoj sali, 3 grupna treninga sedmično.",
                             IsActive = true,
                             IsDeleted = false,
-                            Name = "1 Month Basic",
+                            Name = "Mjesečni Osnovni",
                             Price = 50.00m,
                             SavingsAmount = 0.00m
                         },
@@ -278,10 +278,10 @@ namespace FitBook.Services.Migrations
                             Id = 2,
                             CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             DurationDays = 90,
-                            IncludedBenefits = "Unlimited group trainings, sauna access, 1 free personal session.",
+                            IncludedBenefits = "Neograničeni grupni treninzi, pristup sauni, 1 besplatan personalni trening.",
                             IsActive = true,
                             IsDeleted = false,
-                            Name = "3 Month Premium",
+                            Name = "Tromjesečni Premium",
                             Price = 120.00m,
                             SavingsAmount = 30.00m
                         },
@@ -290,10 +290,10 @@ namespace FitBook.Services.Migrations
                             Id = 3,
                             CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             DurationDays = 365,
-                            IncludedBenefits = "Unlimited group trainings, sauna access, 4 free personal sessions, priority booking.",
+                            IncludedBenefits = "Neograničeni grupni treninzi, pristup sauni, 4 besplatna personalna treninga, prioritetno rezervisanje.",
                             IsActive = true,
                             IsDeleted = false,
-                            Name = "1 Year VIP",
+                            Name = "Godišnji VIP",
                             Price = 400.00m,
                             SavingsAmount = 200.00m
                         });
@@ -446,12 +446,12 @@ namespace FitBook.Services.Migrations
                         new
                         {
                             Id = 1,
-                            Content = "We are thrilled to announce that our new premium Yoga & Pilates studio on the first floor is now open for bookings.",
+                            Content = "Sa zadovoljstvom objavljujemo da je naš novi premium studio za jogu i pilates na prvom spratu sada otvoren za rezervacije.",
                             CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ImageUrl = "uploads/news/yoga_opening.jpg",
                             IsActive = true,
                             PublishedAtUtc = new DateTime(2026, 6, 15, 9, 0, 0, 0, DateTimeKind.Utc),
-                            Title = "Grand Opening of our Yoga Studio!"
+                            Title = "Veliko otvorenje našeg joga studija!"
                         },
                         new
                         {
@@ -466,12 +466,12 @@ namespace FitBook.Services.Migrations
                         new
                         {
                             Id = 3,
-                            Content = "Od ovog mjeseca u ponudi su dva nova programa: Boxing Fundamentals za sve nivoe i Morning Run Club za ljubitelje trčanja. Rezervišite svoje mjesto već danas.",
+                            Content = "Od ovog mjeseca u ponudi su dva nova programa: Osnove boksa za sve nivoe i Jutarnji klub trčanja za ljubitelje trčanja. Rezervišite svoje mjesto već danas.",
                             CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             ImageUrl = "uploads/news/yoga_opening.jpg",
                             IsActive = true,
                             PublishedAtUtc = new DateTime(2026, 6, 20, 9, 0, 0, 0, DateTimeKind.Utc),
-                            Title = "Uvodimo Boxing Fundamentals i Morning Run Club!"
+                            Title = "Uvodimo Osnove boksa i Jutarnji klub trčanja!"
                         });
                 });
 
@@ -832,7 +832,7 @@ namespace FitBook.Services.Migrations
                             CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             NewStatus = 2,
                             PreviousStatus = 1,
-                            Reason = "Auto-confirmed on successful payment and active membership check",
+                            Reason = "Automatski potvrđeno nakon uspješne uplate i provjere aktivne članarine",
                             ReservationId = 1
                         },
                         new
@@ -843,7 +843,7 @@ namespace FitBook.Services.Migrations
                             CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             NewStatus = 4,
                             PreviousStatus = 2,
-                            Reason = "Marked as completed after class finish",
+                            Reason = "Označeno kao završeno nakon završetka termina",
                             ReservationId = 1
                         },
                         new
@@ -854,7 +854,7 @@ namespace FitBook.Services.Migrations
                             CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             NewStatus = 4,
                             PreviousStatus = 2,
-                            Reason = "Marked as completed after class finish",
+                            Reason = "Označeno kao završeno nakon završetka termina",
                             ReservationId = 3
                         },
                         new
@@ -865,7 +865,7 @@ namespace FitBook.Services.Migrations
                             CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             NewStatus = 4,
                             PreviousStatus = 2,
-                            Reason = "Marked as completed after class finish",
+                            Reason = "Označeno kao završeno nakon završetka termina",
                             ReservationId = 4
                         },
                         new
@@ -876,7 +876,7 @@ namespace FitBook.Services.Migrations
                             CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             NewStatus = 4,
                             PreviousStatus = 2,
-                            Reason = "Marked as completed after class finish",
+                            Reason = "Označeno kao završeno nakon završetka termina",
                             ReservationId = 5
                         },
                         new
@@ -927,21 +927,21 @@ namespace FitBook.Services.Migrations
                             Id = 1,
                             CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
-                            Name = "Strength & Conditioning"
+                            Name = "Snaga i kondicija"
                         },
                         new
                         {
                             Id = 2,
                             CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
-                            Name = "Yoga & Pilates"
+                            Name = "Joga i pilates"
                         },
                         new
                         {
                             Id = 3,
                             CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
-                            Name = "Cardio & HIIT"
+                            Name = "Kardio i HIIT"
                         },
                         new
                         {
@@ -955,7 +955,7 @@ namespace FitBook.Services.Migrations
                             Id = 5,
                             CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsActive = true,
-                            Name = "Bodybuilding"
+                            Name = "Bodibilding"
                         });
                 });
 
@@ -1005,11 +1005,11 @@ namespace FitBook.Services.Migrations
                         new
                         {
                             Id = 1,
-                            Content = "Your reservation for Vinyasa Yoga has been successfully confirmed.",
+                            Content = "Vaša rezervacija za Vinyasa joga je uspješno potvrđena.",
                             CreatedAtUtc = new DateTime(2026, 6, 23, 10, 15, 0, 0, DateTimeKind.Utc),
                             IsRead = false,
                             NotificationType = 2,
-                            Title = "Reservation Confirmed",
+                            Title = "Rezervacija potvrđena",
                             UserAccountId = 2
                         },
                         new
@@ -1046,7 +1046,7 @@ namespace FitBook.Services.Migrations
                         new
                         {
                             Id = 5,
-                            Content = "Vaš trening za Morning Run Club je uspješno završen. Hvala na dolasku!",
+                            Content = "Vaš trening za Jutarnji klub trčanja je uspješno završen. Hvala na dolasku!",
                             CreatedAtUtc = new DateTime(2026, 6, 28, 9, 40, 0, 0, DateTimeKind.Utc),
                             IsRead = true,
                             NotificationType = 4,
@@ -1057,7 +1057,7 @@ namespace FitBook.Services.Migrations
                         new
                         {
                             Id = 6,
-                            Content = "Vaš trening za Boxing Fundamentals je uspješno završen. Hvala na dolasku!",
+                            Content = "Vaš trening za Osnove boksa je uspješno završen. Hvala na dolasku!",
                             CreatedAtUtc = new DateTime(2026, 7, 2, 18, 50, 0, 0, DateTimeKind.Utc),
                             IsRead = false,
                             NotificationType = 4,
@@ -1067,7 +1067,7 @@ namespace FitBook.Services.Migrations
                         new
                         {
                             Id = 7,
-                            Content = "Vaša rezervacija za Morning Run Club je otkazana. Razlog: Promjena rasporeda korisnika.",
+                            Content = "Vaša rezervacija za Jutarnji klub trčanja je otkazana. Razlog: Promjena rasporeda korisnika.",
                             CreatedAtUtc = new DateTime(2026, 6, 27, 9, 0, 0, 0, DateTimeKind.Utc),
                             IsRead = false,
                             NotificationType = 3,
@@ -1133,7 +1133,7 @@ namespace FitBook.Services.Migrations
                         new
                         {
                             Id = 1,
-                            Biography = "Certified trainer with 8+ years of experience in athletic training.",
+                            Biography = "Certificirani trener sa preko 8 godina iskustva u atletskom treningu.",
                             CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             FirstName = "John",
                             ImageUrl = "uploads/trainers/trainer1.jpg",
@@ -1146,7 +1146,7 @@ namespace FitBook.Services.Migrations
                         new
                         {
                             Id = 2,
-                            Biography = "Passionate about helping people find balance and flexibility.",
+                            Biography = "Posvećena pomaganju ljudima da pronađu ravnotežu i fleksibilnost.",
                             CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             FirstName = "Jane",
                             ImageUrl = "uploads/trainers/trainer2.jpg",
@@ -1159,7 +1159,7 @@ namespace FitBook.Services.Migrations
                         new
                         {
                             Id = 3,
-                            Biography = "Energy-packed HIIT workouts to keep you burning calories.",
+                            Biography = "Energični HIIT treninzi koji vas drže u sagorijevanju kalorija.",
                             CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             FirstName = "Mike",
                             ImageUrl = "uploads/trainers/trainer3.jpg",
@@ -1225,84 +1225,84 @@ namespace FitBook.Services.Migrations
                         {
                             Id = 1,
                             CreatedAtUtc = new DateTime(2026, 1, 10, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "High Intensity Interval Training to boost metabolism.",
+                            Description = "Intervalni trening visokog intenziteta za ubrzanje metabolizma.",
                             DifficultyLevelId = 2,
                             DurationMinutes = 45,
                             IsActive = true,
                             MaxParticipants = 20,
-                            Name = "HIIT Blast",
+                            Name = "HIIT Eksplozija",
                             TrainingCategoryId = 1
                         },
                         new
                         {
                             Id = 2,
                             CreatedAtUtc = new DateTime(2026, 1, 10, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Learn and execute proper barbell techniques.",
+                            Description = "Naučite i izvodite pravilnu tehniku dizanja s tegovima.",
                             DifficultyLevelId = 3,
                             DurationMinutes = 60,
                             IsActive = true,
                             MaxParticipants = 10,
-                            Name = "Power Lifting",
+                            Name = "Dizanje tegova",
                             TrainingCategoryId = 2
                         },
                         new
                         {
                             Id = 3,
                             CreatedAtUtc = new DateTime(2026, 1, 10, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Flowing sequences of yoga poses with breath control.",
+                            Description = "Tečne sekvence joga poza uz kontrolu disanja.",
                             DifficultyLevelId = 1,
                             DurationMinutes = 60,
                             IsActive = true,
                             MaxParticipants = 15,
-                            Name = "Vinyasa Yoga",
+                            Name = "Vinyasa joga",
                             TrainingCategoryId = 3
                         },
                         new
                         {
                             Id = 4,
                             CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Guided self-myofascial release and joint mobility drills.",
+                            Description = "Vođeno miofascijalno opuštanje i vježbe mobilnosti zglobova.",
                             DifficultyLevelId = 1,
                             DurationMinutes = 30,
                             IsActive = true,
                             MaxParticipants = 12,
-                            Name = "Foam Rolling & Mobility",
+                            Name = "Opuštanje i mobilnost",
                             TrainingCategoryId = 4
                         },
                         new
                         {
                             Id = 5,
                             CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Footwork, combinations, and pad work for beginners and intermediates.",
+                            Description = "Rad nogu, kombinacije i rad na fokuserima za početnike i srednji nivo.",
                             DifficultyLevelId = 2,
                             DurationMinutes = 50,
                             IsActive = true,
                             MaxParticipants = 14,
-                            Name = "Boxing Fundamentals",
+                            Name = "Osnove boksa",
                             TrainingCategoryId = 5
                         },
                         new
                         {
                             Id = 6,
                             CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Coached outdoor interval running session to start the day.",
+                            Description = "Vođeni intervalni trening trčanja na otvorenom za početak dana.",
                             DifficultyLevelId = 1,
                             DurationMinutes = 40,
                             IsActive = true,
                             MaxParticipants = 25,
-                            Name = "Morning Run Club",
+                            Name = "Jutarnji klub trčanja",
                             TrainingCategoryId = 1
                         },
                         new
                         {
                             Id = 7,
                             CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Description = "Barbell deadlift form clinic for lifters ready to add weight safely.",
+                            Description = "Radionica tehnike mrtvog dizanja za sigurno povećanje opterećenja.",
                             DifficultyLevelId = 3,
                             DurationMinutes = 60,
                             IsActive = true,
                             MaxParticipants = 8,
-                            Name = "Deadlift Technique",
+                            Name = "Tehnika mrtvog dizanja",
                             TrainingCategoryId = 2
                         });
                 });
@@ -1345,41 +1345,41 @@ namespace FitBook.Services.Migrations
                         {
                             Id = 1,
                             CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Workouts designed to improve heart health and stamina.",
+                            Description = "Treninzi za poboljšanje zdravlja srca i izdržljivosti.",
                             IsActive = true,
-                            Name = "Cardio"
+                            Name = "Kardio"
                         },
                         new
                         {
                             Id = 2,
                             CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Resistance training designed to build muscle mass.",
+                            Description = "Trening s opterećenjem za izgradnju mišićne mase.",
                             IsActive = true,
-                            Name = "Strength"
+                            Name = "Snaga"
                         },
                         new
                         {
                             Id = 3,
                             CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Yoga, stretching, and mindfulness practices.",
+                            Description = "Joga, istezanje i vježbe svjesnosti.",
                             IsActive = true,
-                            Name = "Mind & Body"
+                            Name = "Tijelo i um"
                         },
                         new
                         {
                             Id = 4,
                             CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Low-impact recovery, stretching, and mobility work.",
+                            Description = "Lagani oporavak, istezanje i vježbe mobilnosti.",
                             IsActive = true,
-                            Name = "Recovery & Mobility"
+                            Name = "Oporavak i mobilnost"
                         },
                         new
                         {
                             Id = 5,
                             CreatedAtUtc = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Description = "Boxing and martial-arts inspired conditioning.",
+                            Description = "Kondicija inspirisana boksom i borilačkim vještinama.",
                             IsActive = true,
-                            Name = "Combat Sports"
+                            Name = "Borilački sportovi"
                         });
                 });
 
@@ -1426,7 +1426,7 @@ namespace FitBook.Services.Migrations
                             CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, 0, DateTimeKind.Utc),
                             EquipmentId = 1,
                             IsRequired = true,
-                            Note = "Recommended 8kg-16kg",
+                            Note = "Preporučeno 8kg-16kg",
                             TrainingId = 1
                         },
                         new
@@ -1435,7 +1435,7 @@ namespace FitBook.Services.Migrations
                             CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, 0, DateTimeKind.Utc),
                             EquipmentId = 2,
                             IsRequired = true,
-                            Note = "Belts provided in hall",
+                            Note = "Pojasevi su dostupni u sali",
                             TrainingId = 2
                         },
                         new
@@ -1444,7 +1444,7 @@ namespace FitBook.Services.Migrations
                             CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, 0, DateTimeKind.Utc),
                             EquipmentId = 3,
                             IsRequired = false,
-                            Note = "Mats are available in studio, or bring your own",
+                            Note = "Prostirke su dostupne u studiju ili ponesite svoju",
                             TrainingId = 3
                         },
                         new
@@ -1453,7 +1453,7 @@ namespace FitBook.Services.Migrations
                             CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, 0, DateTimeKind.Utc),
                             EquipmentId = 4,
                             IsRequired = true,
-                            Note = "Provided in studio",
+                            Note = "Dostupno u studiju",
                             TrainingId = 4
                         },
                         new
@@ -1462,7 +1462,7 @@ namespace FitBook.Services.Migrations
                             CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, 0, DateTimeKind.Utc),
                             EquipmentId = 5,
                             IsRequired = true,
-                            Note = "Bring your own or rent at front desk",
+                            Note = "Ponesite svoje ili iznajmite na recepciji",
                             TrainingId = 5
                         });
                 });
@@ -1498,6 +1498,9 @@ namespace FitBook.Services.Migrations
 
                     b.Property<int>("TrainerId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("TrainerReminderSentAtUtc")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("TrainingId")
                         .HasColumnType("int");

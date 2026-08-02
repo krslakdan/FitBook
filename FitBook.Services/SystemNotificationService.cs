@@ -1,3 +1,4 @@
+using FitBook.Model.Enums;
 using FitBook.Model.Exceptions;
 using FitBook.Model.Responses.SystemNotifications;
 using FitBook.Model.SearchObjects;
@@ -36,6 +37,10 @@ public class SystemNotificationService
         else if (search.UserAccountId.HasValue)
         {
             query = query.Where(x => x.UserAccountId == search.UserAccountId.Value);
+        }
+        else if (!search.NotificationType.HasValue)
+        {
+            query = query.Where(x => x.NotificationType != NotificationType.NewsPublished);
         }
 
         if (search.IsRead.HasValue)

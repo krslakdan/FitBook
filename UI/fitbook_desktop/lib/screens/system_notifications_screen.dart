@@ -28,9 +28,11 @@ String notificationTypeLabel(NotificationType type) => switch (type) {
   NotificationType.newsPublished => 'Novost objavljena',
   NotificationType.membershipCancelled => 'Članarina otkazana',
   NotificationType.membershipExpired => 'Članarina istekla',
-  NotificationType.trainingTermCancelled => 'Termin otkazan',
   NotificationType.membershipPaymentFailed => 'Neuspjelo plaćanje',
   NotificationType.reservationReminder => 'Podsjetnik za trening',
+  NotificationType.trainerReservationCreated => 'Nova rezervacija (trener)',
+  NotificationType.trainerReservationCancelled => 'Otkazana rezervacija (trener)',
+  NotificationType.trainerTermReminder => 'Podsjetnik za termin (trener)',
 };
 
 ChipTone notificationTypeTone(NotificationType type) => switch (type) {
@@ -43,9 +45,11 @@ ChipTone notificationTypeTone(NotificationType type) => switch (type) {
   NotificationType.newsPublished => ChipTone.purple,
   NotificationType.membershipCancelled => ChipTone.danger,
   NotificationType.membershipExpired => ChipTone.neutral,
-  NotificationType.trainingTermCancelled => ChipTone.danger,
   NotificationType.membershipPaymentFailed => ChipTone.danger,
   NotificationType.reservationReminder => ChipTone.info,
+  NotificationType.trainerReservationCreated => ChipTone.info,
+  NotificationType.trainerReservationCancelled => ChipTone.warning,
+  NotificationType.trainerTermReminder => ChipTone.info,
 };
 
 class SystemNotificationsScreen extends StatefulWidget {
@@ -225,7 +229,7 @@ class _SystemNotificationsScreenState extends State<SystemNotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     return MasterScreen(
-      title: 'Obavijesti',
+      title: 'Historija obavijesti',
       subtitle: 'Pregled sistemskih obavijesti korisnika',
       child: Padding(
         padding: const EdgeInsets.all(16),

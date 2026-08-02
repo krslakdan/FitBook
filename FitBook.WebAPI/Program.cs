@@ -20,7 +20,14 @@ QuestPDF.Settings.License = LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
 
-StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+var stripeSecretKey = builder.Configuration["Stripe:SecretKey"];
+if (string.IsNullOrWhiteSpace(stripeSecretKey))
+{
+    throw new InvalidOperationException(
+        "Stripe:SecretKey configuration value is required but was not provided. Set it via the Stripe__SecretKey environment variable (.env).");
+}
+
+StripeConfiguration.ApiKey = stripeSecretKey;
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers(options => options.Filters.Add<ExceptionFilter>());

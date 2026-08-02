@@ -157,7 +157,7 @@ final List<_NavSection> _sections = [
       () => const NewsItemsScreen(),
     ),
     _NavItem(
-      'Obavijesti',
+      'Historija obavijesti',
       'Pregled sistemskih obavijesti korisnika',
       Icons.notifications_outlined,
       Icons.notifications,

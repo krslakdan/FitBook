@@ -24,7 +24,8 @@ android {
         applicationId = "com.fitbook.fitbook_mobile"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        // flutter_stripe (Stripe Android SDK) requires a minimum SDK of 23.
+        minSdk = maxOf(flutter.minSdkVersion, 23)
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -41,4 +42,9 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // Provides the Theme.MaterialComponents.* styles required by the Stripe PaymentSheet.
+    implementation("com.google.android.material:material:1.12.0")
 }

@@ -16,6 +16,21 @@ public class ReservationMappingConfig : IRegister
                     ? source.TrainingTerm.Training.Name
                     : string.Empty)
             .Map(
+                destination => destination.TrainerFirstName,
+                source => source.TrainingTerm != null && source.TrainingTerm.Trainer != null
+                    ? source.TrainingTerm.Trainer.FirstName
+                    : string.Empty)
+            .Map(
+                destination => destination.TrainerLastName,
+                source => source.TrainingTerm != null && source.TrainingTerm.Trainer != null
+                    ? source.TrainingTerm.Trainer.LastName
+                    : string.Empty)
+            .Map(
+                destination => destination.HallName,
+                source => source.TrainingTerm != null && source.TrainingTerm.Hall != null
+                    ? source.TrainingTerm.Hall.Name
+                    : string.Empty)
+            .Map(
                 destination => destination.TrainingTermStartTimeUtc,
                 source => source.TrainingTerm != null
                     ? source.TrainingTerm.StartTimeUtc
@@ -35,8 +50,12 @@ public class ReservationMappingConfig : IRegister
                 ? source.UserAccount.LastName : string.Empty)
             .Map(
                 destination => destination.UserEmail,
-                source => source.UserAccount != null 
-                ? source.UserAccount.Email : string.Empty);
+                source => source.UserAccount != null
+                ? source.UserAccount.Email : string.Empty)
+            .Map(
+                destination => destination.UserProfileImageUrl,
+                source => source.UserAccount != null
+                ? source.UserAccount.ProfileImageUrl : null);
 
 #pragma warning disable CS8603
         config.NewConfig<ReservationInsertRequest, Reservation>()
