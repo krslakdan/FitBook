@@ -41,7 +41,6 @@ services:
     environment:
       ConnectionStrings__DefaultConnection: Server=fitbook-db;Database=${DB_NAME:-230163};User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False;
       RabbitMQ__Host: fitbook-rabbitmq
-      ASPNETCORE_URLS: http://+:5121
       APP_TIMEZONE: ${APP_TIMEZONE:-Europe/Sarajevo}
     ports:
       - "${API_HOST_PORT:-5121}:5121"
