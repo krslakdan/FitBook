@@ -63,7 +63,7 @@ class _UserAccountsDetailsScreenState extends State<UserAccountsDetailsScreen> {
   static final _phonePattern = RegExp(
     r'^(?=(?:.*\d){6,})\+?[0-9\s\-()]{6,20}$',
   );
-  static final _emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+  static final _emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[A-Za-z]{2,}$');
 
   @override
   void dispose() {
