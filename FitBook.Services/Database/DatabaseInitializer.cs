@@ -341,39 +341,75 @@ public static class DatabaseInitializer
             .Distinct()
             .ToListAsync(cancellationToken);
 
-        var unreservedTrainings = trainings.Where(t => !reservedTrainingIds.Contains(t.Id)).ToList();
+        var affinityCategoryIds = await dbContext.RecommendationSignals
+            .Where(s => s.UserAccountId == mobileUser.Id)
+            .GroupBy(s => s.TrainingCategoryId)
+            .OrderByDescending(g => g.Sum(s => s.Weight))
+            .Select(g => g.Key)
+            .ToListAsync(cancellationToken);
 
-        var openTermsQuery = dbContext.TrainingTerms.Where(
-            t => t.Status == TrainingTermStatus.Scheduled
-                 && t.IsActive
-                 && t.StartTimeUtc > now
-                 && !t.Reservations.Any(r => r.Status == ReservationStatus.Pending || r.Status == ReservationStatus.Confirmed));
+        var openTermTrainingIds = await dbContext.TrainingTerms
+            .Where(t => t.Status == TrainingTermStatus.Scheduled
+                        && t.IsActive
+                        && t.StartTimeUtc > now
+                        && !t.Reservations.Any(r => r.Status == ReservationStatus.Pending || r.Status == ReservationStatus.Confirmed))
+            .Select(t => t.TrainingId)
+            .ToListAsync(cancellationToken);
 
-        if (unreservedTrainings.Count > 0)
+        var recommendable = trainings.Where(t => !reservedTrainingIds.Contains(t.Id)).ToList();
+        if (recommendable.Count == 0)
         {
-            openTermsQuery = openTermsQuery.Where(t => !reservedTrainingIds.Contains(t.TrainingId));
+            recommendable = trainings;
         }
 
-        var openTermsCount = await openTermsQuery.CountAsync(cancellationToken);
+        var openRecommendableCount = openTermTrainingIds.Count(id => recommendable.Exists(t => t.Id == id));
+        var hasAffinityTerm = openTermTrainingIds.Exists(
+            id => recommendable.Exists(t => t.Id == id && affinityCategoryIds.Contains(t.TrainingCategoryId)));
 
-        var missing = desiredOpenTerms - openTermsCount;
-        if (missing <= 0)
+        var termsToCreate = new List<Training>();
+
+        if (affinityCategoryIds.Count > 0 && !hasAffinityTerm)
+        {
+            var affinityTraining = recommendable
+                .Where(t => affinityCategoryIds.Contains(t.TrainingCategoryId))
+                .OrderBy(t => affinityCategoryIds.IndexOf(t.TrainingCategoryId))
+                .FirstOrDefault();
+
+            if (affinityTraining is not null)
+            {
+                termsToCreate.Add(affinityTraining);
+            }
+        }
+
+        foreach (var training in recommendable)
+        {
+            if (openRecommendableCount + termsToCreate.Count >= desiredOpenTerms)
+            {
+                break;
+            }
+
+            if (!termsToCreate.Contains(training))
+            {
+                termsToCreate.Add(training);
+            }
+        }
+
+        if (termsToCreate.Count == 0)
         {
             return;
         }
 
-        var candidateTrainings = unreservedTrainings.Count > 0 ? unreservedTrainings : trainings;
+        var offsets = new[] { TimeSpan.FromDays(9), TimeSpan.FromDays(16), TimeSpan.FromDays(23) };
+        var createdCount = Math.Min(termsToCreate.Count, offsets.Length);
 
-        var offsets = new[] { TimeSpan.FromDays(9), TimeSpan.FromDays(16) };
-        for (var i = 0; i < missing && i < offsets.Length; i++)
+        for (var i = 0; i < createdCount; i++)
         {
-            var training = candidateTrainings[i % candidateTrainings.Count];
-            var term = BuildTerm(training, trainers[i % trainers.Count], halls[i % halls.Count], now.Add(offsets[i]), now);
+            var term = BuildTerm(termsToCreate[i], trainers[i % trainers.Count], halls[i % halls.Count], now.Add(offsets[i]), now);
             dbContext.TrainingTerms.Add(term);
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
-        logger.LogInformation("Topped up open bookable training terms (added {Count}).", Math.Min(missing, offsets.Length));
+        logger.LogInformation("Topped up open bookable training terms (added {Count}).", createdCount);
     }
   
     private static async Task EnsureFullCapacityScenarioAsync(
