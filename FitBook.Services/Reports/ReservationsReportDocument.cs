@@ -35,7 +35,7 @@ internal class ReservationsReportDocument : IDocument
             page.Header().Column(column =>
             {
                 column.Item().Text("Izvještaj o rezervacijama").FontSize(18).Bold();
-                column.Item().Text($"Period: {_fromUtc:dd.MM.yyyy.} – {_toUtc:dd.MM.yyyy.}").FontSize(11);
+                column.Item().Text($"Period termina: {LocalTimeProvider.FormatDate(_fromUtc)} – {LocalTimeProvider.FormatDate(_toUtc)}").FontSize(11);
             });
 
             page.Content().PaddingVertical(10).Column(column =>

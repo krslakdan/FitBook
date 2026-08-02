@@ -32,8 +32,8 @@ public class ReportService : IReportService
         await _reservationsReportValidator.ValidateAndThrowAsync(request, cancellationToken);
 
         var rows = await _dbContext.Reservations
-            .Where(r => r.ReservedAtUtc >= request.FromUtc && r.ReservedAtUtc <= request.ToUtc)
-            .OrderBy(r => r.ReservedAtUtc)
+            .Where(r => r.TrainingTerm!.StartTimeUtc >= request.FromUtc && r.TrainingTerm.StartTimeUtc <= request.ToUtc)
+            .OrderBy(r => r.TrainingTerm!.StartTimeUtc)
             .Select(r => new ReservationReportRow
             {
                 UserFullName = r.UserAccount!.FirstName + " " + r.UserAccount.LastName,
