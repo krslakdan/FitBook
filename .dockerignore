@@ -9,12 +9,11 @@
 **/*.jfm
 
 # --- Flutter / Dart ---
+UI/
 **/.dart_tool
 **/build
 **/.gradle
 **/node_modules
-UI/.dart_tool
-UI/build
 
 # --- Docker & Environment ---
 .env
