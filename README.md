@@ -1,70 +1,74 @@
 # FitBook
 
-FitBook je sistem za digitalizaciju poslovanja fitness centra — rezervacije treninga, upravljanje članarinama, treninzima, trenerima i terminima, sistemske notifikacije i preporuke treninga zasnovane na stvarnoj aktivnosti korisnika. Ovo je seminarski rad iz predmeta Razvoj softvera II (IB230163).
+FitBook je aplikacija za fitness centar — rezervacije treninga, članarine sa Stripe plaćanjem, notifikacije i preporuke treninga.
 
-Repozitorij trenutno sadrži backend dio sistema:
+Backend je ASP.NET Core 9 (WebAPI + Worker mikroservis, RabbitMQ, SQL Server), a desktop i mobilna aplikacija su rađene u Flutteru. Dokumentacija sistema preporuke nalazi se u [recommender-dokumentacija.md](recommender-dokumentacija.md).
 
-| Projekat | Opis |
-|---|---|
-| `FitBook.WebAPI` | Glavni REST API servis (ASP.NET Core 9, JWT autentifikacija, Swagger). |
-| `FitBook.Services` | Poslovna logika, EF Core `DbContext`, entiteti, migracije, validatori. |
-| `FitBook.Worker` | Pomoćni mikroservis (odvojen kontejner) koji sluša RabbitMQ i šalje email notifikacije putem SMTP-a. |
-| `FitBook.Common.Services` | Dijeljeni infrastrukturni kod bez teških zavisnosti (hashiranje lozinki, čitanje `.env`). |
-| `FitBook.Model` | DTO/Request/Response/Enum/Exception tipovi, bez logike. |
+## Struktura projekta
 
-Dokumentacija sistema preporuke treninga nalazi se u [`recommender-dokumentacija.md`](recommender-dokumentacija.md).
+- `FitBook.WebAPI` — REST API (kontroleri, JWT autentifikacija)
+- `FitBook.Services` — poslovna logika, EF Core, migracije, seed
+- `FitBook.Model` — DTO, request/response i enum tipovi
+- `FitBook.Common.Services` — zajednički kod (hashiranje lozinki, čitanje `.env`)
+- `FitBook.Worker` — mikroservis koji sluša RabbitMQ i šalje emailove
+- `UI/fitbook_desktop` — admin desktop aplikacija (Flutter)
+- `UI/fitbook_mobile` — mobilna aplikacija za klijente i trenere (Flutter)
 
-## Pokretanje (Docker)
+## Kredencijali za prijavu
 
-Preduslov: instaliran Docker i Docker Compose. Nije potrebno lokalno instalirati .NET SDK niti ručno pokretati migracije — API pri startu sam primjenjuje EF Core migracije na bazu.
+| Kontekst                 | Korisničko ime | Lozinka |
+| ------------------------ | -------------- | ------- |
+| Desktop verzija          | desktop        | test    |
+| Mobilna verzija          | mobile         | test    |
+| Trener (mobilna verzija) | johndoe        | test    |
 
-1. Postaviti `.env` u root direktorij repozitorija:
-   - **Za pregled/predaju**: otpakovati priloženi `.env-tajne.zip` (šifra je predata odvojeno) — rezultat mora biti fajl `.env` u istom folderu gdje je i `docker-compose.yml`.
-   - **Za samostalno kloniranje repozitorija**: kopirati `.env.example` u `.env` i po potrebi prilagoditi vrijednosti (lozinke, JWT ključ, Stripe sandbox ključevi).
-   - Docker Compose vrijednosti poput hostname-a baze i RabbitMQ-a (`fitbook-db`, `fitbook-rabbitmq`) su eksplicitno postavljene u `docker-compose.yml` i imaju prednost nad onim što piše u `.env`, tako da isti `.env` radi i za lokalno pokretanje i unutar kontejnera.
-2. Iz root direktorija pokrenuti:
+## Pokretanje backenda
 
-   ```bash
-   docker compose up --build
-   ```
+Potreban je Docker. U root direktoriju repozitorija treba postojati `.env` fajl:
 
-3. Nakon što se svi servisi podignu:
-   - **API**: `http://localhost:5121` (port konfigurabilan preko `API_HOST_PORT` u `.env`)
-   - **Swagger UI**: `http://localhost:5121/swagger`
-   - **RabbitMQ Management**: `http://localhost:15672` (podrazumijevano `guest` / `guest`)
-   - **SQL Server**: `localhost,1435` (port konfigurabilan preko `SQL_HOST_PORT`)
+- za pregled rada: otpakovati priloženi `.env-tajne.zip` (šifra je predata uz rad)
+- inače: kopirati `.env.example` u `.env` i unijeti svoje vrijednosti
 
-4. Za zaustavljanje: `docker compose down` (dodati `-v` samo ako se namjerno želi obrisati sadržaj baze/RabbitMQ volumena).
+Zatim iz root direktorija:
 
-Svi servisi (`fitbook-api`, `fitbook-worker`, `fitbook-db`, `fitbook-rabbitmq`) definisani su u `docker-compose.yml` i imaju `restart: unless-stopped`, tako da povremeni "cold start" (npr. API prije nego baza završi inicijalizaciju) ne zahtijeva ručnu intervenciju.
+```
+docker compose up --build
+```
 
-### Email notifikacije (Worker)
+API se podiže na `http://localhost:5121`, Swagger na `http://localhost:5121/swagger`. Migracije i seed podaci se primjenjuju automatski pri startu, a seed uvijek kreira i nekoliko termina u budućnosti radi testiranja rezervacija.
 
-`FitBook.Worker` šalje stvarne email-ove preko SMTP-a za događaje poput registracije, potvrde/otkazivanja rezervacije, uspješnog plaćanja i podsjetnika prije treninga. Da bi ovaj dio radio end-to-end, u `.env` je potrebno postaviti validne SMTP kredencijale (`SMTP__Username`, `SMTP__Password`) — npr. Gmail nalog sa app-password-om. Bez toga, ostatak sistema (rezervacije, plaćanja, in-app notifikacije, izvještaji, preporuke) i dalje radi normalno; samo se slanje email-a neuspješno pokušava (uz retry sa eksponencijalnim backoff-om) i loguje kao upozorenje.
+Worker šalje email notifikacije preko SMTP kredencijala iz `.env` fajla. Ako oni nisu postavljeni, aplikacija normalno radi, samo se emailovi ne šalju.
 
-## Pokretanje lokalno (bez Dockera, za razvoj)
+Za razvoj bez Dockera: podići samo bazu i RabbitMQ (`docker compose up fitbook-db fitbook-rabbitmq`) pa pokrenuti `dotnet run --project FitBook.WebAPI`.
 
-1. Podići samo bazu i RabbitMQ iz Docker Compose-a: `docker compose up fitbook-db fitbook-rabbitmq`.
-2. Kopirati `.env.example` u `.env` u root direktoriju (isti fajl koriste i `FitBook.WebAPI` i `FitBook.Worker` kad se pokreću lokalno — oba čitaju `.env` iz najbližeg roditeljskog direktorija pri startu).
-3. Pokrenuti API: `dotnet run --project FitBook.WebAPI`
-4. Pokrenuti Worker (opciono, za email notifikacije): `dotnet run --project FitBook.Worker`
+## Desktop aplikacija (Windows)
 
-## Test kredencijali
+```
+cd UI/fitbook_desktop
+flutter pub get
+flutter run -d windows
+```
 
-Lozinka za sve seed korisničke naloge je `test`.
+Adresa API-ja je podrazumijevano `http://localhost:5121/api`, a može se promijeniti komandom:
 
-| Kontekst | Korisničko ime | Uloga |
-|---|---|---|
-| Admin / desktop pristup | `desktop` | Admin |
-| Klijent / mobilni pristup | `mobile` | User |
-| Trener | `johndoe` | Trainer |
-| Trener | `janesmith` | Trainer |
-| Trener | `mikejones` | Trainer |
+```
+flutter run -d windows --dart-define=API_BASE_URL=http://localhost:5121/api
+```
 
-## Podaci za testiranje
+Release build: `flutter build windows --release` (exe se generiše u `build/windows/x64/runner/Release/`).
 
-Baza se puni referentnim i historijskim podacima pri prvoj migraciji (kategorije, treninzi, treneri, sale, članarine, historijske rezervacije i plaćanja). Pošto se rad periodično pregleda, termini treninga koji moraju biti u budućnosti (za testiranje rezervacije, potvrde, otkazivanja i podsjetnika) se **ne** oslanjaju na fiksne datume — API pri svakom startu provjerava postoji li barem jedan zakazan termin u budućnosti i, ako ne postoji, automatski kreira nekoliko novih termina relativno na trenutni datum/vrijeme (uz jednu potvrđenu rezervaciju na najbližem terminu radi odmah testabilnog toka podsjetnika i historije rezervacija). Ovo je implementirano u `FitBook.Services/Database/DatabaseInitializer.cs`.
+## Mobilna aplikacija (Android)
 
-## Konfiguracija
+```
+cd UI/fitbook_mobile
+flutter pub get
+flutter run
+```
 
-Svi konfiguracijski podaci (connection string, JWT ključ, RabbitMQ, SMTP, Stripe sandbox ključevi) čitaju se isključivo iz `.env` fajla — ništa nije hardkodirano u kodu niti u `appsettings.json`. Vidi `.env.example` za kompletnu listu potrebnih vrijednosti.
+Podrazumijevana adresa API-ja je `http://10.0.2.2:5121/api` (Android emulator). Za fizički uređaj proslijediti IP računara:
+
+```
+flutter run --dart-define=API_BASE_URL=http://<IP-racunara>:5121/api
+```
+
+Release build: `flutter build apk --release` (APK se generiše u `build/app/outputs/flutter-apk/app-release.apk`).

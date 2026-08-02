@@ -89,7 +89,7 @@ public static class DatabaseInitializer
         await EnsureReminderScenarioAsync(dbContext, mobileUser, trainings, trainers, halls, now, logger, cancellationToken);
         await EnsurePendingConfirmScenarioAsync(dbContext, mobileUser, trainings, trainers, halls, now, logger, cancellationToken);
         await EnsureCompletableScenarioAsync(dbContext, mobileUser, trainings, trainers, halls, now, logger, cancellationToken);
-        await EnsureOpenBookableTermsAsync(dbContext, trainings, trainers, halls, now, logger, cancellationToken);
+        await EnsureOpenBookableTermsAsync(dbContext, mobileUser, trainings, trainers, halls, now, logger, cancellationToken);
 
         if (capacityFillUsers.Count > 0)
         {
@@ -330,16 +330,31 @@ public static class DatabaseInitializer
     }
 
     private static async Task EnsureOpenBookableTermsAsync(
-        FitBookDbContext dbContext, List<Training> trainings, List<Trainer> trainers, List<Hall> halls,
+        FitBookDbContext dbContext, UserAccount mobileUser, List<Training> trainings, List<Trainer> trainers, List<Hall> halls,
         DateTime now, ILogger logger, CancellationToken cancellationToken)
     {
         const int desiredOpenTerms = 2;
 
-        var openTermsCount = await dbContext.TrainingTerms.CountAsync(
+        var reservedTrainingIds = await dbContext.Reservations
+            .Where(r => r.UserAccountId == mobileUser.Id && r.Status != ReservationStatus.Cancelled)
+            .Select(r => r.TrainingTerm!.TrainingId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        var unreservedTrainings = trainings.Where(t => !reservedTrainingIds.Contains(t.Id)).ToList();
+
+        var openTermsQuery = dbContext.TrainingTerms.Where(
             t => t.Status == TrainingTermStatus.Scheduled
+                 && t.IsActive
                  && t.StartTimeUtc > now
-                 && !t.Reservations.Any(r => r.Status == ReservationStatus.Pending || r.Status == ReservationStatus.Confirmed),
-            cancellationToken);
+                 && !t.Reservations.Any(r => r.Status == ReservationStatus.Pending || r.Status == ReservationStatus.Confirmed));
+
+        if (unreservedTrainings.Count > 0)
+        {
+            openTermsQuery = openTermsQuery.Where(t => !reservedTrainingIds.Contains(t.TrainingId));
+        }
+
+        var openTermsCount = await openTermsQuery.CountAsync(cancellationToken);
 
         var missing = desiredOpenTerms - openTermsCount;
         if (missing <= 0)
@@ -347,10 +362,12 @@ public static class DatabaseInitializer
             return;
         }
 
+        var candidateTrainings = unreservedTrainings.Count > 0 ? unreservedTrainings : trainings;
+
         var offsets = new[] { TimeSpan.FromDays(9), TimeSpan.FromDays(16) };
         for (var i = 0; i < missing && i < offsets.Length; i++)
         {
-            var training = trainings[i % trainings.Count];
+            var training = candidateTrainings[i % candidateTrainings.Count];
             var term = BuildTerm(training, trainers[i % trainers.Count], halls[i % halls.Count], now.Add(offsets[i]), now);
             dbContext.TrainingTerms.Add(term);
         }
