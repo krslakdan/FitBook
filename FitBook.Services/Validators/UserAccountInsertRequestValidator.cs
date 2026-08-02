@@ -6,8 +6,6 @@ namespace FitBook.Services.Validators;
 
 public class UserAccountInsertRequestValidator : AbstractValidator<UserAccountInsertRequest>
 {
-    private const string PhonePattern = @"^(?=(?:.*\d){6,})\+?[0-9\s\-()]{6,20}$";
-
     public UserAccountInsertRequestValidator()
     {
         RuleFor(x => x.FirstName)
@@ -20,11 +18,12 @@ public class UserAccountInsertRequestValidator : AbstractValidator<UserAccountIn
             .MaximumLength(100).WithMessage("Prezime ne smije biti duže od 100 karaktera.");
         RuleFor(x => x.Email)
             .NotEmpty().WithMessage("Email adresa je obavezna.")
-            .EmailAddress().WithMessage("Email adresa nije u ispravnom formatu.")
+            .Matches(ValidationPatterns.Email)
+            .WithMessage("Email adresa mora biti u formatu: ime@domena.com.")
             .MaximumLength(200).WithMessage("Email adresa ne smije biti duža od 200 karaktera.");
         RuleFor(x => x.PhoneNumber)
             .NotEmpty().WithMessage("Broj telefona je obavezan.")
-            .Matches(PhonePattern)
+            .Matches(ValidationPatterns.Phone)
             .WithMessage("Broj telefona nije u ispravnom formatu.")
             .MaximumLength(30).WithMessage("Broj telefona ne smije biti duži od 30 karaktera.");
         RuleFor(x => x.Username)

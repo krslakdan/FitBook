@@ -9,7 +9,8 @@ public class ResetPasswordRequestValidator : AbstractValidator<ResetPasswordRequ
     {
         RuleFor(x => x.Email)
             .NotEmpty().WithMessage("E-mail adresa je obavezna.")
-            .EmailAddress().WithMessage("Unesite validnu e-mail adresu u formatu: ime@domena.com.")
+            .Matches(ValidationPatterns.Email)
+            .WithMessage("Unesite validnu e-mail adresu u formatu: ime@domena.com.")
             .MaximumLength(256).WithMessage("E-mail adresa ne smije biti duža od 256 karaktera.");
 
         RuleFor(x => x.Code)

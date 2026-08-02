@@ -22,7 +22,7 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  static final RegExp _emailPattern = RegExp(r'^[\w.\-+]+@([\w\-]+\.)+[\w\-]{2,}$');
+  static final RegExp _emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[A-Za-z]{2,}$');
   static final RegExp _phonePattern = RegExp(r'^(?=(?:.*\d){6,})\+?[0-9\s\-()]{6,20}$');
 
   final _formKey = GlobalKey<FormState>();

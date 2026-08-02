@@ -134,8 +134,11 @@ using (var scope = app.Services.CreateScope())
     await DatabaseInitializer.InitializeAsync(dbContext, startupLogger);
 }
 
-app.UseSwagger();
-app.UseSwaggerUI();
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseCors("FitBookCors");
 app.UseStaticFiles();
