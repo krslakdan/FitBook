@@ -167,8 +167,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
       icon: Icons.event_available_outlined,
       title: 'Izvještaj o rezervacijama',
       description:
-          'Pregled svih rezervacija u odabranom periodu, sa korisnikom, treningom, '
-          'terminom i statusom rezervacije.',
+          'Pregled svih rezervacija za termine u odabranom periodu, sa korisnikom, '
+          'treningom, terminom i statusom rezervacije.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -177,7 +177,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             children: [
               Expanded(
                 child: _DateField(
-                  label: 'Period od',
+                  label: 'Termini od',
                   value: _from,
                   onTap: () => _pickDate(
                     current: _from,
@@ -191,7 +191,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: _DateField(
-                  label: 'Period do',
+                  label: 'Termini do',
                   value: _to,
                   onTap: () => _pickDate(
                     current: _to ?? _from,
