@@ -237,9 +237,12 @@ public class UserMembershipService
             }
         }
 
+        var previousStatus = membership.Status;
         membership.Status = MembershipStatus.Cancelled;
         membership.IsActive = false;
         membership.UpdatedAtUtc = DateTime.UtcNow;
+
+        AddStatusAudit(membership, previousStatus, MembershipStatus.Cancelled, request.Reason);
 
         _dbContext.SystemNotifications.Add(new SystemNotification
         {
@@ -251,7 +254,21 @@ public class UserMembershipService
             CreatedAtUtc = DateTime.UtcNow,
         });
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (Exception ex) when (refundedAmount != null)
+        {
+            _logger.LogCritical(
+                ex,
+                "Membership {MembershipId} could not be cancelled after a successful Stripe refund of {RefundAmount} on PaymentIntent {PaymentIntentId}. Manual reconciliation required.",
+                membership.Id,
+                refundedAmount,
+                completedPayment!.PaymentIntentId);
+
+            throw new BusinessException("Povrat sredstava je izvršen, ali otkazivanje članarine nije snimljeno. Kontaktirajte administratora prije ponovnog pokušaja.");
+        }
 
         if (membership.UserAccount is not null)
         {
@@ -485,9 +502,12 @@ public class UserMembershipService
         {
             EnsureValidTransition(membership.Status, MembershipStatus.Active);
 
+            var previousStatus = membership.Status;
             membership.Status = MembershipStatus.Active;
             membership.IsActive = true;
             membership.StartDateUtc = DateTime.UtcNow;
+
+            AddStatusAudit(membership, previousStatus, MembershipStatus.Active, reason: null);
             if (membership.MembershipPackage != null)
             {
                 membership.EndDateUtc = DateTime.UtcNow.AddDays(membership.MembershipPackage.DurationDays);
@@ -569,6 +589,52 @@ public class UserMembershipService
         }
 
         _logger.LogInformation("Payment {PaymentId} marked as Failed.", payment.Id);
+    }
+
+    public async Task<List<UserMembershipStatusAuditResponse>> GetStatusAuditAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var membership = await _dbContext.UserMemberships
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted, cancellationToken);
+
+        if (membership is null)
+        {
+            throw new NotFoundException($"Članarina sa ID {id} nije pronađena.");
+        }
+
+        EnsureOwnerOrAdmin(membership, "Nemate pravo pregledati historiju ove članarine.");
+
+        return await _dbContext.UserMembershipStatusAudits
+            .AsNoTracking()
+            .Where(x => x.UserMembershipId == id)
+            .OrderBy(x => x.ChangedAtUtc)
+            .ThenBy(x => x.Id)
+            .Select(x => new UserMembershipStatusAuditResponse
+            {
+                Id = x.Id,
+                PreviousStatus = x.PreviousStatus,
+                NewStatus = x.NewStatus,
+                ChangedAtUtc = x.ChangedAtUtc,
+                Reason = x.Reason,
+                ChangedByUserFullName = x.ChangedByUserAccount == null
+                    ? "Sistem"
+                    : x.ChangedByUserAccount.FirstName + " " + x.ChangedByUserAccount.LastName,
+            })
+            .ToListAsync(cancellationToken);
+    }
+
+    private void AddStatusAudit(UserMembership membership, MembershipStatus previousStatus, MembershipStatus newStatus, string? reason)
+    {
+        _dbContext.UserMembershipStatusAudits.Add(new UserMembershipStatusAudit
+        {
+            UserMembershipId = membership.Id,
+            PreviousStatus = previousStatus,
+            NewStatus = newStatus,
+            ChangedAtUtc = DateTime.UtcNow,
+            Reason = reason,
+            ChangedByUserAccountId = _currentUserService.GetUserId(),
+            CreatedAtUtc = DateTime.UtcNow,
+        });
     }
 
     private void EnsureOwnerOrAdmin(UserMembership membership, string errorMessage)

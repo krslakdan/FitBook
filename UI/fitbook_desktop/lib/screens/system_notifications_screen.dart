@@ -102,11 +102,8 @@ class _SystemNotificationsScreenState extends State<SystemNotificationsScreen> {
           search: _searchController.text.trim(),
           notificationType: _notificationType,
           isRead: _isRead,
-          createdFromUtc: _createdFrom?.toUtc(),
-          createdToUtc: _createdTo
-              ?.add(const Duration(days: 1))
-              .subtract(const Duration(seconds: 1))
-              .toUtc(),
+          createdFromUtc: _createdFrom == null ? null : startOfDayUtc(_createdFrom!),
+          createdToUtc: _createdTo == null ? null : endOfDayUtc(_createdTo!),
           includeTotalCount: true,
         ),
       );

@@ -44,6 +44,11 @@ public class TrainerService
             query = query.Where(x => x.SpecializationId == search.SpecializationId.Value);
         }
 
+        if (search.UserAccountId.HasValue)
+        {
+            query = query.Where(x => x.UserAccountId == search.UserAccountId.Value);
+        }
+
         return query;
     }
 

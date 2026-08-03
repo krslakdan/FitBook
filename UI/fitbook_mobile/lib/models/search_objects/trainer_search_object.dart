@@ -9,11 +9,13 @@ class TrainerSearchObject extends BaseSearchObject {
     this.isActive,
     this.isAvailable,
     this.specializationId,
+    this.userAccountId,
   });
 
   final bool? isActive;
   final bool? isAvailable;
   final int? specializationId;
+  final int? userAccountId;
 
   @override
   Map<String, dynamic> toQueryParameters() {
@@ -21,6 +23,7 @@ class TrainerSearchObject extends BaseSearchObject {
     if (isActive != null) params['isActive'] = isActive;
     if (isAvailable != null) params['isAvailable'] = isAvailable;
     if (specializationId != null) params['specializationId'] = specializationId;
+    if (userAccountId != null) params['userAccountId'] = userAccountId;
     return params;
   }
 }

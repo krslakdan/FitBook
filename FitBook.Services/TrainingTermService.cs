@@ -129,6 +129,11 @@ public class TrainingTermService
             throw new BusinessException("Nije moguće promijeniti vrijeme termina ili trenera dok postoje aktivne rezervacije. Otkazite termin umjesto toga.");
         }
 
+        if (entity.IsActive && !request.IsActive && activeReservationCount > 0)
+        {
+            throw new BusinessException("Nije moguće deaktivirati termin dok postoje aktivne rezervacije. Otkazite termin umjesto toga.");
+        }
+
         await CheckTrainerOverlap(request.TrainerId, excludeTermId: id, request.StartTimeUtc, request.EndTimeUtc, cancellationToken);
         await CheckHallOverlap(request.HallId, excludeTermId: id, request.StartTimeUtc, request.EndTimeUtc, cancellationToken);
     }

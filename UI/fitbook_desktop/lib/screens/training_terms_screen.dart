@@ -94,11 +94,8 @@ class _TrainingTermsScreenState extends State<TrainingTermsScreen> {
           pageSize: _pageSize,
           search: _searchController.text.trim(),
           status: _status,
-          startFromUtc: _startFrom?.toUtc(),
-          startToUtc: _startTo
-              ?.add(const Duration(days: 1))
-              .subtract(const Duration(seconds: 1))
-              .toUtc(),
+          startFromUtc: _startFrom == null ? null : startOfDayUtc(_startFrom!),
+          startToUtc: _startTo == null ? null : endOfDayUtc(_startTo!),
           includeTotalCount: true,
         ),
       );

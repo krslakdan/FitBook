@@ -55,6 +55,17 @@ public class UserMembershipsController
         return base.Insert(request, cancellationToken);
     }
 
+    [HttpGet("{id:int}/audit")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<List<UserMembershipStatusAuditResponse>>> GetStatusAudit(int id, CancellationToken cancellationToken = default)
+    {
+        var result = await Service.GetStatusAuditAsync(id, cancellationToken);
+        return Ok(result);
+    }
+
     [HttpPost("{id:int}/cancel")]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]

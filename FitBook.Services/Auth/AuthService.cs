@@ -195,13 +195,21 @@ public class AuthService : IAuthService
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        await _emailNotificationPublisher.PublishAsync(new EmailNotificationMessage
+        try
         {
-            ToEmail = user.Email,
-            ToName = $"{user.FirstName} {user.LastName}",
-            Subject = "FitBook - kod za reset lozinke",
-            Body = $"Poštovani {user.FirstName}, Vaš kod za reset lozinke je: {code}. Kod važi {(int)PasswordResetCodeLifetime.TotalMinutes} minuta. Ako niste zatražili reset lozinke, zanemarite ovu poruku.",
-        }, cancellationToken);
+            await _emailNotificationPublisher.PublishOrThrowAsync(new EmailNotificationMessage
+            {
+                ToEmail = user.Email,
+                ToName = $"{user.FirstName} {user.LastName}",
+                Subject = "FitBook - kod za reset lozinke",
+                Body = $"Poštovani {user.FirstName}, Vaš kod za reset lozinke je: {code}. Kod važi {(int)PasswordResetCodeLifetime.TotalMinutes} minuta. Ako niste zatražili reset lozinke, zanemarite ovu poruku.",
+            }, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to queue the password reset code for user {UserId}.", user.Id);
+            throw new BusinessException("Slanje koda za reset lozinke trenutno nije moguće. Pokušajte ponovo za nekoliko minuta.");
+        }
 
         _logger.LogInformation("Password reset code generated for user {UserId}.", user.Id);
     }

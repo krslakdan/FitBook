@@ -9,14 +9,14 @@ public class ReservationsReportRequestValidator : AbstractValidator<Reservations
 
     public ReservationsReportRequestValidator()
     {
-        RuleFor(x => x.FromUtc)
-            .NotEmpty().WithMessage("Početak perioda je obavezan.");
+        RuleFor(x => x.FromDate)
+            .NotEqual(default(DateOnly)).WithMessage("Početni datum termina je obavezan.");
 
-        RuleFor(x => x.ToUtc)
-            .NotEmpty().WithMessage("Kraj perioda je obavezan.")
-            .Must((req, toUtc) => toUtc > req.FromUtc)
-            .WithMessage("Kraj perioda mora biti nakon početka perioda.")
-            .Must((req, toUtc) => (toUtc - req.FromUtc).TotalDays <= MaxRangeDays)
+        RuleFor(x => x.ToDate)
+            .NotEqual(default(DateOnly)).WithMessage("Krajnji datum termina je obavezan.")
+            .Must((req, toDate) => toDate >= req.FromDate)
+            .WithMessage("Krajnji datum termina ne može biti prije početnog datuma.")
+            .Must((req, toDate) => toDate.DayNumber - req.FromDate.DayNumber <= MaxRangeDays)
             .WithMessage($"Period izvještaja ne može biti duži od {MaxRangeDays} dana.");
     }
 }

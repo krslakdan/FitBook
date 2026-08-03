@@ -35,6 +35,7 @@ public partial class FitBookDbContext : DbContext
     public DbSet<TrainingTerm> TrainingTerms { get; set; }
     public DbSet<UserAccount> UserAccounts { get; set; }
     public DbSet<UserMembership> UserMemberships { get; set; }
+    public DbSet<UserMembershipStatusAudit> UserMembershipStatusAudits { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 

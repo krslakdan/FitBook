@@ -8,6 +8,7 @@ import '../models/common/page_result.dart';
 import '../models/enums/reservation_status.dart';
 import '../models/requests/reservation_cancel_request.dart';
 import '../models/responses/reservation_response.dart';
+import '../models/responses/reservation_status_audit_response.dart';
 import '../models/search_objects/reservation_search_object.dart';
 import '../providers/reservation_provider.dart';
 import '../theme/app_theme.dart';
@@ -48,6 +49,8 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
   ReservationStatus? _status;
   DateTime? _reservedFrom;
   DateTime? _reservedTo;
+  DateTime? _termFrom;
+  DateTime? _termTo;
 
   int _page = 1;
   int _pageSize = 10;
@@ -82,11 +85,10 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
           pageSize: _pageSize,
           search: _searchController.text.trim(),
           status: _status,
-          reservedFromUtc: _reservedFrom?.toUtc(),
-          reservedToUtc: _reservedTo
-              ?.add(const Duration(days: 1))
-              .subtract(const Duration(seconds: 1))
-              .toUtc(),
+          reservedFromUtc: _reservedFrom == null ? null : startOfDayUtc(_reservedFrom!),
+          reservedToUtc: _reservedTo == null ? null : endOfDayUtc(_reservedTo!),
+          termFromUtc: _termFrom == null ? null : startOfDayUtc(_termFrom!),
+          termToUtc: _termTo == null ? null : endOfDayUtc(_termTo!),
           includeTotalCount: true,
         ),
       );
@@ -123,6 +125,8 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
       _status = null;
       _reservedFrom = null;
       _reservedTo = null;
+      _termFrom = null;
+      _termTo = null;
     });
   }
 
@@ -328,14 +332,24 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
                   ),
                 ),
                 _dateFilterField(
-                  label: 'Datum od',
+                  label: 'Rezervisano od',
                   value: _reservedFrom,
                   onChanged: (value) => _reservedFrom = value,
                 ),
                 _dateFilterField(
-                  label: 'Datum do',
+                  label: 'Rezervisano do',
                   value: _reservedTo,
                   onChanged: (value) => _reservedTo = value,
+                ),
+                _dateFilterField(
+                  label: 'Termin od',
+                  value: _termFrom,
+                  onChanged: (value) => _termFrom = value,
+                ),
+                _dateFilterField(
+                  label: 'Termin do',
+                  value: _termTo,
+                  onChanged: (value) => _termTo = value,
                 ),
               ],
               actions: [
@@ -512,13 +526,89 @@ class _CancelReservationDialogState extends State<_CancelReservationDialog> {
   }
 }
 
-class _ReservationDetailsDialog extends StatelessWidget {
+class _ReservationDetailsDialog extends StatefulWidget {
   const _ReservationDetailsDialog({required this.reservation});
 
   final ReservationResponse reservation;
 
   @override
+  State<_ReservationDetailsDialog> createState() => _ReservationDetailsDialogState();
+}
+
+class _ReservationDetailsDialogState extends State<_ReservationDetailsDialog> {
+  List<ReservationStatusAuditResponse> _audits = const [];
+  bool _auditsLoading = true;
+  String? _auditsError;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAudits();
+  }
+
+  Future<void> _loadAudits() async {
+    setState(() {
+      _auditsLoading = true;
+      _auditsError = null;
+    });
+
+    try {
+      final result = await context.read<ReservationProvider>().getStatusAudit(
+        widget.reservation.id,
+      );
+      if (!mounted) return;
+      setState(() => _audits = result);
+    } on ApiClientException catch (e) {
+      if (!mounted) return;
+      setState(() => _auditsError = e.message);
+    } finally {
+      if (mounted) setState(() => _auditsLoading = false);
+    }
+  }
+
+  Widget _buildAuditsSection() {
+    if (_auditsLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_auditsError != null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Text(
+          _auditsError!,
+          style: const TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
+        ),
+      );
+    }
+
+    if (_audits.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8),
+        child: Text(
+          'Nema evidentiranih promjena statusa za ovu rezervaciju.',
+          style: TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < _audits.length; i++) ...[
+          if (i > 0) const Divider(height: 16),
+          _ReservationStatusAuditRow(audit: _audits[i]),
+        ],
+      ],
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final reservation = widget.reservation;
+
     return FormDialogShell(
       title: 'Detalji rezervacije',
       maxWidth: 560,
@@ -590,8 +680,59 @@ class _ReservationDetailsDialog extends StatelessWidget {
             label: 'Razlog otkazivanja',
             value: reservation.cancellationReason ?? '',
           ),
+          const SizedBox(height: 16),
+          const Divider(height: 1),
+          const SizedBox(height: 16),
+          const Text(
+            'Historija statusa',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 8),
+          _buildAuditsSection(),
         ],
       ),
+    );
+  }
+}
+
+class _ReservationStatusAuditRow extends StatelessWidget {
+  const _ReservationStatusAuditRow({required this.audit});
+
+  final ReservationStatusAuditResponse audit;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${reservationStatusLabel(audit.previousStatus)} → ${reservationStatusLabel(audit.newStatus)}',
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '${formatDateTime(audit.changedAtUtc)} — ${audit.changedByUserFullName}',
+                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
+              if (audit.reason != null && audit.reason!.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text(
+                  'Razlog: ${audit.reason}',
+                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                ),
+              ],
+            ],
+          ),
+        ),
+        StatusChip(
+          label: reservationStatusLabel(audit.newStatus),
+          tone: reservationStatusTone(audit.newStatus),
+        ),
+      ],
     );
   }
 }

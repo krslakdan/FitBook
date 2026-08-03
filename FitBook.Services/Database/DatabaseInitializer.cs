@@ -214,7 +214,7 @@ public static class DatabaseInitializer
         }
 
         var training = trainings[0];
-        var term = BuildTerm(training, trainers[0], halls[0], now.AddHours(20), now);
+        var term = await BuildFreeTermAsync(dbContext, training, trainers[0], halls[0], now.AddHours(20), now, cancellationToken);
         dbContext.TrainingTerms.Add(term);
         await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -252,7 +252,7 @@ public static class DatabaseInitializer
 
         var training = trainings[1 % trainings.Count];
         var trainer = trainers.Find(t => t.Id == 1) ?? trainers[0];
-        var term = BuildTerm(training, trainer, halls[1 % halls.Count], now.AddDays(3), now);
+        var term = await BuildFreeTermAsync(dbContext, training, trainer, halls[1 % halls.Count], now.AddDays(3), now, cancellationToken);
         dbContext.TrainingTerms.Add(term);
         await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -307,11 +307,12 @@ public static class DatabaseInitializer
         }
 
         var training = trainings[2 % trainings.Count];
-        var startTimeUtc = now.AddHours(-3);
-        var term = BuildTerm(training, trainers[2 % trainers.Count], halls[2 % halls.Count], startTimeUtc, now);
+        var term = await BuildFreeTermAsync(
+            dbContext, training, trainers[2 % trainers.Count], halls[2 % halls.Count], now.AddHours(-3), now, cancellationToken, stepDays: -1);
         dbContext.TrainingTerms.Add(term);
         await dbContext.SaveChangesAsync(cancellationToken);
 
+        var startTimeUtc = term.StartTimeUtc;
         var reservation = new Reservation
         {
             Status = ReservationStatus.Confirmed,
@@ -404,11 +405,12 @@ public static class DatabaseInitializer
 
         for (var i = 0; i < createdCount; i++)
         {
-            var term = BuildTerm(termsToCreate[i], trainers[i % trainers.Count], halls[i % halls.Count], now.Add(offsets[i]), now);
+            var term = await BuildFreeTermAsync(
+                dbContext, termsToCreate[i], trainers[i % trainers.Count], halls[i % halls.Count], now.Add(offsets[i]), now, cancellationToken);
             dbContext.TrainingTerms.Add(term);
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
         logger.LogInformation("Topped up open bookable training terms (added {Count}).", createdCount);
     }
   
@@ -428,12 +430,19 @@ public static class DatabaseInitializer
         }
 
         var training = trainings[3 % trainings.Count];
-        var term = BuildTerm(training, trainers[0], halls[0], now.AddDays(6), now);
-        term.MaxParticipants = capacityFillUsers.Count;
+        var term = await BuildFreeTermAsync(dbContext, training, trainers[0], halls[0], now.AddDays(6), now, cancellationToken);
+        var participants = capacityFillUsers.Take(term.MaxParticipants).ToList();
+
+        if (participants.Count == 0)
+        {
+            return;
+        }
+
+        term.MaxParticipants = participants.Count;
         dbContext.TrainingTerms.Add(term);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        foreach (var user in capacityFillUsers)
+        foreach (var user in participants)
         {
             var reservation = new Reservation
             {
@@ -452,7 +461,7 @@ public static class DatabaseInitializer
         await dbContext.SaveChangesAsync(cancellationToken);
         logger.LogInformation(
             "Seeded a fully booked training term ({Count} participants) starting at {StartTimeUtc:O}.",
-            capacityFillUsers.Count,
+            participants.Count,
             term.StartTimeUtc);
     }
 
@@ -480,6 +489,41 @@ public static class DatabaseInitializer
             ReservationId = reservationId,
             CreatedAtUtc = now,
         });
+    }
+
+    private static async Task<TrainingTerm> BuildFreeTermAsync(
+        FitBookDbContext dbContext,
+        Training training,
+        Trainer trainer,
+        Hall hall,
+        DateTime desiredStartUtc,
+        DateTime now,
+        CancellationToken cancellationToken,
+        int stepDays = 1)
+    {
+        var startTimeUtc = desiredStartUtc;
+
+        for (var attempt = 0; attempt < 30; attempt++)
+        {
+            var candidateStartUtc = startTimeUtc;
+            var candidateEndUtc = candidateStartUtc.AddMinutes(training.DurationMinutes);
+
+            var overlaps = await dbContext.TrainingTerms.AnyAsync(
+                t => t.Status != TrainingTermStatus.Cancelled
+                     && (t.TrainerId == trainer.Id || t.HallId == hall.Id)
+                     && t.StartTimeUtc < candidateEndUtc
+                     && candidateStartUtc < t.EndTimeUtc,
+                cancellationToken);
+
+            if (!overlaps)
+            {
+                break;
+            }
+
+            startTimeUtc = startTimeUtc.AddDays(stepDays);
+        }
+
+        return BuildTerm(training, trainer, hall, startTimeUtc, now);
     }
 
     private static TrainingTerm BuildTerm(Training training, Trainer trainer, Hall hall, DateTime startTimeUtc, DateTime now)

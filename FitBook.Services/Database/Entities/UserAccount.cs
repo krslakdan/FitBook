@@ -17,6 +17,7 @@ public class UserAccount : SoftDeletableEntity
     public ICollection<Reservation> Reservations { get; set; } = [];
     public ICollection<Reservation> ReservationStatusChanged { get; set; } = [];
     public ICollection<ReservationStatusAudit> ReservationStatusAudits { get; set; } = [];
+    public ICollection<UserMembershipStatusAudit> UserMembershipStatusAudits { get; set; } = [];
     public ICollection<SystemNotification> Notifications { get; set; } = [];
     public ICollection<UserMembership> Memberships { get; set; } = [];
     public ICollection<MembershipPayment> Payments { get; set; } = [];

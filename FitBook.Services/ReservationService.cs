@@ -37,6 +37,7 @@ public class ReservationService
     ];
 
     private static readonly ConcurrentDictionary<int, SemaphoreSlim> _termBookingLocks = new();
+    private static readonly ConcurrentDictionary<int, SemaphoreSlim> _userBookingLocks = new();
 
     private const decimal ReservationCreatedSignalWeight = 0.3m;
     private const decimal ReservationConfirmedSignalWeight = 0.5m;
@@ -64,32 +65,41 @@ public class ReservationService
 
     public override async Task<ReservationResponse> InsertAsync(ReservationInsertRequest request, CancellationToken cancellationToken = default)
     {
-        var termLock = _termBookingLocks.GetOrAdd(request.TrainingTermId, static _ => new SemaphoreSlim(1, 1));
-        await termLock.WaitAsync(cancellationToken);
+        var currentUserId = _currentUserService.GetRequiredUserId();
+        var userLock = _userBookingLocks.GetOrAdd(currentUserId, static _ => new SemaphoreSlim(1, 1));
+        await userLock.WaitAsync(cancellationToken);
         try
         {
-            return await base.InsertAsync(request, cancellationToken);
-        }
-        catch (DbUpdateException)
-        {
-            var currentUserId = _currentUserService.GetRequiredUserId();
-            var hasActiveReservation = await _dbContext.Reservations
-                .AnyAsync(
-                    r => r.UserAccountId == currentUserId
-                         && r.TrainingTermId == request.TrainingTermId
-                         && _activeStatuses.Contains(r.Status),
-                    cancellationToken);
-
-            if (hasActiveReservation)
+            var termLock = _termBookingLocks.GetOrAdd(request.TrainingTermId, static _ => new SemaphoreSlim(1, 1));
+            await termLock.WaitAsync(cancellationToken);
+            try
             {
-                throw new BusinessException("Već imate aktivnu rezervaciju za ovaj trening termin.");
+                return await base.InsertAsync(request, cancellationToken);
             }
+            catch (DbUpdateException)
+            {
+                var hasActiveReservation = await _dbContext.Reservations
+                    .AnyAsync(
+                        r => r.UserAccountId == currentUserId
+                             && r.TrainingTermId == request.TrainingTermId
+                             && _activeStatuses.Contains(r.Status),
+                        cancellationToken);
 
-            throw;
+                if (hasActiveReservation)
+                {
+                    throw new BusinessException("Već imate aktivnu rezervaciju za ovaj trening termin.");
+                }
+
+                throw;
+            }
+            finally
+            {
+                termLock.Release();
+            }
         }
         finally
         {
-            termLock.Release();
+            userLock.Release();
         }
     }
 
@@ -136,6 +146,16 @@ public class ReservationService
         if (search.ReservedToUtc.HasValue)
         {
             query = query.Where(r => r.ReservedAtUtc <= search.ReservedToUtc.Value);
+        }
+
+        if (search.TermFromUtc.HasValue)
+        {
+            query = query.Where(r => r.TrainingTerm != null && r.TrainingTerm.StartTimeUtc >= search.TermFromUtc.Value);
+        }
+
+        if (search.TermToUtc.HasValue)
+        {
+            query = query.Where(r => r.TrainingTerm != null && r.TrainingTerm.StartTimeUtc <= search.TermToUtc.Value);
         }
 
         return query;
@@ -653,6 +673,29 @@ public class ReservationService
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<List<ReservationStatusAuditResponse>> GetStatusAuditAsync(int id, CancellationToken cancellationToken = default)
+    {
+        await GetByIdAsync(id, cancellationToken);
+
+        return await _dbContext.ReservationStatusAudits
+            .AsNoTracking()
+            .Where(x => x.ReservationId == id)
+            .OrderBy(x => x.ChangedAtUtc)
+            .ThenBy(x => x.Id)
+            .Select(x => new ReservationStatusAuditResponse
+            {
+                Id = x.Id,
+                PreviousStatus = x.PreviousStatus,
+                NewStatus = x.NewStatus,
+                ChangedAtUtc = x.ChangedAtUtc,
+                Reason = x.Reason,
+                ChangedByUserFullName = x.ChangedByUserAccount == null
+                    ? "Sistem"
+                    : x.ChangedByUserAccount.FirstName + " " + x.ChangedByUserAccount.LastName,
+            })
+            .ToListAsync(cancellationToken);
     }
 
     private void AddStatusAudit(

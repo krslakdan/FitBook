@@ -10,4 +10,6 @@ public class ReservationSearchObject : BaseSearchObject
     public ReservationStatus? Status { get; set; }
     public DateTime? ReservedFromUtc { get; set; }
     public DateTime? ReservedToUtc { get; set; }
+    public DateTime? TermFromUtc { get; set; }
+    public DateTime? TermToUtc { get; set; }
 }
