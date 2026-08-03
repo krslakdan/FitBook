@@ -1,3 +1,4 @@
+using FitBook.Common.Services.Time;
 using FitBook.Model.Constants;
 using FitBook.Model.Enums;
 using FitBook.Model.Responses.Dashboard;
@@ -29,10 +30,12 @@ public class DashboardService : IDashboardService
         var days = Math.Clamp(reservationsDays, MinReservationsDays, MaxReservationsDays);
 
         var nowUtc = DateTime.UtcNow;
-        var todayUtc = nowUtc.Date;
-        var yesterdayUtc = todayUtc.AddDays(-1);
-        var monthStartUtc = new DateTime(todayUtc.Year, todayUtc.Month, 1, 0, 0, 0, DateTimeKind.Utc);
-        var previousMonthStartUtc = monthStartUtc.AddMonths(-1);
+        var localToday = LocalTimeProvider.LocalDate(nowUtc);
+        var localMonthStart = new DateTime(localToday.Year, localToday.Month, 1);
+        var todayUtc = LocalTimeProvider.ToUtc(localToday);
+        var yesterdayUtc = LocalTimeProvider.ToUtc(localToday.AddDays(-1));
+        var monthStartUtc = LocalTimeProvider.ToUtc(localMonthStart);
+        var previousMonthStartUtc = LocalTimeProvider.ToUtc(localMonthStart.AddMonths(-1));
         var thirtyDaysAgoUtc = nowUtc.AddDays(-30);
 
         var totalUsers = await _dbContext.UserAccounts
@@ -73,20 +76,23 @@ public class DashboardService : IDashboardService
 
         var revenueCurrency = PaymentConstants.Currency;
 
-        var seriesFromUtc = todayUtc.AddDays(-(days - 1));
-        var reservationsGrouped = await _dbContext.Reservations
+        var seriesFromLocal = localToday.AddDays(-(days - 1));
+        var seriesFromUtc = LocalTimeProvider.ToUtc(seriesFromLocal);
+        var reservedAtValues = await _dbContext.Reservations
             .Where(r => r.ReservedAtUtc >= seriesFromUtc)
-            .GroupBy(r => r.ReservedAtUtc.Date)
-            .Select(g => new { Date = g.Key, Count = g.Count() })
+            .Select(r => r.ReservedAtUtc)
             .ToListAsync(cancellationToken);
+        var reservationsGrouped = reservedAtValues
+            .GroupBy(LocalTimeProvider.LocalDate)
+            .ToDictionary(group => group.Key, group => group.Count());
         var reservationsPerDay = Enumerable.Range(0, days)
             .Select(offset =>
             {
-                var date = seriesFromUtc.AddDays(offset);
+                var localDay = seriesFromLocal.AddDays(offset);
                 return new DashboardDailyCount
                 {
-                    DateUtc = date,
-                    Count = reservationsGrouped.FirstOrDefault(g => g.Date == date)?.Count ?? 0,
+                    DateUtc = LocalTimeProvider.ToUtc(localDay),
+                    Count = reservationsGrouped.GetValueOrDefault(localDay, 0),
                 };
             })
             .ToList();

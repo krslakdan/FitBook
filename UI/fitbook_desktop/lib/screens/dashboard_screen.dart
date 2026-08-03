@@ -514,9 +514,10 @@ class _ReservationsChart extends StatelessWidget {
   static const _weekdayLabels = ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned'];
 
   String _bottomLabel(DateTime dateUtc) {
-    if (points.length <= 7) return _weekdayLabels[dateUtc.weekday - 1];
+    final date = dateUtc.toLocal();
+    if (points.length <= 7) return _weekdayLabels[date.weekday - 1];
     String two(int v) => v.toString().padLeft(2, '0');
-    return '${two(dateUtc.day)}.${two(dateUtc.month)}.';
+    return '${two(date.day)}.${two(date.month)}.';
   }
 
   @override
@@ -574,7 +575,7 @@ class _ReservationsChart extends StatelessWidget {
             getTooltipItems: (spots) => [
               for (final spot in spots)
                 LineTooltipItem(
-                  '${formatDate(points[spot.x.toInt()].dateUtc)}\n${spot.y.toInt()} rezervacija',
+                  '${formatDate(points[spot.x.toInt()].dateUtc.toLocal())}\n${spot.y.toInt()} rezervacija',
                   const TextStyle(
                     color: Colors.white,
                     fontSize: 12,

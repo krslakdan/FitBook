@@ -34,6 +34,22 @@ public static class LocalTimeProvider
         return TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(utc, DateTimeKind.Utc), Zone);
     }
 
+    public static DateTime ToUtc(DateTime local)
+    {
+        var unspecified = DateTime.SpecifyKind(local, DateTimeKind.Unspecified);
+        if (Zone.IsInvalidTime(unspecified))
+        {
+            unspecified = unspecified.AddHours(1);
+        }
+
+        return TimeZoneInfo.ConvertTimeToUtc(unspecified, Zone);
+    }
+
+    public static DateTime LocalDate(DateTime utc)
+    {
+        return ToLocal(utc).Date;
+    }
+
     public static string FormatDateTime(DateTime utc)
     {
         return ToLocal(utc).ToString("dd.MM.yyyy. HH:mm");
