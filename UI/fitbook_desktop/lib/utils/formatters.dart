@@ -19,7 +19,9 @@ String formatDateStamp(DateTime date) =>
 
 DateTime startOfDayUtc(DateTime day) => DateTime(day.year, day.month, day.day).toUtc();
 
-DateTime endOfDayUtc(DateTime day) => DateTime(day.year, day.month, day.day, 23, 59, 59).toUtc();
+DateTime endOfDayUtc(DateTime day) => DateTime(day.year, day.month, day.day + 1)
+    .subtract(const Duration(microseconds: 1))
+    .toUtc();
 
 int calendarDaysBetween(DateTime from, DateTime to) =>
     DateTime.utc(to.year, to.month, to.day)

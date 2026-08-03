@@ -3,6 +3,7 @@ import 'dart:convert';
 import '../models/requests/reservation_cancel_request.dart';
 import '../models/responses/reservation_response.dart';
 import '../models/responses/reservation_status_audit_response.dart';
+import '../utils/api_client_exception.dart';
 import 'base_read_provider.dart';
 
 class ReservationProvider extends BaseReadProvider<ReservationResponse> {
@@ -28,9 +29,13 @@ class ReservationProvider extends BaseReadProvider<ReservationResponse> {
 
   Future<List<ReservationStatusAuditResponse>> getStatusAudit(int id) async {
     final response = await apiGet('$endpoint/$id/audit');
-    final decoded = jsonDecode(response.body) as List<dynamic>;
-    return decoded
-        .map((item) => ReservationStatusAuditResponse.fromJson(item as Map<String, dynamic>))
-        .toList();
+    try {
+      final decoded = jsonDecode(response.body) as List<dynamic>;
+      return decoded
+          .map((item) => ReservationStatusAuditResponse.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } catch (_) {
+      throw ApiClientException('Historiju statusa nije moguće pročitati sa servera.');
+    }
   }
 }

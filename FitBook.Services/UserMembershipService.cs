@@ -180,6 +180,12 @@ public class UserMembershipService
         return Task.CompletedTask;
     }
 
+    protected override async Task AfterInsert(UserMembership entity, CancellationToken cancellationToken)
+    {
+        AddStatusAudit(entity, MembershipStatus.Pending, MembershipStatus.Pending, "Članarina je kreirana.");
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     public override Task<UserMembershipResponse> UpdateAsync(int id, UserMembershipUpdateRequest request, CancellationToken cancellationToken = default)
     {
         throw new BusinessException("Članarine se ne mogu mijenjati putem generičkog Update endpointa.");
@@ -215,6 +221,18 @@ public class UserMembershipService
             try
             {
                 refundedAmount = await _stripePaymentService.CreateRefundAsync(completedPayment.PaymentIntentId, cancellationToken);
+                completedPayment.Status = PaymentStatus.Refunded;
+                completedPayment.RefundedAtUtc = DateTime.UtcNow;
+                completedPayment.RefundAmount = refundedAmount;
+            }
+            catch (StripeException ex) when (ex.StripeError?.Code == "charge_already_refunded")
+            {
+                _logger.LogWarning(ex,
+                    "PaymentIntent {PaymentIntentId} is already fully refunded on Stripe while cancelling Membership {MembershipId}. Recording the refund locally and proceeding.",
+                    completedPayment.PaymentIntentId,
+                    membership.Id);
+
+                refundedAmount = completedPayment.Amount;
                 completedPayment.Status = PaymentStatus.Refunded;
                 completedPayment.RefundedAtUtc = DateTime.UtcNow;
                 completedPayment.RefundAmount = refundedAmount;
@@ -602,7 +620,10 @@ public class UserMembershipService
             throw new NotFoundException($"Članarina sa ID {id} nije pronađena.");
         }
 
-        EnsureOwnerOrAdmin(membership, "Nemate pravo pregledati historiju ove članarine.");
+        if (!_currentUserService.IsAdmin() && membership.UserAccountId != _currentUserService.GetRequiredUserId())
+        {
+            throw new NotFoundException($"Članarina sa ID {id} nije pronađena.");
+        }
 
         return await _dbContext.UserMembershipStatusAudits
             .AsNoTracking()
@@ -632,7 +653,7 @@ public class UserMembershipService
             NewStatus = newStatus,
             ChangedAtUtc = DateTime.UtcNow,
             Reason = reason,
-            ChangedByUserAccountId = _currentUserService.GetUserId(),
+            ChangedByUserAccountId = _currentUserService.GetRequiredUserId(),
             CreatedAtUtc = DateTime.UtcNow,
         });
     }

@@ -561,6 +561,9 @@ class _ReservationDetailsDialogState extends State<_ReservationDetailsDialog> {
     } on ApiClientException catch (e) {
       if (!mounted) return;
       setState(() => _auditsError = e.message);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _auditsError = 'Historiju statusa nije moguće učitati.');
     } finally {
       if (mounted) setState(() => _auditsLoading = false);
     }

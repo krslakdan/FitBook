@@ -173,6 +173,8 @@ public class AuthService : IAuthService
 
         var now = DateTime.UtcNow;
 
+        await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
         var activeTokens = await _context.PasswordResetTokens
             .Where(x => x.UserAccountId == user.Id && x.UsedAtUtc == null && x.ExpiresAtUtc > now)
             .ToListAsync(cancellationToken);
@@ -207,9 +209,11 @@ public class AuthService : IAuthService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to queue the password reset code for user {UserId}.", user.Id);
+            _logger.LogError(ex, "Failed to queue the password reset code for user {UserId}. Previously issued codes remain valid.", user.Id);
             throw new BusinessException("Slanje koda za reset lozinke trenutno nije moguće. Pokušajte ponovo za nekoliko minuta.");
         }
+
+        await transaction.CommitAsync(cancellationToken);
 
         _logger.LogInformation("Password reset code generated for user {UserId}.", user.Id);
     }

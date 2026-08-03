@@ -367,6 +367,9 @@ class _UserMembershipDetailsDialogState extends State<_UserMembershipDetailsDial
     } on ApiClientException catch (e) {
       if (!mounted) return;
       setState(() => _auditsError = e.message);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _auditsError = 'Historiju statusa nije moguće učitati.');
     } finally {
       if (mounted) setState(() => _auditsLoading = false);
     }
@@ -591,7 +594,9 @@ class _MembershipStatusAuditRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '${membershipStatusLabel(audit.previousStatus)} → ${membershipStatusLabel(audit.newStatus)}',
+                audit.previousStatus == audit.newStatus
+                    ? 'Kreirano — ${membershipStatusLabel(audit.newStatus)}'
+                    : '${membershipStatusLabel(audit.previousStatus)} → ${membershipStatusLabel(audit.newStatus)}',
                 style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 2),

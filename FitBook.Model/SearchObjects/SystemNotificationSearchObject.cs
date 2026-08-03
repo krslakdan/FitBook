@@ -9,4 +9,5 @@ public class SystemNotificationSearchObject : BaseSearchObject
     public int? UserAccountId { get; set; }
     public DateTime? CreatedFromUtc { get; set; }
     public DateTime? CreatedToUtc { get; set; }
+    public bool IncludeNewsNotifications { get; set; }
 }

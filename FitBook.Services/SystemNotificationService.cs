@@ -27,6 +27,11 @@ public class SystemNotificationService
         _currentUserService = currentUserService;
     }
 
+    protected override SystemNotificationSearchObject CreateDefaultSearch()
+    {
+        return new SystemNotificationSearchObject { IncludeNewsNotifications = true };
+    }
+
     protected override IQueryable<SystemNotification> ApplyFilter(IQueryable<SystemNotification> query, SystemNotificationSearchObject search)
     {
         if (!_currentUserService.IsAdmin())
@@ -38,7 +43,7 @@ public class SystemNotificationService
         {
             query = query.Where(x => x.UserAccountId == search.UserAccountId.Value);
         }
-        else if (!search.NotificationType.HasValue)
+        else if (!search.NotificationType.HasValue && !search.IncludeNewsNotifications)
         {
             query = query.Where(x => x.NotificationType != NotificationType.NewsPublished);
         }
