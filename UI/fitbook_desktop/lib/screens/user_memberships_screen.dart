@@ -10,6 +10,7 @@ import '../models/enums/payment_status.dart';
 import '../models/responses/membership_package_response.dart';
 import '../models/responses/membership_payment_response.dart';
 import '../models/responses/user_membership_response.dart';
+import '../models/responses/user_membership_status_audit_response.dart';
 import '../models/search_objects/membership_package_search_object.dart';
 import '../models/search_objects/membership_payment_search_object.dart';
 import '../models/search_objects/membership_search_object.dart';
@@ -340,10 +341,74 @@ class _UserMembershipDetailsDialogState extends State<_UserMembershipDetailsDial
   bool _paymentsLoading = true;
   String? _paymentsError;
 
+  List<UserMembershipStatusAuditResponse> _audits = const [];
+  bool _auditsLoading = true;
+  String? _auditsError;
+
   @override
   void initState() {
     super.initState();
     _loadPayments();
+    _loadAudits();
+  }
+
+  Future<void> _loadAudits() async {
+    setState(() {
+      _auditsLoading = true;
+      _auditsError = null;
+    });
+
+    try {
+      final result = await context.read<UserMembershipProvider>().getStatusAudit(
+        widget.membership.id,
+      );
+      if (!mounted) return;
+      setState(() => _audits = result);
+    } on ApiClientException catch (e) {
+      if (!mounted) return;
+      setState(() => _auditsError = e.message);
+    } finally {
+      if (mounted) setState(() => _auditsLoading = false);
+    }
+  }
+
+  Widget _buildAuditsSection() {
+    if (_auditsLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_auditsError != null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Text(
+          _auditsError!,
+          style: const TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
+        ),
+      );
+    }
+
+    if (_audits.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8),
+        child: Text(
+          'Nema evidentiranih promjena statusa za ovu članarinu.',
+          style: TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < _audits.length; i++) ...[
+          if (i > 0) const Divider(height: 16),
+          _MembershipStatusAuditRow(audit: _audits[i]),
+        ],
+      ],
+    );
   }
 
   Future<void> _loadPayments() async {
@@ -496,8 +561,59 @@ class _UserMembershipDetailsDialogState extends State<_UserMembershipDetailsDial
           ),
           const SizedBox(height: 8),
           _buildPaymentsSection(),
+          const SizedBox(height: 16),
+          const Divider(height: 1),
+          const SizedBox(height: 16),
+          const Text(
+            'Historija statusa',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 8),
+          _buildAuditsSection(),
         ],
       ),
+    );
+  }
+}
+
+class _MembershipStatusAuditRow extends StatelessWidget {
+  const _MembershipStatusAuditRow({required this.audit});
+
+  final UserMembershipStatusAuditResponse audit;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${membershipStatusLabel(audit.previousStatus)} → ${membershipStatusLabel(audit.newStatus)}',
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '${formatDateTime(audit.changedAtUtc)} — ${audit.changedByUserFullName}',
+                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
+              if (audit.reason != null && audit.reason!.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Text(
+                  'Razlog: ${audit.reason}',
+                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                ),
+              ],
+            ],
+          ),
+        ),
+        StatusChip(
+          label: membershipStatusLabel(audit.newStatus),
+          tone: membershipStatusTone(audit.newStatus),
+        ),
+      ],
     );
   }
 }

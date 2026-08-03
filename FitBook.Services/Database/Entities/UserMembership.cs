@@ -18,4 +18,5 @@ public class UserMembership : SoftDeletableEntity
     public MembershipPackage? MembershipPackage { get; set; }
 
     public ICollection<MembershipPayment> Payments { get; set; } = [];
+    public ICollection<UserMembershipStatusAudit> StatusAudits { get; set; } = [];
 }

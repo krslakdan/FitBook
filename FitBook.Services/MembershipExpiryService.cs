@@ -43,9 +43,20 @@ public class MembershipExpiryService : IMembershipExpiryService
 
         foreach (var membership in dueMemberships)
         {
+            var previousStatus = membership.Status;
             membership.Status = MembershipStatus.Expired;
             membership.IsActive = false;
             membership.UpdatedAtUtc = now;
+
+            _dbContext.UserMembershipStatusAudits.Add(new UserMembershipStatusAudit
+            {
+                UserMembershipId = membership.Id,
+                PreviousStatus = previousStatus,
+                NewStatus = MembershipStatus.Expired,
+                ChangedAtUtc = now,
+                Reason = "Automatski istek članarine.",
+                CreatedAtUtc = now,
+            });
 
             _dbContext.SystemNotifications.Add(new SystemNotification
             {

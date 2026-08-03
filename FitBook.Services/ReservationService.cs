@@ -665,6 +665,29 @@ public class ReservationService
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task<List<ReservationStatusAuditResponse>> GetStatusAuditAsync(int id, CancellationToken cancellationToken = default)
+    {
+        await GetByIdAsync(id, cancellationToken);
+
+        return await _dbContext.ReservationStatusAudits
+            .AsNoTracking()
+            .Where(x => x.ReservationId == id)
+            .OrderBy(x => x.ChangedAtUtc)
+            .ThenBy(x => x.Id)
+            .Select(x => new ReservationStatusAuditResponse
+            {
+                Id = x.Id,
+                PreviousStatus = x.PreviousStatus,
+                NewStatus = x.NewStatus,
+                ChangedAtUtc = x.ChangedAtUtc,
+                Reason = x.Reason,
+                ChangedByUserFullName = x.ChangedByUserAccount == null
+                    ? "Sistem"
+                    : x.ChangedByUserAccount.FirstName + " " + x.ChangedByUserAccount.LastName,
+            })
+            .ToListAsync(cancellationToken);
+    }
+
     private void AddStatusAudit(
         Reservation reservation,
         ReservationStatus previousStatus,

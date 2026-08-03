@@ -49,6 +49,7 @@ public class UserMembershipMappingConfig : IRegister
             .Ignore(destination => destination.UserAccount)
             .Ignore(destination => destination.MembershipPackage)
             .Ignore(destination => destination.Payments)
+            .Ignore(destination => destination.StatusAudits)
             .Ignore(destination => destination.CreatedAtUtc)
             .Ignore(destination => destination.UpdatedAtUtc);
 #pragma warning restore CS8603

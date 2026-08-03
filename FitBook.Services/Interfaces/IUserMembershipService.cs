@@ -11,4 +11,5 @@ public interface IUserMembershipService
     Task<UserMembershipResponse> CancelAsync(int id, UserMembershipCancelRequest request, CancellationToken cancellationToken = default);
     Task<CreatePaymentIntentResponse> CreatePaymentIntentAsync(int id, CancellationToken cancellationToken = default);
     Task<UserMembershipResponse> ConfirmPaymentAsync(int id, CancellationToken cancellationToken = default);
+    Task<List<UserMembershipStatusAuditResponse>> GetStatusAuditAsync(int id, CancellationToken cancellationToken = default);
 }
