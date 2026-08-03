@@ -95,6 +95,85 @@ public static class DatabaseInitializer
         {
             await EnsureFullCapacityScenarioAsync(dbContext, capacityFillUsers, trainings, trainers, halls, now, logger, cancellationToken);
         }
+
+        await EnsureStatusAuditBackfillAsync(dbContext, logger, cancellationToken);
+    }
+
+    private static async Task EnsureStatusAuditBackfillAsync(FitBookDbContext dbContext, ILogger logger, CancellationToken cancellationToken)
+    {
+        const string backfillReason = "Evidentirano pri inicijalizaciji demo podataka.";
+
+        var reservationsWithoutAudit = await dbContext.Reservations
+            .Where(r => r.Status != ReservationStatus.Pending && !r.StatusAudits.Any())
+            .ToListAsync(cancellationToken);
+
+        foreach (var reservation in reservationsWithoutAudit)
+        {
+            var changedAtUtc = reservation.Status switch
+            {
+                ReservationStatus.Confirmed => reservation.ConfirmedAtUtc,
+                ReservationStatus.Cancelled => reservation.CancelledAtUtc,
+                ReservationStatus.Completed => reservation.CompletedAtUtc,
+                _ => null,
+            } ?? reservation.UpdatedAtUtc ?? reservation.CreatedAtUtc;
+
+            dbContext.ReservationStatusAudits.Add(new ReservationStatusAudit
+            {
+                ReservationId = reservation.Id,
+                PreviousStatus = ReservationStatus.Pending,
+                NewStatus = reservation.Status,
+                ChangedAtUtc = changedAtUtc,
+                Reason = reservation.CancellationReason ?? backfillReason,
+                ChangedByUserAccountId = reservation.LastStatusChangedByUserAccountId ?? reservation.UserAccountId,
+                CreatedAtUtc = changedAtUtc,
+            });
+        }
+
+        var membershipsWithoutAudit = await dbContext.UserMemberships
+            .Where(m => !m.StatusAudits.Any())
+            .ToListAsync(cancellationToken);
+
+        foreach (var membership in membershipsWithoutAudit)
+        {
+            var createdAtUtc = membership.CreatedAtUtc;
+
+            dbContext.UserMembershipStatusAudits.Add(new UserMembershipStatusAudit
+            {
+                UserMembershipId = membership.Id,
+                PreviousStatus = MembershipStatus.Pending,
+                NewStatus = MembershipStatus.Pending,
+                ChangedAtUtc = createdAtUtc,
+                Reason = "Članarina je kreirana.",
+                CreatedAtUtc = createdAtUtc,
+            });
+
+            if (membership.Status != MembershipStatus.Pending)
+            {
+                var changedAtUtc = membership.UpdatedAtUtc ?? membership.StartDateUtc;
+
+                dbContext.UserMembershipStatusAudits.Add(new UserMembershipStatusAudit
+                {
+                    UserMembershipId = membership.Id,
+                    PreviousStatus = MembershipStatus.Pending,
+                    NewStatus = membership.Status,
+                    ChangedAtUtc = changedAtUtc < createdAtUtc ? createdAtUtc : changedAtUtc,
+                    Reason = backfillReason,
+                    CreatedAtUtc = changedAtUtc < createdAtUtc ? createdAtUtc : changedAtUtc,
+                });
+            }
+        }
+
+        if (reservationsWithoutAudit.Count == 0 && membershipsWithoutAudit.Count == 0)
+        {
+            return;
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation(
+            "Backfilled status audit history for {ReservationCount} reservation(s) and {MembershipCount} membership(s).",
+            reservationsWithoutAudit.Count,
+            membershipsWithoutAudit.Count);
     }
 
     private static async Task EnsureActiveMembershipAsync(FitBookDbContext dbContext, UserAccount mobileUser, DateTime now, ILogger logger, CancellationToken cancellationToken)
@@ -214,7 +293,16 @@ public static class DatabaseInitializer
         }
 
         var training = trainings[0];
-        var term = await BuildFreeTermAsync(dbContext, training, trainers[0], halls[0], now.AddHours(20), now, cancellationToken);
+        var term = await BuildFreeTermAsync(
+            dbContext, training, trainers[0], halls[0], now.AddHours(20), now, cancellationToken,
+            step: TimeSpan.FromMinutes(90), maxAttempts: 8, latestStartUtc: now.AddHours(23));
+
+        if (term is null)
+        {
+            logger.LogWarning("Skipping the reminder scenario: no free slot within the 24h reminder window.");
+            return;
+        }
+
         dbContext.TrainingTerms.Add(term);
         await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -253,6 +341,13 @@ public static class DatabaseInitializer
         var training = trainings[1 % trainings.Count];
         var trainer = trainers.Find(t => t.Id == 1) ?? trainers[0];
         var term = await BuildFreeTermAsync(dbContext, training, trainer, halls[1 % halls.Count], now.AddDays(3), now, cancellationToken);
+
+        if (term is null)
+        {
+            logger.LogWarning("Skipping the pending-confirmation scenario: no free slot found.");
+            return;
+        }
+
         dbContext.TrainingTerms.Add(term);
         await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -308,7 +403,15 @@ public static class DatabaseInitializer
 
         var training = trainings[2 % trainings.Count];
         var term = await BuildFreeTermAsync(
-            dbContext, training, trainers[2 % trainers.Count], halls[2 % halls.Count], now.AddHours(-3), now, cancellationToken, stepDays: -1);
+            dbContext, training, trainers[2 % trainers.Count], halls[2 % halls.Count], now.AddHours(-3), now, cancellationToken,
+            step: TimeSpan.FromDays(-1));
+
+        if (term is null)
+        {
+            logger.LogWarning("Skipping the completable scenario: no free slot found in the past.");
+            return;
+        }
+
         dbContext.TrainingTerms.Add(term);
         await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -403,15 +506,23 @@ public static class DatabaseInitializer
         var offsets = new[] { TimeSpan.FromDays(9), TimeSpan.FromDays(16), TimeSpan.FromDays(23) };
         var createdCount = Math.Min(termsToCreate.Count, offsets.Length);
 
+        var addedCount = 0;
         for (var i = 0; i < createdCount; i++)
         {
             var term = await BuildFreeTermAsync(
                 dbContext, termsToCreate[i], trainers[i % trainers.Count], halls[i % halls.Count], now.Add(offsets[i]), now, cancellationToken);
+
+            if (term is null)
+            {
+                continue;
+            }
+
             dbContext.TrainingTerms.Add(term);
             await dbContext.SaveChangesAsync(cancellationToken);
+            addedCount++;
         }
 
-        logger.LogInformation("Topped up open bookable training terms (added {Count}).", createdCount);
+        logger.LogInformation("Topped up open bookable training terms (added {Count}).", addedCount);
     }
   
     private static async Task EnsureFullCapacityScenarioAsync(
@@ -431,6 +542,13 @@ public static class DatabaseInitializer
 
         var training = trainings[3 % trainings.Count];
         var term = await BuildFreeTermAsync(dbContext, training, trainers[0], halls[0], now.AddDays(6), now, cancellationToken);
+
+        if (term is null)
+        {
+            logger.LogWarning("Skipping the full-capacity scenario: no free slot found.");
+            return;
+        }
+
         var participants = capacityFillUsers.Take(term.MaxParticipants).ToList();
 
         if (participants.Count == 0)
@@ -491,7 +609,7 @@ public static class DatabaseInitializer
         });
     }
 
-    private static async Task<TrainingTerm> BuildFreeTermAsync(
+    private static async Task<TrainingTerm?> BuildFreeTermAsync(
         FitBookDbContext dbContext,
         Training training,
         Trainer trainer,
@@ -499,12 +617,20 @@ public static class DatabaseInitializer
         DateTime desiredStartUtc,
         DateTime now,
         CancellationToken cancellationToken,
-        int stepDays = 1)
+        TimeSpan? step = null,
+        int maxAttempts = 30,
+        DateTime? latestStartUtc = null)
     {
+        var shift = step ?? TimeSpan.FromDays(1);
         var startTimeUtc = desiredStartUtc;
 
-        for (var attempt = 0; attempt < 30; attempt++)
+        for (var attempt = 0; attempt < maxAttempts; attempt++)
         {
+            if (latestStartUtc.HasValue && startTimeUtc > latestStartUtc.Value)
+            {
+                return null;
+            }
+
             var candidateStartUtc = startTimeUtc;
             var candidateEndUtc = candidateStartUtc.AddMinutes(training.DurationMinutes);
 
@@ -517,13 +643,13 @@ public static class DatabaseInitializer
 
             if (!overlaps)
             {
-                break;
+                return BuildTerm(training, trainer, hall, startTimeUtc, now);
             }
 
-            startTimeUtc = startTimeUtc.AddDays(stepDays);
+            startTimeUtc = startTimeUtc.Add(shift);
         }
 
-        return BuildTerm(training, trainer, hall, startTimeUtc, now);
+        return null;
     }
 
     private static TrainingTerm BuildTerm(Training training, Trainer trainer, Hall hall, DateTime startTimeUtc, DateTime now)

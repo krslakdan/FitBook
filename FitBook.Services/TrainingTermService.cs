@@ -119,14 +119,15 @@ public class TrainingTermService
             throw new BusinessException($"Maksimalan broj učesnika ({request.MaxParticipants}) ne može biti manji od broja postojećih aktivnih rezervacija ({activeReservationCount}) za ovaj termin.");
         }
 
-        bool timeOrTrainerChanged =
+        bool scheduleChanged =
             entity.StartTimeUtc != request.StartTimeUtc ||
             entity.EndTimeUtc != request.EndTimeUtc ||
-            entity.TrainerId != request.TrainerId;
+            entity.TrainerId != request.TrainerId ||
+            entity.HallId != request.HallId;
 
-        if (timeOrTrainerChanged && activeReservationCount > 0)
+        if (scheduleChanged && activeReservationCount > 0)
         {
-            throw new BusinessException("Nije moguće promijeniti vrijeme termina ili trenera dok postoje aktivne rezervacije. Otkazite termin umjesto toga.");
+            throw new BusinessException("Nije moguće promijeniti vrijeme termina, trenera ili salu dok postoje aktivne rezervacije. Otkazite termin umjesto toga.");
         }
 
         if (entity.IsActive && !request.IsActive && activeReservationCount > 0)
