@@ -65,13 +65,7 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
       }
       _trainerId = trainerId;
 
-      final termsResult = await termProvider.get(
-        filter: TrainingTermSearchObject(
-          trainerId: trainerId,
-          pageSize: 100,
-          includeTotalCount: true,
-        ),
-      );
+      final terms = await _loadAllTerms(termProvider, trainerId);
       final pendingResult = await reservationProvider.get(
         filter: ReservationSearchObject(
           trainerId: trainerId,
@@ -84,7 +78,7 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
       setState(() {
         _terms
           ..clear()
-          ..addAll(termsResult.items);
+          ..addAll(terms);
         _pendingCount = pendingResult.totalCount ?? 0;
         _loading = false;
       });
@@ -99,11 +93,33 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
 
   Future<int?> _resolveTrainerId(TrainerProvider provider, int? userId) async {
     if (userId == null) return null;
-    final result = await provider.get(filter: const TrainerSearchObject(pageSize: 100));
-    for (final trainer in result.items) {
-      if (trainer.userAccountId == userId) return trainer.id;
+    final result = await provider.get(
+      filter: TrainerSearchObject(userAccountId: userId, pageSize: 1),
+    );
+    return result.items.isEmpty ? null : result.items.first.id;
+  }
+
+  Future<List<TrainingTermResponse>> _loadAllTerms(
+    TrainingTermProvider provider,
+    int trainerId,
+  ) async {
+    final collected = <TrainingTermResponse>[];
+    var page = 1;
+    while (true) {
+      final result = await provider.get(
+        filter: TrainingTermSearchObject(
+          trainerId: trainerId,
+          page: page,
+          pageSize: 100,
+          includeTotalCount: true,
+        ),
+      );
+      collected.addAll(result.items);
+      final total = result.totalCount ?? collected.length;
+      if (result.items.isEmpty || collected.length >= total) break;
+      page++;
     }
-    return null;
+    return collected;
   }
 
   List<TrainingTermResponse> get _upcomingScheduled {

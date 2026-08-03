@@ -75,18 +75,12 @@ class _TrainerTermsScreenState extends State<TrainerTermsScreen>
       }
       _trainerId = trainerId;
 
-      final result = await termProvider.get(
-        filter: TrainingTermSearchObject(
-          trainerId: trainerId,
-          pageSize: 100,
-          includeTotalCount: true,
-        ),
-      );
+      final terms = await _loadAllTerms(termProvider, trainerId);
       if (!mounted) return;
       setState(() {
         _terms
           ..clear()
-          ..addAll(result.items);
+          ..addAll(terms);
         _loading = false;
       });
     } on ApiClientException catch (e) {
@@ -100,11 +94,33 @@ class _TrainerTermsScreenState extends State<TrainerTermsScreen>
 
   Future<int?> _resolveTrainerId(TrainerProvider provider, int? userId) async {
     if (userId == null) return null;
-    final result = await provider.get(filter: const TrainerSearchObject(pageSize: 100));
-    for (final trainer in result.items) {
-      if (trainer.userAccountId == userId) return trainer.id;
+    final result = await provider.get(
+      filter: TrainerSearchObject(userAccountId: userId, pageSize: 1),
+    );
+    return result.items.isEmpty ? null : result.items.first.id;
+  }
+
+  Future<List<TrainingTermResponse>> _loadAllTerms(
+    TrainingTermProvider provider,
+    int trainerId,
+  ) async {
+    final collected = <TrainingTermResponse>[];
+    var page = 1;
+    while (true) {
+      final result = await provider.get(
+        filter: TrainingTermSearchObject(
+          trainerId: trainerId,
+          page: page,
+          pageSize: 100,
+          includeTotalCount: true,
+        ),
+      );
+      collected.addAll(result.items);
+      final total = result.totalCount ?? collected.length;
+      if (result.items.isEmpty || collected.length >= total) break;
+      page++;
     }
-    return null;
+    return collected;
   }
 
   bool _matchesFilters(TrainingTermResponse term) {
