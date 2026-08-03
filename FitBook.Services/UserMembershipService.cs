@@ -251,7 +251,21 @@ public class UserMembershipService
             CreatedAtUtc = DateTime.UtcNow,
         });
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (Exception ex) when (refundedAmount != null)
+        {
+            _logger.LogCritical(
+                ex,
+                "Membership {MembershipId} could not be cancelled after a successful Stripe refund of {RefundAmount} on PaymentIntent {PaymentIntentId}. Manual reconciliation required.",
+                membership.Id,
+                refundedAmount,
+                completedPayment!.PaymentIntentId);
+
+            throw new BusinessException("Povrat sredstava je izvršen, ali otkazivanje članarine nije snimljeno. Kontaktirajte administratora prije ponovnog pokušaja.");
+        }
 
         if (membership.UserAccount is not null)
         {

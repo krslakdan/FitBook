@@ -24,19 +24,7 @@ public sealed class RabbitMqEmailNotificationPublisher : IEmailNotificationPubli
     {
         try
         {
-            var channel = GetOrCreateChannel();
-            var body = JsonSerializer.SerializeToUtf8Bytes(message);
-
-            lock (_connectionLock)
-            {
-                var properties = channel.CreateBasicProperties();
-                properties.Persistent = true;
-                properties.ContentType = "application/json";
-
-                channel.BasicPublish(exchange: string.Empty, routingKey: _options.NotificationQueue, basicProperties: properties, body: body);
-            }
-
-            _logger.LogInformation("Published email notification to queue {Queue} for {ToEmail}.", _options.NotificationQueue, message.ToEmail);
+            Publish(message);
         }
         catch (Exception ex)
         {
@@ -44,6 +32,29 @@ public sealed class RabbitMqEmailNotificationPublisher : IEmailNotificationPubli
         }
 
         return Task.CompletedTask;
+    }
+
+    public Task PublishOrThrowAsync(EmailNotificationMessage message, CancellationToken cancellationToken = default)
+    {
+        Publish(message);
+        return Task.CompletedTask;
+    }
+
+    private void Publish(EmailNotificationMessage message)
+    {
+        var channel = GetOrCreateChannel();
+        var body = JsonSerializer.SerializeToUtf8Bytes(message);
+
+        lock (_connectionLock)
+        {
+            var properties = channel.CreateBasicProperties();
+            properties.Persistent = true;
+            properties.ContentType = "application/json";
+
+            channel.BasicPublish(exchange: string.Empty, routingKey: _options.NotificationQueue, basicProperties: properties, body: body);
+        }
+
+        _logger.LogInformation("Published email notification to queue {Queue} for {ToEmail}.", _options.NotificationQueue, message.ToEmail);
     }
 
     private IModel GetOrCreateChannel()
