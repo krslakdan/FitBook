@@ -57,17 +57,10 @@ class _TrainerNavigationState extends State<TrainerNavigation> {
     if (userId == null) return;
     try {
       final result = await context.read<TrainerProvider>().get(
-        filter: const TrainerSearchObject(pageSize: 100),
+        filter: TrainerSearchObject(userAccountId: userId, pageSize: 1),
       );
-      int? trainerId;
-      for (final trainer in result.items) {
-        if (trainer.userAccountId == userId) {
-          trainerId = trainer.id;
-          break;
-        }
-      }
-      if (!mounted || trainerId == null) return;
-      _trainerId = trainerId;
+      if (!mounted || result.items.isEmpty) return;
+      _trainerId = result.items.first.id;
       await _refreshPending();
     } on ApiClientException {
       return;

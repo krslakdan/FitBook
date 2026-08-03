@@ -103,24 +103,15 @@ class _TrainerTermsScreenState extends State<TrainerTermsScreen>
   Future<List<TrainingTermResponse>> _loadAllTerms(
     TrainingTermProvider provider,
     int trainerId,
-  ) async {
-    final collected = <TrainingTermResponse>[];
-    var page = 1;
-    while (true) {
-      final result = await provider.get(
-        filter: TrainingTermSearchObject(
-          trainerId: trainerId,
-          page: page,
-          pageSize: 100,
-          includeTotalCount: true,
-        ),
-      );
-      collected.addAll(result.items);
-      final total = result.totalCount ?? collected.length;
-      if (result.items.isEmpty || collected.length >= total) break;
-      page++;
-    }
-    return collected;
+  ) {
+    return provider.getAllPages(
+      filterForPage: (page) => TrainingTermSearchObject(
+        trainerId: trainerId,
+        page: page,
+        pageSize: 100,
+      ),
+      idOf: (term) => term.id,
+    );
   }
 
   bool _matchesFilters(TrainingTermResponse term) {

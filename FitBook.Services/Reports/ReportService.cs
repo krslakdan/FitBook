@@ -36,10 +36,10 @@ public class ReportService : IReportService
         await _reservationsReportValidator.ValidateAndThrowAsync(request, cancellationToken);
 
         var fromUtc = LocalTimeProvider.ToUtc(request.FromDate.ToDateTime(TimeOnly.MinValue));
-        var toUtc = LocalTimeProvider.ToUtc(request.ToDate.ToDateTime(new TimeOnly(23, 59, 59)));
+        var toExclusiveUtc = LocalTimeProvider.ToUtc(request.ToDate.AddDays(1).ToDateTime(TimeOnly.MinValue));
 
         var rows = await _dbContext.Reservations
-            .Where(r => r.TrainingTerm!.StartTimeUtc >= fromUtc && r.TrainingTerm.StartTimeUtc <= toUtc)
+            .Where(r => r.TrainingTerm!.StartTimeUtc >= fromUtc && r.TrainingTerm.StartTimeUtc < toExclusiveUtc)
             .OrderBy(r => r.TrainingTerm!.StartTimeUtc)
             .ThenBy(r => r.UserAccount!.LastName)
             .ThenBy(r => r.Id)
