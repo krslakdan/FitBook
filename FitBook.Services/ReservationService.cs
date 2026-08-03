@@ -37,6 +37,7 @@ public class ReservationService
     ];
 
     private static readonly ConcurrentDictionary<int, SemaphoreSlim> _termBookingLocks = new();
+    private static readonly ConcurrentDictionary<int, SemaphoreSlim> _userBookingLocks = new();
 
     private const decimal ReservationCreatedSignalWeight = 0.3m;
     private const decimal ReservationConfirmedSignalWeight = 0.5m;
@@ -64,32 +65,41 @@ public class ReservationService
 
     public override async Task<ReservationResponse> InsertAsync(ReservationInsertRequest request, CancellationToken cancellationToken = default)
     {
-        var termLock = _termBookingLocks.GetOrAdd(request.TrainingTermId, static _ => new SemaphoreSlim(1, 1));
-        await termLock.WaitAsync(cancellationToken);
+        var currentUserId = _currentUserService.GetRequiredUserId();
+        var userLock = _userBookingLocks.GetOrAdd(currentUserId, static _ => new SemaphoreSlim(1, 1));
+        await userLock.WaitAsync(cancellationToken);
         try
         {
-            return await base.InsertAsync(request, cancellationToken);
-        }
-        catch (DbUpdateException)
-        {
-            var currentUserId = _currentUserService.GetRequiredUserId();
-            var hasActiveReservation = await _dbContext.Reservations
-                .AnyAsync(
-                    r => r.UserAccountId == currentUserId
-                         && r.TrainingTermId == request.TrainingTermId
-                         && _activeStatuses.Contains(r.Status),
-                    cancellationToken);
-
-            if (hasActiveReservation)
+            var termLock = _termBookingLocks.GetOrAdd(request.TrainingTermId, static _ => new SemaphoreSlim(1, 1));
+            await termLock.WaitAsync(cancellationToken);
+            try
             {
-                throw new BusinessException("Već imate aktivnu rezervaciju za ovaj trening termin.");
+                return await base.InsertAsync(request, cancellationToken);
             }
+            catch (DbUpdateException)
+            {
+                var hasActiveReservation = await _dbContext.Reservations
+                    .AnyAsync(
+                        r => r.UserAccountId == currentUserId
+                             && r.TrainingTermId == request.TrainingTermId
+                             && _activeStatuses.Contains(r.Status),
+                        cancellationToken);
 
-            throw;
+                if (hasActiveReservation)
+                {
+                    throw new BusinessException("Već imate aktivnu rezervaciju za ovaj trening termin.");
+                }
+
+                throw;
+            }
+            finally
+            {
+                termLock.Release();
+            }
         }
         finally
         {
-            termLock.Release();
+            userLock.Release();
         }
     }
 
