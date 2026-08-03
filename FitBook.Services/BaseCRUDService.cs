@@ -127,7 +127,7 @@ public abstract class BaseCRUDService<TEntity, TResponse, TSearch, TInsertReques
 
     protected virtual IQueryable<TEntity> BuildWriteQuery()
     {
-        return ApplyQueryPipeline(BuildQuery(), new TSearch(), applySearch: false);
+        return ApplyQueryPipeline(BuildQuery(), CreateDefaultSearch(), applySearch: false);
     }
 
     protected virtual Task<TEntity?> FindWriteEntityByIdAsync(int id, CancellationToken cancellationToken)

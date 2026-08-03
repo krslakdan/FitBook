@@ -28,8 +28,7 @@ public abstract class BaseReadService<TEntity, TResponse, TSearch> : IBaseReadSe
 
     public virtual async Task<TResponse> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
-        var search = new TSearch();
-        var query = ApplyQueryPipeline(BuildQuery(), search, applySearch: false);
+        var query = ApplyQueryPipeline(BuildQuery(), CreateDefaultSearch(), applySearch: false);
 
         var response = await query
             .AsNoTracking()
@@ -84,6 +83,11 @@ public abstract class BaseReadService<TEntity, TResponse, TSearch> : IBaseReadSe
     protected virtual IQueryable<TEntity> BuildQuery()
     {
         return _dbContext.Set<TEntity>().AsQueryable();
+    }
+
+    protected virtual TSearch CreateDefaultSearch()
+    {
+        return new TSearch();
     }
 
     protected virtual IOrderedQueryable<TEntity> ApplyOrdering(IQueryable<TEntity> query, TSearch search)

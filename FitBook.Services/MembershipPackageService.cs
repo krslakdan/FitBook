@@ -31,6 +31,11 @@ public class MembershipPackageService
         _currentUserService = currentUserService;
     }
 
+    protected override MembershipPackageSearchObject CreateDefaultSearch()
+    {
+        return new MembershipPackageSearchObject { IncludeInactive = true };
+    }
+
     protected override IQueryable<MembershipPackage> ApplyFilter(IQueryable<MembershipPackage> query, MembershipPackageSearchObject search)
     {
         
