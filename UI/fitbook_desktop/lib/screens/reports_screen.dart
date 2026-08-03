@@ -59,12 +59,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   String? _validateRange() {
     if (_from == null || _to == null) {
-      return 'Odaberite početak i kraj perioda.';
+      return 'Odaberite početni i krajnji datum termina.';
     }
     if (_to!.isBefore(_from!)) {
-      return 'Kraj perioda mora biti nakon početka perioda.';
+      return 'Krajnji datum termina ne može biti prije početnog datuma.';
     }
-    if (_to!.difference(_from!).inDays > _maxRangeDays) {
+    if (calendarDaysBetween(_from!, _to!) > _maxRangeDays) {
       return 'Period izvještaja ne može biti duži od $_maxRangeDays dana.';
     }
     return null;
@@ -75,13 +75,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
     required Future<Uint8List> Function() fetch,
     required String successLabel,
   }) async {
+    final bytes = await fetch();
+
     final location = await getSaveLocation(
       suggestedName: suggestedName,
       acceptedTypeGroups: const [_pdfTypeGroup],
     );
     if (location == null) return;
 
-    final bytes = await fetch();
     final path = location.path.toLowerCase().endsWith('.pdf')
         ? location.path
         : '${location.path}.pdf';
@@ -96,17 +97,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
     setState(() => _rangeError = error);
     if (error != null) return;
 
-    final fromUtc = DateTime(_from!.year, _from!.month, _from!.day).toUtc();
-    final toUtc = DateTime(_to!.year, _to!.month, _to!.day, 23, 59, 59).toUtc();
-    final dateStamp = '${_from!.year}${_two(_from!.month)}${_two(_from!.day)}-'
-        '${_to!.year}${_two(_to!.month)}${_two(_to!.day)}';
+    final dateStamp = '${formatDateStamp(_from!)}-${formatDateStamp(_to!)}';
 
     setState(() => _downloadingReservations = true);
     try {
       await _saveReport(
         suggestedName: 'izvjestaj-rezervacije-$dateStamp.pdf',
         fetch: () => context.read<ReportProvider>().getReservationsReport(
-          ReservationsReportRequest(fromUtc: fromUtc, toUtc: toUtc),
+          ReservationsReportRequest(fromDate: _from!, toDate: _to!),
         ),
         successLabel: 'Izvještaj o rezervacijama',
       );
@@ -120,8 +118,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Future<void> _downloadPopularityReport() async {
-    final now = DateTime.now();
-    final dateStamp = '${now.year}${_two(now.month)}${_two(now.day)}';
+    final dateStamp = formatDateStamp(DateTime.now());
 
     setState(() => _downloadingPopularity = true);
     try {
@@ -138,8 +135,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
       if (mounted) setState(() => _downloadingPopularity = false);
     }
   }
-
-  static String _two(int value) => value.toString().padLeft(2, '0');
 
   @override
   Widget build(BuildContext context) {

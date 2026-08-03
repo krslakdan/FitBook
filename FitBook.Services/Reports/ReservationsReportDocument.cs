@@ -9,15 +9,15 @@ namespace FitBook.Services.Reports;
 internal class ReservationsReportDocument : IDocument
 {
     private readonly List<ReservationReportRow> _rows;
-    private readonly DateTime _fromUtc;
-    private readonly DateTime _toUtc;
+    private readonly DateOnly _fromDate;
+    private readonly DateOnly _toDate;
     private readonly DateTime _generatedAtUtc;
 
-    public ReservationsReportDocument(List<ReservationReportRow> rows, DateTime fromUtc, DateTime toUtc, DateTime generatedAtUtc)
+    public ReservationsReportDocument(List<ReservationReportRow> rows, DateOnly fromDate, DateOnly toDate, DateTime generatedAtUtc)
     {
         _rows = rows;
-        _fromUtc = fromUtc;
-        _toUtc = toUtc;
+        _fromDate = fromDate;
+        _toDate = toDate;
         _generatedAtUtc = generatedAtUtc;
     }
 
@@ -35,14 +35,16 @@ internal class ReservationsReportDocument : IDocument
             page.Header().Column(column =>
             {
                 column.Item().Text("Izvještaj o rezervacijama").FontSize(18).Bold();
-                column.Item().Text($"Period termina: {LocalTimeProvider.FormatDate(_fromUtc)} – {LocalTimeProvider.FormatDate(_toUtc)}").FontSize(11);
+                column.Item().Text($"Termini u periodu: {_fromDate:dd.MM.yyyy.} – {_toDate:dd.MM.yyyy.}").FontSize(11);
+                column.Item().Text("Prikazane su sve rezervacije čiji termin pada u odabrani period, bez obzira na to kada su kreirane.")
+                    .FontSize(9).Italic().FontColor(Colors.Grey.Darken1);
             });
 
             page.Content().PaddingVertical(10).Column(column =>
             {
                 if (_rows.Count == 0)
                 {
-                    column.Item().Text("Nema rezervacija u odabranom periodu.");
+                    column.Item().Text("Nema rezervacija za termine u odabranom periodu.");
                     return;
                 }
 
@@ -63,7 +65,7 @@ internal class ReservationsReportDocument : IDocument
                         header.Cell().Element(HeaderCellStyle).Text("Trening");
                         header.Cell().Element(HeaderCellStyle).Text("Termin");
                         header.Cell().Element(HeaderCellStyle).Text("Status");
-                        header.Cell().Element(HeaderCellStyle).Text("Datum rezervacije");
+                        header.Cell().Element(HeaderCellStyle).Text("Rezervisano");
                     });
 
                     foreach (var row in _rows)

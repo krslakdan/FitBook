@@ -10,3 +10,18 @@ String formatDate(DateTime? date) {
   if (date == null) return '';
   return '${_two(date.day)}.${_two(date.month)}.${date.year}.';
 }
+
+String formatIsoDate(DateTime date) =>
+    '${date.year.toString().padLeft(4, '0')}-${_two(date.month)}-${_two(date.day)}';
+
+String formatDateStamp(DateTime date) =>
+    '${date.year.toString().padLeft(4, '0')}${_two(date.month)}${_two(date.day)}';
+
+DateTime startOfDayUtc(DateTime day) => DateTime(day.year, day.month, day.day).toUtc();
+
+DateTime endOfDayUtc(DateTime day) => DateTime(day.year, day.month, day.day, 23, 59, 59).toUtc();
+
+int calendarDaysBetween(DateTime from, DateTime to) =>
+    DateTime.utc(to.year, to.month, to.day)
+        .difference(DateTime.utc(from.year, from.month, from.day))
+        .inDays;
