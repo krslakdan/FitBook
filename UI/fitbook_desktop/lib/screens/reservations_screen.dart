@@ -49,6 +49,8 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
   ReservationStatus? _status;
   DateTime? _reservedFrom;
   DateTime? _reservedTo;
+  DateTime? _termFrom;
+  DateTime? _termTo;
 
   int _page = 1;
   int _pageSize = 10;
@@ -83,11 +85,10 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
           pageSize: _pageSize,
           search: _searchController.text.trim(),
           status: _status,
-          reservedFromUtc: _reservedFrom?.toUtc(),
-          reservedToUtc: _reservedTo
-              ?.add(const Duration(days: 1))
-              .subtract(const Duration(seconds: 1))
-              .toUtc(),
+          reservedFromUtc: _reservedFrom == null ? null : startOfDayUtc(_reservedFrom!),
+          reservedToUtc: _reservedTo == null ? null : endOfDayUtc(_reservedTo!),
+          termFromUtc: _termFrom == null ? null : startOfDayUtc(_termFrom!),
+          termToUtc: _termTo == null ? null : endOfDayUtc(_termTo!),
           includeTotalCount: true,
         ),
       );
@@ -124,6 +125,8 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
       _status = null;
       _reservedFrom = null;
       _reservedTo = null;
+      _termFrom = null;
+      _termTo = null;
     });
   }
 
@@ -329,14 +332,24 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
                   ),
                 ),
                 _dateFilterField(
-                  label: 'Datum od',
+                  label: 'Rezervisano od',
                   value: _reservedFrom,
                   onChanged: (value) => _reservedFrom = value,
                 ),
                 _dateFilterField(
-                  label: 'Datum do',
+                  label: 'Rezervisano do',
                   value: _reservedTo,
                   onChanged: (value) => _reservedTo = value,
+                ),
+                _dateFilterField(
+                  label: 'Termin od',
+                  value: _termFrom,
+                  onChanged: (value) => _termFrom = value,
+                ),
+                _dateFilterField(
+                  label: 'Termin do',
+                  value: _termTo,
+                  onChanged: (value) => _termTo = value,
                 ),
               ],
               actions: [

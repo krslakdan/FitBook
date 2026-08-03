@@ -148,6 +148,16 @@ public class ReservationService
             query = query.Where(r => r.ReservedAtUtc <= search.ReservedToUtc.Value);
         }
 
+        if (search.TermFromUtc.HasValue)
+        {
+            query = query.Where(r => r.TrainingTerm != null && r.TrainingTerm.StartTimeUtc >= search.TermFromUtc.Value);
+        }
+
+        if (search.TermToUtc.HasValue)
+        {
+            query = query.Where(r => r.TrainingTerm != null && r.TrainingTerm.StartTimeUtc <= search.TermToUtc.Value);
+        }
+
         return query;
     }
 

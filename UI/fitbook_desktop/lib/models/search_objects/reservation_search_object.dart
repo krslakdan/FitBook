@@ -12,6 +12,8 @@ class ReservationSearchObject extends BaseSearchObject {
     this.status,
     this.reservedFromUtc,
     this.reservedToUtc,
+    this.termFromUtc,
+    this.termToUtc,
   });
 
   final int? userAccountId;
@@ -19,6 +21,8 @@ class ReservationSearchObject extends BaseSearchObject {
   final ReservationStatus? status;
   final DateTime? reservedFromUtc;
   final DateTime? reservedToUtc;
+  final DateTime? termFromUtc;
+  final DateTime? termToUtc;
 
   @override
   Map<String, dynamic> toQueryParameters() {
@@ -30,6 +34,8 @@ class ReservationSearchObject extends BaseSearchObject {
       params['reservedFromUtc'] = reservedFromUtc!.toIso8601String();
     }
     if (reservedToUtc != null) params['reservedToUtc'] = reservedToUtc!.toIso8601String();
+    if (termFromUtc != null) params['termFromUtc'] = termFromUtc!.toIso8601String();
+    if (termToUtc != null) params['termToUtc'] = termToUtc!.toIso8601String();
     return params;
   }
 }
