@@ -37,8 +37,7 @@ public class JwtTokenService : IJwtTokenService
             new Claim(ClaimNames.Email, user.Email),
             new Claim(ClaimNames.FirstName, user.FirstName),
             new Claim(ClaimNames.LastName, user.LastName),
-            new Claim(ClaimNames.Role, user.Role),
-            new Claim(ClaimNames.IsActive, user.IsActive.ToString())
+            new Claim(ClaimNames.Role, user.Role)
         };
 
         var token = new JwtSecurityToken(
