@@ -1,5 +1,7 @@
 using FitBook.Model.Enums;
+using FitBook.Model.Responses;
 using FitBook.Model.Responses.Recommendations;
+using FitBook.Model.SearchObjects;
 using FitBook.Services.Database;
 using FitBook.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -29,9 +31,12 @@ public class RecommendationService : IRecommendationService
         _logger = logger;
     }
 
-    public async Task<List<TrainingRecommendationResponse>> GetRecommendationsForCurrentUserAsync(int maxResults = DefaultRecommendations, CancellationToken cancellationToken = default)
+    public async Task<PageResult<TrainingRecommendationResponse>> GetRecommendationsForCurrentUserAsync(
+        RecommendationSearchObject? search = null,
+        CancellationToken cancellationToken = default)
     {
-        var take = Math.Clamp(maxResults <= 0 ? DefaultRecommendations : maxResults, 1, MaxRecommendations);
+        var searchObject = search ?? new RecommendationSearchObject();
+        var pageSize = Math.Min(searchObject.PageSize, RecommendationSearchObject.MaxRecommendationsPageSize);
         var userId = _currentUserService.GetRequiredUserId();
 
         var categoryAffinities = await _dbContext.RecommendationSignals
@@ -102,16 +107,29 @@ public class RecommendationService : IRecommendationService
             });
         }
 
-        var result = recommendations
+        var ranked = recommendations
             .OrderByDescending(r => r.Score)
-            .Take(take)
+            .ToList();
+
+        var items = ranked
+            .Skip((searchObject.Page - 1) * pageSize)
+            .Take(pageSize)
             .ToList();
 
         _logger.LogInformation(
             "Generated {Count} training recommendations for user {UserId}.",
-            result.Count,
+            items.Count,
             userId);
 
-        return result;
+        return new PageResult<TrainingRecommendationResponse>
+        {
+            Page = searchObject.Page,
+            PageSize = pageSize,
+            TotalCount = searchObject.IncludeTotalCount == true ? ranked.Count : null,
+            TotalPages = searchObject.IncludeTotalCount == true
+                ? (ranked.Count == 0 ? 0 : (int)Math.Ceiling(ranked.Count / (double)pageSize))
+                : null,
+            Items = items
+        };
     }
 }

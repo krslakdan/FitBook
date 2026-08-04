@@ -1,8 +1,12 @@
+using FitBook.Model.Responses;
 using FitBook.Model.Responses.Recommendations;
+using FitBook.Model.SearchObjects;
 
 namespace FitBook.Services.Interfaces;
 
 public interface IRecommendationService
 {
-    Task<List<TrainingRecommendationResponse>> GetRecommendationsForCurrentUserAsync(int maxResults = 5, CancellationToken cancellationToken = default);
+    Task<PageResult<TrainingRecommendationResponse>> GetRecommendationsForCurrentUserAsync(
+        RecommendationSearchObject? search = null,
+        CancellationToken cancellationToken = default);
 }

@@ -1,4 +1,5 @@
 using FitBook.Model.Requests.UserMemberships;
+using FitBook.Model.Responses;
 using FitBook.Model.Responses.Payments;
 using FitBook.Model.Responses.UserMemberships;
 using FitBook.Model.SearchObjects;
@@ -11,5 +12,5 @@ public interface IUserMembershipService
     Task<UserMembershipResponse> CancelAsync(int id, UserMembershipCancelRequest request, CancellationToken cancellationToken = default);
     Task<CreatePaymentIntentResponse> CreatePaymentIntentAsync(int id, CancellationToken cancellationToken = default);
     Task<UserMembershipResponse> ConfirmPaymentAsync(int id, CancellationToken cancellationToken = default);
-    Task<List<UserMembershipStatusAuditResponse>> GetStatusAuditAsync(int id, CancellationToken cancellationToken = default);
+    Task<PageResult<UserMembershipStatusAuditResponse>> GetStatusAuditAsync(int id, BaseSearchObject? search = null, CancellationToken cancellationToken = default);
 }

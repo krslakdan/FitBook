@@ -1,4 +1,6 @@
+using FitBook.Model.Responses;
 using FitBook.Model.Responses.Recommendations;
+using FitBook.Model.SearchObjects;
 using FitBook.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,11 +20,12 @@ public class RecommendationsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<TrainingRecommendationResponse>>> GetRecommendations(
-        [FromQuery] int maxResults = 5,
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<PageResult<TrainingRecommendationResponse>>> GetRecommendations(
+        [FromQuery] RecommendationSearchObject searchObject,
         CancellationToken cancellationToken = default)
     {
-        var result = await _recommendationService.GetRecommendationsForCurrentUserAsync(maxResults, cancellationToken);
+        var result = await _recommendationService.GetRecommendationsForCurrentUserAsync(searchObject, cancellationToken);
         return Ok(result);
     }
 }

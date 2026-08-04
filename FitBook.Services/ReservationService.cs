@@ -4,6 +4,7 @@ using FitBook.Model.Enums;
 using FitBook.Model.Exceptions;
 using FitBook.Model.Messages;
 using FitBook.Model.Requests.Reservations;
+using FitBook.Model.Responses;
 using FitBook.Model.Responses.Reservations;
 using FitBook.Model.SearchObjects;
 using FitBook.Services.Database;
@@ -688,15 +689,32 @@ public class ReservationService
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<List<ReservationStatusAuditResponse>> GetStatusAuditAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<PageResult<ReservationStatusAuditResponse>> GetStatusAuditAsync(int id, BaseSearchObject? search = null, CancellationToken cancellationToken = default)
     {
         await GetByIdAsync(id, cancellationToken);
 
-        return await _dbContext.ReservationStatusAudits
+        var searchObject = search ?? new BaseSearchObject();
+
+        var query = _dbContext.ReservationStatusAudits
             .AsNoTracking()
-            .Where(x => x.ReservationId == id)
+            .Where(x => x.ReservationId == id);
+
+        int? totalCount = null;
+        int? totalPages = null;
+
+        if (searchObject.IncludeTotalCount == true)
+        {
+            totalCount = await query.CountAsync(cancellationToken);
+            totalPages = totalCount == 0
+                ? 0
+                : (int)Math.Ceiling(totalCount.Value / (double)searchObject.PageSize);
+        }
+
+        var items = await query
             .OrderBy(x => x.ChangedAtUtc)
             .ThenBy(x => x.Id)
+            .Skip((searchObject.Page - 1) * searchObject.PageSize)
+            .Take(searchObject.PageSize)
             .Select(x => new ReservationStatusAuditResponse
             {
                 Id = x.Id,
@@ -709,6 +727,15 @@ public class ReservationService
                     : x.ChangedByUserAccount.FirstName + " " + x.ChangedByUserAccount.LastName,
             })
             .ToListAsync(cancellationToken);
+
+        return new PageResult<ReservationStatusAuditResponse>
+        {
+            Page = searchObject.Page,
+            PageSize = searchObject.PageSize,
+            TotalCount = totalCount,
+            TotalPages = totalPages,
+            Items = items
+        };
     }
 
     private void AddStatusAudit(
