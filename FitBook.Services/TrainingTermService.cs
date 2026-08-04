@@ -82,7 +82,25 @@ public class TrainingTermService
             query = query.Where(x => x.StartTimeUtc <= search.StartToUtc.Value);
         }
 
+        if (search.IsUpcoming.HasValue)
+        {
+            var nowUtc = DateTime.UtcNow;
+            query = search.IsUpcoming.Value
+                ? query.Where(x => x.Status == TrainingTermStatus.Scheduled && x.EndTimeUtc > nowUtc)
+                : query.Where(x => x.Status != TrainingTermStatus.Scheduled || x.EndTimeUtc <= nowUtc);
+        }
+
         return query;
+    }
+
+    protected override IOrderedQueryable<TrainingTerm> ApplyOrdering(IQueryable<TrainingTerm> query, TrainingTermSearchObject search)
+    {
+        return search.IsUpcoming switch
+        {
+            true => query.OrderBy(x => x.StartTimeUtc).ThenBy(x => x.Id),
+            false => query.OrderByDescending(x => x.StartTimeUtc).ThenByDescending(x => x.Id),
+            _ => base.ApplyOrdering(query, search),
+        };
     }
 
     protected override IQueryable<TrainingTerm> ApplySearch(IQueryable<TrainingTerm> query, TrainingTermSearchObject search)

@@ -3,11 +3,17 @@ import 'package:provider/provider.dart';
 
 import '../layouts/master_screen.dart';
 import '../models/enums/training_term_status.dart';
+import '../models/responses/hall_response.dart';
+import '../models/responses/training_response.dart';
 import '../models/responses/training_term_response.dart';
+import '../models/search_objects/hall_search_object.dart';
 import '../models/search_objects/trainer_search_object.dart';
+import '../models/search_objects/training_search_object.dart';
 import '../models/search_objects/training_term_search_object.dart';
 import '../providers/auth_provider.dart';
+import '../providers/hall_provider.dart';
 import '../providers/trainer_provider.dart';
+import '../providers/training_provider.dart';
 import '../providers/training_term_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/api_client_exception.dart';
@@ -24,7 +30,22 @@ class TrainerTermsScreen extends StatefulWidget {
 
 class _TrainerTermsScreenState extends State<TrainerTermsScreen>
     with SingleTickerProviderStateMixin {
-  final List<TrainingTermResponse> _terms = [];
+  static const _pageSize = 20;
+  static const _optionsPageSize = 100;
+
+  final List<TrainingTermResponse> _activeTerms = [];
+  final List<TrainingTermResponse> _pastTerms = [];
+  List<({int id, String name})> _trainingOptions = const [];
+  List<({int id, String name})> _hallOptions = const [];
+
+  int _activePage = 1;
+  int _pastPage = 1;
+  int _activeTotal = 0;
+  int _pastTotal = 0;
+  bool _activeLoaded = false;
+  bool _pastLoaded = false;
+  bool _loadingMore = false;
+
   int? _trainerId;
   bool _loading = true;
   bool _noProfile = false;
@@ -38,16 +59,23 @@ class _TrainerTermsScreenState extends State<TrainerTermsScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(() {
-      if (mounted && _tabController.index != _tabIndex) {
-        setState(() => _tabIndex = _tabController.index);
-      }
-    });
+    _tabController.addListener(_onTabChanged);
     _load();
+  }
+
+  void _onTabChanged() {
+    if (!mounted || _tabController.index == _tabIndex) return;
+    setState(() => _tabIndex = _tabController.index);
+
+    final upcoming = _tabIndex == 0;
+    if (upcoming ? !_activeLoaded : !_pastLoaded) {
+      _loadTerms(upcoming: upcoming, reset: true);
+    }
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     super.dispose();
   }
@@ -61,7 +89,6 @@ class _TrainerTermsScreenState extends State<TrainerTermsScreen>
 
     final userId = context.read<AuthProvider>().currentUserId;
     final trainerProvider = context.read<TrainerProvider>();
-    final termProvider = context.read<TrainingTermProvider>();
 
     try {
       final trainerId = _trainerId ?? await _resolveTrainerId(trainerProvider, userId);
@@ -75,19 +102,110 @@ class _TrainerTermsScreenState extends State<TrainerTermsScreen>
       }
       _trainerId = trainerId;
 
-      final terms = await _loadAllTerms(termProvider, trainerId);
+      if (_trainingOptions.isEmpty || _hallOptions.isEmpty) {
+        await _loadFilterOptions();
+      }
+
+      _activeLoaded = false;
+      _pastLoaded = false;
+
+      await _loadTerms(upcoming: _tabIndex == 0, reset: true);
+    } on ApiClientException catch (e) {
       if (!mounted) return;
       setState(() {
-        _terms
-          ..clear()
-          ..addAll(terms);
+        _error = e.message;
         _loading = false;
+      });
+    }
+  }
+
+  Future<void> _loadFilterOptions() async {
+    final trainingProvider = context.read<TrainingProvider>();
+    final hallProvider = context.read<HallProvider>();
+
+    final results = await Future.wait([
+      trainingProvider.get(
+        filter: const TrainingSearchObject(page: 1, pageSize: _optionsPageSize, isActive: true),
+      ),
+      hallProvider.get(
+        filter: const HallSearchObject(page: 1, pageSize: _optionsPageSize, isActive: true),
+      ),
+    ]);
+
+    if (!mounted) return;
+
+    _trainingOptions = results[0]
+        .items
+        .cast<TrainingResponse>()
+        .map((t) => (id: t.id, name: t.name))
+        .toList()
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+
+    _hallOptions = results[1]
+        .items
+        .cast<HallResponse>()
+        .map((h) => (id: h.id, name: h.name))
+        .toList()
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+  }
+
+  Future<void> _loadTerms({required bool upcoming, bool reset = false}) async {
+    final trainerId = _trainerId;
+    if (trainerId == null) return;
+
+    final page = reset ? 1 : (upcoming ? _activePage + 1 : _pastPage + 1);
+
+    setState(() {
+      if (reset) {
+        _loading = true;
+        _error = null;
+      } else {
+        _loadingMore = true;
+      }
+    });
+
+    try {
+      final result = await context.read<TrainingTermProvider>().get(
+        filter: TrainingTermSearchObject(
+          trainerId: trainerId,
+          isUpcoming: upcoming,
+          trainingId: _filters.trainingId,
+          hallId: _filters.hallId,
+          startFromUtc: _filters.day?.toUtc(),
+          startToUtc: _filters.day?.add(const Duration(days: 1)).toUtc(),
+          page: page,
+          pageSize: _pageSize,
+          includeTotalCount: true,
+        ),
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        final target = upcoming ? _activeTerms : _pastTerms;
+        if (reset) target.clear();
+        target.addAll(result.items);
+
+        if (upcoming) {
+          _activePage = page;
+          _activeTotal = result.totalCount ?? target.length;
+          _activeLoaded = true;
+        } else {
+          _pastPage = page;
+          _pastTotal = result.totalCount ?? target.length;
+          _pastLoaded = true;
+        }
+
+        _loading = false;
+        _loadingMore = false;
+        _error = null;
       });
     } on ApiClientException catch (e) {
       if (!mounted) return;
       setState(() {
         _error = e.message;
         _loading = false;
+        _loadingMore = false;
       });
     }
   }
@@ -100,90 +218,30 @@ class _TrainerTermsScreenState extends State<TrainerTermsScreen>
     return result.items.isEmpty ? null : result.items.first.id;
   }
 
-  Future<List<TrainingTermResponse>> _loadAllTerms(
-    TrainingTermProvider provider,
-    int trainerId,
-  ) {
-    return provider.getAllPages(
-      filterForPage: (page) => TrainingTermSearchObject(
-        trainerId: trainerId,
-        page: page,
-        pageSize: 100,
-      ),
-      idOf: (term) => term.id,
-    );
-  }
-
-  bool _matchesFilters(TrainingTermResponse term) {
-    if (_filters.trainingId != null && term.trainingId != _filters.trainingId) {
-      return false;
-    }
-    if (_filters.hallId != null && term.hallId != _filters.hallId) {
-      return false;
-    }
-    if (_filters.day != null) {
-      final start = term.startTimeUtc.toLocal();
-      final day = _filters.day!;
-      if (start.year != day.year || start.month != day.month || start.day != day.day) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  List<TrainingTermResponse> get _activeTerms {
-    final now = DateTime.now().toUtc();
-    return _terms
-        .where((t) =>
-            _matchesFilters(t) &&
-            t.status == TrainingTermStatus.scheduled &&
-            t.endTimeUtc.isAfter(now))
-        .toList()
-      ..sort((a, b) => a.startTimeUtc.compareTo(b.startTimeUtc));
-  }
-
-  List<TrainingTermResponse> get _pastTerms {
-    final now = DateTime.now().toUtc();
-    return _terms
-        .where((t) =>
-            _matchesFilters(t) &&
-            !(t.status == TrainingTermStatus.scheduled && t.endTimeUtc.isAfter(now)))
-        .toList()
-      ..sort((a, b) => b.startTimeUtc.compareTo(a.startTimeUtc));
-  }
-
-  List<({int id, String name})> get _trainingOptions {
-    final map = <int, String>{};
-    for (final t in _terms) {
-      map[t.trainingId] = t.trainingName;
-    }
-    final list = map.entries.map((e) => (id: e.key, name: e.value)).toList()
-      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-    return list;
-  }
-
-  List<({int id, String name})> get _hallOptions {
-    final map = <int, String>{};
-    for (final t in _terms) {
-      map[t.hallId] = t.hallName;
-    }
-    final list = map.entries.map((e) => (id: e.key, name: e.value)).toList()
-      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-    return list;
-  }
-
   String? _trainingName(int id) {
-    for (final t in _terms) {
-      if (t.trainingId == id) return t.trainingName;
+    for (final option in _trainingOptions) {
+      if (option.id == id) return option.name;
     }
     return null;
   }
 
   String? _hallName(int id) {
-    for (final t in _terms) {
-      if (t.hallId == id) return t.hallName;
+    for (final option in _hallOptions) {
+      if (option.id == id) return option.name;
     }
     return null;
+  }
+
+  void _applyFilters(_TermFilters filters) {
+    setState(() {
+      _filters = filters;
+      _activeLoaded = false;
+      _pastLoaded = false;
+      _activeTerms.clear();
+      _pastTerms.clear();
+    });
+
+    _loadTerms(upcoming: _tabIndex == 0, reset: true);
   }
 
   Future<void> _openFilterSheet() async {
@@ -201,7 +259,7 @@ class _TrainerTermsScreenState extends State<TrainerTermsScreen>
       ),
     );
     if (result == null || !mounted) return;
-    setState(() => _filters = result);
+    _applyFilters(result);
   }
 
   Future<void> _openTerm(TrainingTermResponse term) async {
@@ -214,7 +272,7 @@ class _TrainerTermsScreenState extends State<TrainerTermsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final hasData = _terms.isNotEmpty;
+    final hasData = _activeLoaded || _pastLoaded;
     return MasterScreen(
       title: 'Moji termini',
       subtitle: 'Termini koje vodite',
@@ -223,10 +281,10 @@ class _TrainerTermsScreenState extends State<TrainerTermsScreen>
           _TermsTabBar(
             controller: _tabController,
             currentIndex: _tabIndex,
-            activeCount: hasData ? _activeTerms.length : null,
-            pastCount: hasData ? _pastTerms.length : null,
+            activeCount: _activeLoaded ? _activeTotal : null,
+            pastCount: _pastLoaded ? _pastTotal : null,
           ),
-          if (hasData) _buildFilterBar(),
+          if (hasData && !_noProfile) _buildFilterBar(),
           Expanded(child: _buildBody()),
         ],
       ),
@@ -239,21 +297,21 @@ class _TrainerTermsScreenState extends State<TrainerTermsScreen>
       chips.add(_FilterChip(
         label: _trainingName(_filters.trainingId!) ?? 'Trening',
         icon: Icons.fitness_center,
-        onRemove: () => setState(() => _filters = _filters.copyWith(clearTraining: true)),
+        onRemove: () => _applyFilters(_filters.copyWith(clearTraining: true)),
       ));
     }
     if (_filters.hallId != null) {
       chips.add(_FilterChip(
         label: _hallName(_filters.hallId!) ?? 'Sala',
         icon: Icons.place_outlined,
-        onRemove: () => setState(() => _filters = _filters.copyWith(clearHall: true)),
+        onRemove: () => _applyFilters(_filters.copyWith(clearHall: true)),
       ));
     }
     if (_filters.day != null) {
       chips.add(_FilterChip(
         label: formatDate(_filters.day),
         icon: Icons.event_outlined,
-        onRemove: () => setState(() => _filters = _filters.copyWith(clearDay: true)),
+        onRemove: () => _applyFilters(_filters.copyWith(clearDay: true)),
       ));
     }
 
@@ -287,7 +345,7 @@ class _TrainerTermsScreenState extends State<TrainerTermsScreen>
   }
 
   Widget _buildBody() {
-    if (_loading && _terms.isEmpty) {
+    if (_loading && !_activeLoaded && !_pastLoaded) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -299,7 +357,7 @@ class _TrainerTermsScreenState extends State<TrainerTermsScreen>
       );
     }
 
-    if (_error != null && _terms.isEmpty) {
+    if (_error != null && !_activeLoaded && !_pastLoaded) {
       return _ErrorView(message: _error!, onRetry: _load);
     }
 
@@ -308,12 +366,16 @@ class _TrainerTermsScreenState extends State<TrainerTermsScreen>
       children: [
         _buildList(
           items: _activeTerms,
+          hasMore: _activeTerms.length < _activeTotal,
+          upcoming: true,
           emptyIcon: Icons.event_available_outlined,
           emptyTitle: 'Nema aktivnih termina',
           emptyMessage: 'Ovdje se prikazuju zakazani termini koji još nisu prošli.',
         ),
         _buildList(
           items: _pastTerms,
+          hasMore: _pastTerms.length < _pastTotal,
+          upcoming: false,
           emptyIcon: Icons.history,
           emptyTitle: 'Nema prošlih termina',
           emptyMessage: 'Ovdje se prikazuju završeni, otkazani i istekli termini.',
@@ -322,8 +384,25 @@ class _TrainerTermsScreenState extends State<TrainerTermsScreen>
     );
   }
 
+  Widget _buildLoadMore(bool upcoming) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 14),
+      child: Center(
+        child: OutlinedButton.icon(
+          onPressed: _loadingMore ? null : () => _loadTerms(upcoming: upcoming),
+          icon: _loadingMore
+              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+              : const Icon(Icons.expand_more, size: 18),
+          label: Text(_loadingMore ? 'Učitavanje…' : 'Učitaj još'),
+        ),
+      ),
+    );
+  }
+
   Widget _buildList({
     required List<TrainingTermResponse> items,
+    required bool hasMore,
+    required bool upcoming,
     required IconData emptyIcon,
     required String emptyTitle,
     required String emptyMessage,
@@ -342,9 +421,12 @@ class _TrainerTermsScreenState extends State<TrainerTermsScreen>
           : ListView.separated(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-              itemCount: items.length,
+              itemCount: items.length + (hasMore ? 1 : 0),
               separatorBuilder: (_, _) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
+                if (index == items.length) {
+                  return _buildLoadMore(upcoming);
+                }
                 final term = items[index];
                 return _TermCard(term: term, onTap: () => _openTerm(term));
               },

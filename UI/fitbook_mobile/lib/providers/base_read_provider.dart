@@ -25,30 +25,4 @@ abstract class BaseReadProvider<T> extends BaseProvider {
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;
     return fromJson(decoded);
   }
-
-  Future<List<T>> getAllPages({
-    required BaseSearchObject Function(int page) filterForPage,
-    required int Function(T item) idOf,
-    int pageSize = 100,
-    int maxPages = 50,
-  }) async {
-    final collected = <T>[];
-    final seenIds = <int>{};
-
-    for (var page = 1; page <= maxPages; page++) {
-      final result = await get(filter: filterForPage(page));
-
-      for (final item in result.items) {
-        if (seenIds.add(idOf(item))) {
-          collected.add(item);
-        }
-      }
-
-      if (result.items.length < pageSize) {
-        break;
-      }
-    }
-
-    return collected;
-  }
 }

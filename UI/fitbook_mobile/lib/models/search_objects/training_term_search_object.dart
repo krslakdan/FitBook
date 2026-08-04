@@ -14,6 +14,7 @@ class TrainingTermSearchObject extends BaseSearchObject {
     this.startFromUtc,
     this.startToUtc,
     this.isActive,
+    this.isUpcoming,
   });
 
   final int? trainingId;
@@ -23,6 +24,7 @@ class TrainingTermSearchObject extends BaseSearchObject {
   final DateTime? startFromUtc;
   final DateTime? startToUtc;
   final bool? isActive;
+  final bool? isUpcoming;
 
   @override
   Map<String, dynamic> toQueryParameters() {
@@ -34,6 +36,7 @@ class TrainingTermSearchObject extends BaseSearchObject {
     if (startFromUtc != null) params['startFromUtc'] = startFromUtc!.toIso8601String();
     if (startToUtc != null) params['startToUtc'] = startToUtc!.toIso8601String();
     if (isActive != null) params['isActive'] = isActive;
+    if (isUpcoming != null) params['isUpcoming'] = isUpcoming;
     return params;
   }
 }
