@@ -84,6 +84,21 @@ public class UserMembershipsController
         return Ok(result);
     }
 
+    [HttpPost("{id:int}/change-package")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<UserMembershipResponse>> ChangePackage(
+        int id,
+        [FromBody] UserMembershipChangePackageRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await Service.ChangePackageAsync(id, request, cancellationToken);
+        return Ok(result);
+    }
+
     [HttpPost("{id:int}/payment/intent")]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]

@@ -285,7 +285,7 @@ class _MembershipScreenState extends State<MembershipScreen> {
   String? _packageBlockReason(UserMembershipResponse? current) {
     if (current == null) return null;
     return current.status == MembershipStatus.active
-        ? 'Već imate aktivnu članarinu.'
+        ? 'Već imate aktivnu članarinu. Otvorite detalje članarine i odaberite "Promijeni paket".'
         : 'Već imate članarinu koja čeka na plaćanje.';
   }
 
