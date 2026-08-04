@@ -45,7 +45,12 @@ public partial class FitBookDbContext
             new Specialization { Id = 2, Name = "Joga i pilates", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
             new Specialization { Id = 3, Name = "Kardio i HIIT", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
             new Specialization { Id = 4, Name = "CrossFit", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Specialization { Id = 5, Name = "Bodibilding", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
+            new Specialization { Id = 5, Name = "Bodibilding", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Specialization { Id = 6, Name = "Funkcionalni trening", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Specialization { Id = 7, Name = "Boks i kickboks", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Specialization { Id = 8, Name = "Rehabilitacija i mobilnost", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Specialization { Id = 9, Name = "Plivanje i akva fitnes", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Specialization { Id = 10, Name = "Trening za seniore", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
         );
     }
 
@@ -54,7 +59,12 @@ public partial class FitBookDbContext
         modelBuilder.Entity<Hall>().HasData(
             new Hall { Id = 1, Name = "Glavna teretana", Capacity = 30, LocationDescription = "Prizemlje, Zona A", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
             new Hall { Id = 2, Name = "Studio za jogu i pilates", Capacity = 15, LocationDescription = "Prvi sprat, Zona B", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Hall { Id = 3, Name = "Sala za spinning", Capacity = 20, LocationDescription = "Prvi sprat, Zona C", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
+            new Hall { Id = 3, Name = "Sala za spinning", Capacity = 20, LocationDescription = "Prvi sprat, Zona C", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Hall { Id = 4, Name = "Ring za borilačke sportove", Capacity = 16, LocationDescription = "Prizemlje, Zona D", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Hall { Id = 5, Name = "Funkcionalna zona", Capacity = 24, LocationDescription = "Prizemlje, Zona E", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Hall { Id = 6, Name = "Studio za pilates reformer", Capacity = 12, LocationDescription = "Drugi sprat, Zona A", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Hall { Id = 7, Name = "Vanjski teren", Capacity = 30, LocationDescription = "Dvorište iza objekta", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Hall { Id = 8, Name = "Sala za oporavak", Capacity = 10, LocationDescription = "Drugi sprat, Zona B", IsActive = false, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
         );
     }
 
@@ -181,6 +191,186 @@ public partial class FitBookDbContext
                 IsActive = true,
                 IsDeleted = false,
                 CreatedAtUtc = new DateTime(2026, 1, 5, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new UserAccount
+            {
+                Id = 9,
+                FirstName = "Nedim",
+                LastName = "Karić",
+                Email = "nedim@fitbook.com",
+                PhoneNumber = "+38761555004",
+                Username = "nedimkaric",
+                PasswordHash = SeedData.TestPasswordHash,
+                Role = Roles.Trainer,
+                ProfileImageUrl = "uploads/trainers/trainer1.jpg",
+                IsActive = true,
+                IsDeleted = false,
+                CreatedAtUtc = new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new UserAccount
+            {
+                Id = 10,
+                FirstName = "Selma",
+                LastName = "Dizdarević",
+                Email = "selma@fitbook.com",
+                PhoneNumber = "+38761555005",
+                Username = "selmadizdarevic",
+                PasswordHash = SeedData.TestPasswordHash,
+                Role = Roles.Trainer,
+                ProfileImageUrl = "uploads/trainers/trainer2.jpg",
+                IsActive = true,
+                IsDeleted = false,
+                CreatedAtUtc = new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new UserAccount
+            {
+                Id = 11,
+                FirstName = "Tarik",
+                LastName = "Mujkić",
+                Email = "tarik@fitbook.com",
+                PhoneNumber = "+38761555006",
+                Username = "tarikmujkic",
+                PasswordHash = SeedData.TestPasswordHash,
+                Role = Roles.Trainer,
+                ProfileImageUrl = "uploads/trainers/trainer3.jpg",
+                IsActive = true,
+                IsDeleted = false,
+                CreatedAtUtc = new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new UserAccount
+            {
+                Id = 12,
+                FirstName = "Ivana",
+                LastName = "Perić",
+                Email = "ivana@fitbook.com",
+                PhoneNumber = "+38761555007",
+                Username = "ivanaperic",
+                PasswordHash = SeedData.TestPasswordHash,
+                Role = Roles.Trainer,
+                ProfileImageUrl = "uploads/trainers/trainer2.jpg",
+                IsActive = true,
+                IsDeleted = false,
+                CreatedAtUtc = new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new UserAccount
+            {
+                Id = 13,
+                FirstName = "Haris",
+                LastName = "Begić",
+                Email = "haris@fitbook.com",
+                PhoneNumber = "+38761555008",
+                Username = "harisbegic",
+                PasswordHash = SeedData.TestPasswordHash,
+                Role = Roles.Trainer,
+                ProfileImageUrl = "uploads/trainers/trainer1.jpg",
+                IsActive = true,
+                IsDeleted = false,
+                CreatedAtUtc = new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new UserAccount
+            {
+                Id = 14,
+                FirstName = "Adnan",
+                LastName = "Softić",
+                Email = "adnan@fitbook.com",
+                PhoneNumber = "+38761555013",
+                Username = "adnan",
+                PasswordHash = SeedData.TestPasswordHash,
+                Role = Roles.User,
+                ProfileImageUrl = "uploads/users/john.jpg",
+                IsActive = true,
+                IsDeleted = false,
+                CreatedAtUtc = new DateTime(2026, 1, 8, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new UserAccount
+            {
+                Id = 15,
+                FirstName = "Melisa",
+                LastName = "Kovačević",
+                Email = "melisa@fitbook.com",
+                PhoneNumber = "+38761555014",
+                Username = "melisa",
+                PasswordHash = SeedData.TestPasswordHash,
+                Role = Roles.User,
+                ProfileImageUrl = "uploads/users/jane.jpg",
+                IsActive = true,
+                IsDeleted = false,
+                CreatedAtUtc = new DateTime(2026, 1, 8, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new UserAccount
+            {
+                Id = 16,
+                FirstName = "Damir",
+                LastName = "Alispahić",
+                Email = "damir@fitbook.com",
+                PhoneNumber = "+38761555015",
+                Username = "damir",
+                PasswordHash = SeedData.TestPasswordHash,
+                Role = Roles.User,
+                ProfileImageUrl = "uploads/users/guest.jpg",
+                IsActive = true,
+                IsDeleted = false,
+                CreatedAtUtc = new DateTime(2026, 1, 12, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new UserAccount
+            {
+                Id = 17,
+                FirstName = "Azra",
+                LastName = "Šehić",
+                Email = "azra@fitbook.com",
+                PhoneNumber = "+38761555016",
+                Username = "azra",
+                PasswordHash = SeedData.TestPasswordHash,
+                Role = Roles.User,
+                ProfileImageUrl = "uploads/users/jane.jpg",
+                IsActive = true,
+                IsDeleted = false,
+                CreatedAtUtc = new DateTime(2026, 1, 12, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new UserAccount
+            {
+                Id = 18,
+                FirstName = "Kenan",
+                LastName = "Delić",
+                Email = "kenan@fitbook.com",
+                PhoneNumber = "+38761555017",
+                Username = "kenan",
+                PasswordHash = SeedData.TestPasswordHash,
+                Role = Roles.User,
+                ProfileImageUrl = "uploads/users/john.jpg",
+                IsActive = true,
+                IsDeleted = false,
+                CreatedAtUtc = new DateTime(2026, 1, 18, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new UserAccount
+            {
+                Id = 19,
+                FirstName = "Dženana",
+                LastName = "Muratović",
+                Email = "dzenana@fitbook.com",
+                PhoneNumber = "+38761555018",
+                Username = "dzenana",
+                PasswordHash = SeedData.TestPasswordHash,
+                Role = Roles.User,
+                ProfileImageUrl = "uploads/users/guest.jpg",
+                IsActive = true,
+                IsDeleted = false,
+                CreatedAtUtc = new DateTime(2026, 1, 18, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new UserAccount
+            {
+                Id = 20,
+                FirstName = "Vedad",
+                LastName = "Imamović",
+                Email = "vedad@fitbook.com",
+                PhoneNumber = "+38761555019",
+                Username = "vedad",
+                PasswordHash = SeedData.TestPasswordHash,
+                Role = Roles.User,
+                ProfileImageUrl = "uploads/users/john.jpg",
+                IsActive = false,
+                IsDeleted = false,
+                CreatedAtUtc = new DateTime(2026, 1, 20, 0, 0, 0, DateTimeKind.Utc)
             }
         );
     }
@@ -226,6 +416,71 @@ public partial class FitBookDbContext
                 IsActive = true,
                 CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 UserAccountId = 5
+            },
+            new Trainer
+            {
+                Id = 4,
+                FirstName = "Nedim",
+                LastName = "Karić",
+                SpecializationId = 6,
+                Biography = "Specijalista za funkcionalni trening i pripremu sportista.",
+                ImageUrl = "uploads/trainers/trainer1.jpg",
+                IsAvailable = true,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc),
+                UserAccountId = 9
+            },
+            new Trainer
+            {
+                Id = 5,
+                FirstName = "Selma",
+                LastName = "Dizdarević",
+                SpecializationId = 8,
+                Biography = "Fizioterapeut i trener mobilnosti, fokus na oporavak nakon povreda.",
+                ImageUrl = "uploads/trainers/trainer2.jpg",
+                IsAvailable = true,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc),
+                UserAccountId = 10
+            },
+            new Trainer
+            {
+                Id = 6,
+                FirstName = "Tarik",
+                LastName = "Mujkić",
+                SpecializationId = 7,
+                Biography = "Bivši takmičar u boksu, vodi grupne i individualne treninge.",
+                ImageUrl = "uploads/trainers/trainer3.jpg",
+                IsAvailable = true,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc),
+                UserAccountId = 11
+            },
+            new Trainer
+            {
+                Id = 7,
+                FirstName = "Ivana",
+                LastName = "Perić",
+                SpecializationId = 2,
+                Biography = "Instruktorica pilatesa na reformeru s certifikatom druge razine.",
+                ImageUrl = "uploads/trainers/trainer2.jpg",
+                IsAvailable = true,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc),
+                UserAccountId = 12
+            },
+            new Trainer
+            {
+                Id = 8,
+                FirstName = "Haris",
+                LastName = "Begić",
+                SpecializationId = 5,
+                Biography = "Trener bodibildinga, priprema klijente za takmičenja i transformacije.",
+                ImageUrl = "uploads/trainers/trainer1.jpg",
+                IsAvailable = false,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc),
+                UserAccountId = 13
             }
         );
     }
@@ -237,7 +492,10 @@ public partial class FitBookDbContext
             new TrainingCategory { Id = 2, Name = "Snaga", Description = "Trening s opterećenjem za izgradnju mišićne mase.", IsActive = true },
             new TrainingCategory { Id = 3, Name = "Tijelo i um", Description = "Joga, istezanje i vježbe svjesnosti.", IsActive = true },
             new TrainingCategory { Id = 4, Name = "Oporavak i mobilnost", Description = "Lagani oporavak, istezanje i vježbe mobilnosti.", IsActive = true },
-            new TrainingCategory { Id = 5, Name = "Borilački sportovi", Description = "Kondicija inspirisana boksom i borilačkim vještinama.", IsActive = true }
+            new TrainingCategory { Id = 5, Name = "Borilački sportovi", Description = "Kondicija inspirisana boksom i borilačkim vještinama.", IsActive = true },
+            new TrainingCategory { Id = 6, Name = "Funkcionalni trening", Description = "Pokreti iz svakodnevnog života uz vlastitu težinu i sprave.", IsActive = true },
+            new TrainingCategory { Id = 7, Name = "Grupni fitnes", Description = "Energični grupni programi uz muziku i vodstvo trenera.", IsActive = true },
+            new TrainingCategory { Id = 8, Name = "Personalni trening", Description = "Individualni rad s trenerom po mjeri korisnika.", IsActive = true }
         );
     }
 
@@ -327,6 +585,114 @@ public partial class FitBookDbContext
                 CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc),
                 TrainingCategoryId = 2,
                 DifficultyLevelId = 3
+            },
+            new Training
+            {
+                Id = 8,
+                Name = "Spinning maraton",
+                Description = "Grupni trening na sobnim biciklima uz muziku i intervalne uspone.",
+                DurationMinutes = 45,
+                MaxParticipants = 20,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 1, 20, 0, 0, 0, DateTimeKind.Utc),
+                TrainingCategoryId = 1,
+                DifficultyLevelId = 2
+            },
+            new Training
+            {
+                Id = 9,
+                Name = "Pilates reformer",
+                Description = "Rad na reformeru za snagu dubokih mišića i stabilnost kičme.",
+                DurationMinutes = 55,
+                MaxParticipants = 12,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 1, 20, 0, 0, 0, DateTimeKind.Utc),
+                TrainingCategoryId = 3,
+                DifficultyLevelId = 2
+            },
+            new Training
+            {
+                Id = 10,
+                Name = "Funkcionalni krug",
+                Description = "Kružni trening s vlastitom težinom, girjama i TRX trakama.",
+                DurationMinutes = 50,
+                MaxParticipants = 18,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 1, 20, 0, 0, 0, DateTimeKind.Utc),
+                TrainingCategoryId = 6,
+                DifficultyLevelId = 2
+            },
+            new Training
+            {
+                Id = 11,
+                Name = "Kickboks za početnike",
+                Description = "Osnovni udarci nogama i rukama uz kondicioni dio treninga.",
+                DurationMinutes = 55,
+                MaxParticipants = 16,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 1, 25, 0, 0, 0, DateTimeKind.Utc),
+                TrainingCategoryId = 5,
+                DifficultyLevelId = 1
+            },
+            new Training
+            {
+                Id = 12,
+                Name = "Trbušnjaci i core",
+                Description = "Kratak i intenzivan trening trbušnih i stabilizacijskih mišića.",
+                DurationMinutes = 30,
+                MaxParticipants = 22,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 1, 25, 0, 0, 0, DateTimeKind.Utc),
+                TrainingCategoryId = 7,
+                DifficultyLevelId = 1
+            },
+            new Training
+            {
+                Id = 13,
+                Name = "Zumba",
+                Description = "Plesni grupni fitnes program na latino ritmove.",
+                DurationMinutes = 50,
+                MaxParticipants = 24,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 1, 25, 0, 0, 0, DateTimeKind.Utc),
+                TrainingCategoryId = 7,
+                DifficultyLevelId = 1
+            },
+            new Training
+            {
+                Id = 14,
+                Name = "Personalni trening 1 na 1",
+                Description = "Individualni trening prilagođen ciljevima i nivou korisnika.",
+                DurationMinutes = 60,
+                MaxParticipants = 1,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 2, 1, 0, 0, 0, DateTimeKind.Utc),
+                TrainingCategoryId = 8,
+                DifficultyLevelId = 2
+            },
+            new Training
+            {
+                Id = 15,
+                Name = "Trening za seniore",
+                Description = "Lagani program snage i ravnoteže prilagođen starijim članovima.",
+                DurationMinutes = 40,
+                MaxParticipants = 14,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 2, 1, 0, 0, 0, DateTimeKind.Utc),
+                TrainingCategoryId = 6,
+                DifficultyLevelId = 1
+            },
+            new Training
+            {
+                Id = 16,
+                Name = "Ljetni bootcamp na otvorenom",
+                Description = "Sezonski kondicioni trening na vanjskom terenu.",
+                DurationMinutes = 60,
+                MaxParticipants = 26,
+                IsActive = false,
+                CreatedAtUtc = new DateTime(2026, 2, 1, 0, 0, 0, DateTimeKind.Utc),
+                TrainingCategoryId = 6,
+                DifficultyLevelId = 3
             }
         );
     }
@@ -338,7 +704,14 @@ public partial class FitBookDbContext
             new Equipment { Id = 2, Name = "Set tegova", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
             new Equipment { Id = 3, Name = "Prostirka za jogu", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
             new Equipment { Id = 4, Name = "Pjenasti valjak", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Equipment { Id = 5, Name = "Bokserske rukavice", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
+            new Equipment { Id = 5, Name = "Bokserske rukavice", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Equipment { Id = 6, Name = "Elastična guma za vježbanje", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Equipment { Id = 7, Name = "Medicinka", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Equipment { Id = 8, Name = "Vijača", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Equipment { Id = 9, Name = "TRX trake", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Equipment { Id = 10, Name = "Sobni bicikl", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Equipment { Id = 11, Name = "Step platforma", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Equipment { Id = 12, Name = "Bosu lopta", IsActive = false, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
         );
     }
 
@@ -349,7 +722,18 @@ public partial class FitBookDbContext
             new TrainingEquipment { Id = 2, EquipmentId = 2, IsRequired = true, Note = "Pojasevi su dostupni u sali", TrainingId = 2, CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc) },
             new TrainingEquipment { Id = 3, EquipmentId = 3, IsRequired = false, Note = "Prostirke su dostupne u studiju ili ponesite svoju", TrainingId = 3, CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc) },
             new TrainingEquipment { Id = 4, EquipmentId = 4, IsRequired = true, Note = "Dostupno u studiju", TrainingId = 4, CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc) },
-            new TrainingEquipment { Id = 5, EquipmentId = 5, IsRequired = true, Note = "Ponesite svoje ili iznajmite na recepciji", TrainingId = 5, CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc) }
+            new TrainingEquipment { Id = 5, EquipmentId = 5, IsRequired = true, Note = "Ponesite svoje ili iznajmite na recepciji", TrainingId = 5, CreatedAtUtc = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingEquipment { Id = 6, EquipmentId = 8, IsRequired = false, Note = "Koristi se u zagrijavanju", TrainingId = 1, CreatedAtUtc = new DateTime(2026, 1, 20, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingEquipment { Id = 7, EquipmentId = 6, IsRequired = false, Note = "Za lakše varijante vježbi", TrainingId = 4, CreatedAtUtc = new DateTime(2026, 1, 20, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingEquipment { Id = 8, EquipmentId = 10, IsRequired = true, Note = "Bicikl se dodjeljuje pri dolasku", TrainingId = 8, CreatedAtUtc = new DateTime(2026, 1, 20, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingEquipment { Id = 9, EquipmentId = 3, IsRequired = true, Note = "Obavezna vlastita prostirka", TrainingId = 9, CreatedAtUtc = new DateTime(2026, 1, 20, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingEquipment { Id = 10, EquipmentId = 9, IsRequired = true, Note = "TRX trake su montirane u funkcionalnoj zoni", TrainingId = 10, CreatedAtUtc = new DateTime(2026, 1, 20, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingEquipment { Id = 11, EquipmentId = 1, IsRequired = false, Note = "Girje 8kg-24kg dostupne u zoni", TrainingId = 10, CreatedAtUtc = new DateTime(2026, 1, 20, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingEquipment { Id = 12, EquipmentId = 5, IsRequired = true, Note = "Rukavice i štitnici za potkoljenice", TrainingId = 11, CreatedAtUtc = new DateTime(2026, 1, 25, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingEquipment { Id = 13, EquipmentId = 3, IsRequired = true, Note = "Prostirka je obavezna", TrainingId = 12, CreatedAtUtc = new DateTime(2026, 1, 25, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingEquipment { Id = 14, EquipmentId = 7, IsRequired = false, Note = "Medicinka 3kg-6kg", TrainingId = 12, CreatedAtUtc = new DateTime(2026, 1, 25, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingEquipment { Id = 15, EquipmentId = 11, IsRequired = false, Note = "Step platforma za napredne koreografije", TrainingId = 13, CreatedAtUtc = new DateTime(2026, 1, 25, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingEquipment { Id = 16, EquipmentId = 6, IsRequired = true, Note = "Lagane gume za vježbe ravnoteže", TrainingId = 15, CreatedAtUtc = new DateTime(2026, 2, 1, 0, 0, 0, DateTimeKind.Utc) }
         );
     }
 
@@ -420,6 +804,123 @@ public partial class FitBookDbContext
                 TrainingId = 5,
                 TrainerId = 1,
                 HallId = 1
+            },
+            new TrainingTerm
+            {
+                Id = 6,
+                StartTimeUtc = new DateTime(2026, 7, 8, 9, 0, 0, DateTimeKind.Utc),
+                EndTimeUtc = new DateTime(2026, 7, 8, 9, 45, 0, DateTimeKind.Utc),
+                MaxParticipants = 20,
+                Status = TrainingTermStatus.Completed,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc),
+                TrainingId = 8,
+                TrainerId = 4,
+                HallId = 3
+            },
+            new TrainingTerm
+            {
+                Id = 7,
+                StartTimeUtc = new DateTime(2026, 7, 9, 17, 0, 0, DateTimeKind.Utc),
+                EndTimeUtc = new DateTime(2026, 7, 9, 17, 55, 0, DateTimeKind.Utc),
+                MaxParticipants = 12,
+                Status = TrainingTermStatus.Completed,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc),
+                TrainingId = 9,
+                TrainerId = 7,
+                HallId = 6
+            },
+            new TrainingTerm
+            {
+                Id = 8,
+                StartTimeUtc = new DateTime(2026, 7, 10, 18, 0, 0, DateTimeKind.Utc),
+                EndTimeUtc = new DateTime(2026, 7, 10, 18, 50, 0, DateTimeKind.Utc),
+                MaxParticipants = 18,
+                Status = TrainingTermStatus.Completed,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc),
+                TrainingId = 10,
+                TrainerId = 4,
+                HallId = 5
+            },
+            new TrainingTerm
+            {
+                Id = 9,
+                StartTimeUtc = new DateTime(2026, 7, 11, 19, 0, 0, DateTimeKind.Utc),
+                EndTimeUtc = new DateTime(2026, 7, 11, 19, 55, 0, DateTimeKind.Utc),
+                MaxParticipants = 16,
+                Status = TrainingTermStatus.Completed,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 7, 1, 0, 0, 0, DateTimeKind.Utc),
+                TrainingId = 11,
+                TrainerId = 6,
+                HallId = 4
+            },
+            new TrainingTerm
+            {
+                Id = 10,
+                StartTimeUtc = new DateTime(2026, 7, 14, 7, 30, 0, DateTimeKind.Utc),
+                EndTimeUtc = new DateTime(2026, 7, 14, 8, 0, 0, DateTimeKind.Utc),
+                MaxParticipants = 22,
+                Status = TrainingTermStatus.Completed,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 7, 5, 0, 0, 0, DateTimeKind.Utc),
+                TrainingId = 12,
+                TrainerId = 5,
+                HallId = 5
+            },
+            new TrainingTerm
+            {
+                Id = 11,
+                StartTimeUtc = new DateTime(2026, 7, 15, 18, 30, 0, DateTimeKind.Utc),
+                EndTimeUtc = new DateTime(2026, 7, 15, 19, 20, 0, DateTimeKind.Utc),
+                MaxParticipants = 15,
+                Status = TrainingTermStatus.Completed,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 7, 5, 0, 0, 0, DateTimeKind.Utc),
+                TrainingId = 13,
+                TrainerId = 7,
+                HallId = 2
+            },
+            new TrainingTerm
+            {
+                Id = 12,
+                StartTimeUtc = new DateTime(2026, 7, 16, 10, 0, 0, DateTimeKind.Utc),
+                EndTimeUtc = new DateTime(2026, 7, 16, 11, 0, 0, DateTimeKind.Utc),
+                MaxParticipants = 1,
+                Status = TrainingTermStatus.Completed,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 7, 5, 0, 0, 0, DateTimeKind.Utc),
+                TrainingId = 14,
+                TrainerId = 8,
+                HallId = 1
+            },
+            new TrainingTerm
+            {
+                Id = 13,
+                StartTimeUtc = new DateTime(2026, 7, 18, 9, 0, 0, DateTimeKind.Utc),
+                EndTimeUtc = new DateTime(2026, 7, 18, 9, 40, 0, DateTimeKind.Utc),
+                MaxParticipants = 14,
+                Status = TrainingTermStatus.Completed,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 7, 10, 0, 0, 0, DateTimeKind.Utc),
+                TrainingId = 15,
+                TrainerId = 5,
+                HallId = 5
+            },
+            new TrainingTerm
+            {
+                Id = 14,
+                StartTimeUtc = new DateTime(2026, 7, 20, 8, 0, 0, DateTimeKind.Utc),
+                EndTimeUtc = new DateTime(2026, 7, 20, 8, 45, 0, DateTimeKind.Utc),
+                MaxParticipants = 20,
+                Status = TrainingTermStatus.Cancelled,
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 7, 10, 0, 0, 0, DateTimeKind.Utc),
+                TrainingId = 1,
+                TrainerId = 4,
+                HallId = 7
             }
         );
     }
@@ -458,6 +959,39 @@ public partial class FitBookDbContext
                 SavingsAmount = 200.00m,
                 IncludedBenefits = "Neograničeni grupni treninzi, pristup sauni, 4 besplatna personalna treninga, prioritetno rezervisanje.",
                 IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new MembershipPackage
+            {
+                Id = 4,
+                Name = "Sedmični Probni",
+                DurationDays = 7,
+                Price = 15.00m,
+                SavingsAmount = 0.00m,
+                IncludedBenefits = "Pristup glavnoj sali i 2 grupna treninga tokom sedmice.",
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new MembershipPackage
+            {
+                Id = 5,
+                Name = "Polugodišnji Standard",
+                DurationDays = 180,
+                Price = 230.00m,
+                SavingsAmount = 70.00m,
+                IncludedBenefits = "Neograničeni grupni treninzi, pristup sauni, 2 besplatna personalna treninga.",
+                IsActive = true,
+                CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new MembershipPackage
+            {
+                Id = 6,
+                Name = "Studentski Mjesečni",
+                DurationDays = 30,
+                Price = 35.00m,
+                SavingsAmount = 15.00m,
+                IncludedBenefits = "Pristup glavnoj sali i grupnim treninzima uz važeći indeks.",
+                IsActive = false,
                 CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
             }
         );
@@ -792,6 +1326,69 @@ public partial class FitBookDbContext
                 ImageUrl = "uploads/news/yoga_opening.jpg",
                 PublishedAtUtc = new DateTime(2026, 6, 20, 9, 0, 0, DateTimeKind.Utc),
                 IsActive = true
+            },
+            new NewsItem
+            {
+                Id = 4,
+                Title = "Otvorena je nova funkcionalna zona",
+                Content = "U prizemlju je uređena funkcionalna zona sa TRX trakama, girjama i prostorom za kružni trening. Zona je dostupna svim članovima bez dodatne naknade.",
+                ImageUrl = "uploads/news/new_equipment.jpg",
+                PublishedAtUtc = new DateTime(2026, 6, 28, 10, 0, 0, DateTimeKind.Utc),
+                IsActive = true
+            },
+            new NewsItem
+            {
+                Id = 5,
+                Title = "Pilates reformer stigao u FitBook",
+                Content = "Novi studio na drugom spratu opremljen je reformerima. Termini su ograničeni na 12 mjesta, pa preporučujemo raniju rezervaciju.",
+                ImageUrl = "uploads/news/yoga_opening.jpg",
+                PublishedAtUtc = new DateTime(2026, 7, 3, 9, 30, 0, DateTimeKind.Utc),
+                IsActive = true
+            },
+            new NewsItem
+            {
+                Id = 6,
+                Title = "Ljetni raspored termina",
+                Content = "Tokom jula i augusta jutarnji termini počinju sat ranije zbog visokih temperatura. Provjerite ažurirani raspored u aplikaciji.",
+                ImageUrl = "uploads/news/new_equipment.jpg",
+                PublishedAtUtc = new DateTime(2026, 7, 6, 8, 0, 0, DateTimeKind.Utc),
+                IsActive = true
+            },
+            new NewsItem
+            {
+                Id = 7,
+                Title = "Novi trener za borilačke sportove",
+                Content = "Tarik Mujkić, bivši takmičar u boksu, pridružio se našem timu i vodi programe Osnove boksa i Kickboks za početnike.",
+                ImageUrl = "uploads/news/yoga_opening.jpg",
+                PublishedAtUtc = new DateTime(2026, 7, 9, 11, 0, 0, DateTimeKind.Utc),
+                IsActive = true
+            },
+            new NewsItem
+            {
+                Id = 8,
+                Title = "Polugodišnji paket uz uštedu od 70 KM",
+                Content = "Uveli smo Polugodišnji Standard paket koji donosi neograničene grupne treninge i dva besplatna personalna treninga.",
+                ImageUrl = "uploads/news/new_equipment.jpg",
+                PublishedAtUtc = new DateTime(2026, 7, 14, 12, 0, 0, DateTimeKind.Utc),
+                IsActive = true
+            },
+            new NewsItem
+            {
+                Id = 9,
+                Title = "Program treninga za seniore",
+                Content = "Pokrenuli smo program prilagođen starijim članovima, s naglaskom na ravnotežu, mobilnost i laganu snagu. Termini su dva puta sedmično.",
+                ImageUrl = "uploads/news/yoga_opening.jpg",
+                PublishedAtUtc = new DateTime(2026, 7, 19, 9, 0, 0, DateTimeKind.Utc),
+                IsActive = true
+            },
+            new NewsItem
+            {
+                Id = 10,
+                Title = "Radovi na sali za oporavak",
+                Content = "Sala za oporavak je privremeno zatvorena zbog radova na instalacijama. O ponovnom otvaranju obavijestit ćemo vas kroz aplikaciju.",
+                ImageUrl = "uploads/news/new_equipment.jpg",
+                PublishedAtUtc = new DateTime(2026, 7, 25, 15, 0, 0, DateTimeKind.Utc),
+                IsActive = false
             }
         );
     }
