@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FitBook.Services.Migrations
 {
     [DbContext(typeof(FitBookDbContext))]
-    [Migration("20260804223017_ExpandDemoSeedData")]
+    [Migration("20260804224017_ExpandDemoSeedData")]
     partial class ExpandDemoSeedData
     {
         /// <inheritdoc />
@@ -2120,7 +2120,7 @@ namespace FitBook.Services.Migrations
                         },
                         new
                         {
-                            Id = 6,
+                            Id = 101,
                             CreatedAtUtc = new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             EndTimeUtc = new DateTime(2026, 7, 8, 9, 45, 0, 0, DateTimeKind.Utc),
                             HallId = 3,
@@ -2133,7 +2133,7 @@ namespace FitBook.Services.Migrations
                         },
                         new
                         {
-                            Id = 7,
+                            Id = 102,
                             CreatedAtUtc = new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             EndTimeUtc = new DateTime(2026, 7, 9, 17, 55, 0, 0, DateTimeKind.Utc),
                             HallId = 6,
@@ -2146,7 +2146,7 @@ namespace FitBook.Services.Migrations
                         },
                         new
                         {
-                            Id = 8,
+                            Id = 103,
                             CreatedAtUtc = new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             EndTimeUtc = new DateTime(2026, 7, 10, 18, 50, 0, 0, DateTimeKind.Utc),
                             HallId = 5,
@@ -2159,7 +2159,7 @@ namespace FitBook.Services.Migrations
                         },
                         new
                         {
-                            Id = 9,
+                            Id = 104,
                             CreatedAtUtc = new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             EndTimeUtc = new DateTime(2026, 7, 11, 19, 55, 0, 0, DateTimeKind.Utc),
                             HallId = 4,
@@ -2172,7 +2172,7 @@ namespace FitBook.Services.Migrations
                         },
                         new
                         {
-                            Id = 10,
+                            Id = 105,
                             CreatedAtUtc = new DateTime(2026, 7, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             EndTimeUtc = new DateTime(2026, 7, 14, 8, 0, 0, 0, DateTimeKind.Utc),
                             HallId = 5,
@@ -2185,7 +2185,7 @@ namespace FitBook.Services.Migrations
                         },
                         new
                         {
-                            Id = 11,
+                            Id = 106,
                             CreatedAtUtc = new DateTime(2026, 7, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             EndTimeUtc = new DateTime(2026, 7, 15, 19, 20, 0, 0, DateTimeKind.Utc),
                             HallId = 2,
@@ -2198,7 +2198,7 @@ namespace FitBook.Services.Migrations
                         },
                         new
                         {
-                            Id = 12,
+                            Id = 107,
                             CreatedAtUtc = new DateTime(2026, 7, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             EndTimeUtc = new DateTime(2026, 7, 16, 11, 0, 0, 0, DateTimeKind.Utc),
                             HallId = 1,
@@ -2211,7 +2211,7 @@ namespace FitBook.Services.Migrations
                         },
                         new
                         {
-                            Id = 13,
+                            Id = 108,
                             CreatedAtUtc = new DateTime(2026, 7, 10, 0, 0, 0, 0, DateTimeKind.Utc),
                             EndTimeUtc = new DateTime(2026, 7, 18, 9, 40, 0, 0, DateTimeKind.Utc),
                             HallId = 5,
@@ -2224,7 +2224,7 @@ namespace FitBook.Services.Migrations
                         },
                         new
                         {
-                            Id = 14,
+                            Id = 109,
                             CreatedAtUtc = new DateTime(2026, 7, 10, 0, 0, 0, 0, DateTimeKind.Utc),
                             EndTimeUtc = new DateTime(2026, 7, 20, 8, 45, 0, 0, DateTimeKind.Utc),
                             HallId = 7,

@@ -807,7 +807,7 @@ public partial class FitBookDbContext
             },
             new TrainingTerm
             {
-                Id = 6,
+                Id = 101,
                 StartTimeUtc = new DateTime(2026, 7, 8, 9, 0, 0, DateTimeKind.Utc),
                 EndTimeUtc = new DateTime(2026, 7, 8, 9, 45, 0, DateTimeKind.Utc),
                 MaxParticipants = 20,
@@ -820,7 +820,7 @@ public partial class FitBookDbContext
             },
             new TrainingTerm
             {
-                Id = 7,
+                Id = 102,
                 StartTimeUtc = new DateTime(2026, 7, 9, 17, 0, 0, DateTimeKind.Utc),
                 EndTimeUtc = new DateTime(2026, 7, 9, 17, 55, 0, DateTimeKind.Utc),
                 MaxParticipants = 12,
@@ -833,7 +833,7 @@ public partial class FitBookDbContext
             },
             new TrainingTerm
             {
-                Id = 8,
+                Id = 103,
                 StartTimeUtc = new DateTime(2026, 7, 10, 18, 0, 0, DateTimeKind.Utc),
                 EndTimeUtc = new DateTime(2026, 7, 10, 18, 50, 0, DateTimeKind.Utc),
                 MaxParticipants = 18,
@@ -846,7 +846,7 @@ public partial class FitBookDbContext
             },
             new TrainingTerm
             {
-                Id = 9,
+                Id = 104,
                 StartTimeUtc = new DateTime(2026, 7, 11, 19, 0, 0, DateTimeKind.Utc),
                 EndTimeUtc = new DateTime(2026, 7, 11, 19, 55, 0, DateTimeKind.Utc),
                 MaxParticipants = 16,
@@ -859,7 +859,7 @@ public partial class FitBookDbContext
             },
             new TrainingTerm
             {
-                Id = 10,
+                Id = 105,
                 StartTimeUtc = new DateTime(2026, 7, 14, 7, 30, 0, DateTimeKind.Utc),
                 EndTimeUtc = new DateTime(2026, 7, 14, 8, 0, 0, DateTimeKind.Utc),
                 MaxParticipants = 22,
@@ -872,7 +872,7 @@ public partial class FitBookDbContext
             },
             new TrainingTerm
             {
-                Id = 11,
+                Id = 106,
                 StartTimeUtc = new DateTime(2026, 7, 15, 18, 30, 0, DateTimeKind.Utc),
                 EndTimeUtc = new DateTime(2026, 7, 15, 19, 20, 0, DateTimeKind.Utc),
                 MaxParticipants = 15,
@@ -885,7 +885,7 @@ public partial class FitBookDbContext
             },
             new TrainingTerm
             {
-                Id = 12,
+                Id = 107,
                 StartTimeUtc = new DateTime(2026, 7, 16, 10, 0, 0, DateTimeKind.Utc),
                 EndTimeUtc = new DateTime(2026, 7, 16, 11, 0, 0, DateTimeKind.Utc),
                 MaxParticipants = 1,
@@ -898,7 +898,7 @@ public partial class FitBookDbContext
             },
             new TrainingTerm
             {
-                Id = 13,
+                Id = 108,
                 StartTimeUtc = new DateTime(2026, 7, 18, 9, 0, 0, DateTimeKind.Utc),
                 EndTimeUtc = new DateTime(2026, 7, 18, 9, 40, 0, DateTimeKind.Utc),
                 MaxParticipants = 14,
@@ -911,7 +911,7 @@ public partial class FitBookDbContext
             },
             new TrainingTerm
             {
-                Id = 14,
+                Id = 109,
                 StartTimeUtc = new DateTime(2026, 7, 20, 8, 0, 0, DateTimeKind.Utc),
                 EndTimeUtc = new DateTime(2026, 7, 20, 8, 45, 0, DateTimeKind.Utc),
                 MaxParticipants = 20,

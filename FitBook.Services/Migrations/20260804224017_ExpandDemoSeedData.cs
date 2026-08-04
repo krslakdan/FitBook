@@ -169,15 +169,15 @@ namespace FitBook.Services.Migrations
                 columns: new[] { "Id", "CreatedAtUtc", "EndTimeUtc", "HallId", "IsActive", "MaxParticipants", "StartTimeUtc", "Status", "TrainerId", "TrainerReminderSentAtUtc", "TrainingId", "UpdatedAtUtc" },
                 values: new object[,]
                 {
-                    { 6, new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 7, 8, 9, 45, 0, 0, DateTimeKind.Utc), 3, true, 20, new DateTime(2026, 7, 8, 9, 0, 0, 0, DateTimeKind.Utc), 3, 4, null, 8, null },
-                    { 7, new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 7, 9, 17, 55, 0, 0, DateTimeKind.Utc), 6, true, 12, new DateTime(2026, 7, 9, 17, 0, 0, 0, DateTimeKind.Utc), 3, 7, null, 9, null },
-                    { 8, new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 7, 10, 18, 50, 0, 0, DateTimeKind.Utc), 5, true, 18, new DateTime(2026, 7, 10, 18, 0, 0, 0, DateTimeKind.Utc), 3, 4, null, 10, null },
-                    { 9, new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 7, 11, 19, 55, 0, 0, DateTimeKind.Utc), 4, true, 16, new DateTime(2026, 7, 11, 19, 0, 0, 0, DateTimeKind.Utc), 3, 6, null, 11, null },
-                    { 10, new DateTime(2026, 7, 5, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 7, 14, 8, 0, 0, 0, DateTimeKind.Utc), 5, true, 22, new DateTime(2026, 7, 14, 7, 30, 0, 0, DateTimeKind.Utc), 3, 5, null, 12, null },
-                    { 11, new DateTime(2026, 7, 5, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 7, 15, 19, 20, 0, 0, DateTimeKind.Utc), 2, true, 15, new DateTime(2026, 7, 15, 18, 30, 0, 0, DateTimeKind.Utc), 3, 7, null, 13, null },
-                    { 12, new DateTime(2026, 7, 5, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 7, 16, 11, 0, 0, 0, DateTimeKind.Utc), 1, true, 1, new DateTime(2026, 7, 16, 10, 0, 0, 0, DateTimeKind.Utc), 3, 8, null, 14, null },
-                    { 13, new DateTime(2026, 7, 10, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 7, 18, 9, 40, 0, 0, DateTimeKind.Utc), 5, true, 14, new DateTime(2026, 7, 18, 9, 0, 0, 0, DateTimeKind.Utc), 3, 5, null, 15, null },
-                    { 14, new DateTime(2026, 7, 10, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 7, 20, 8, 45, 0, 0, DateTimeKind.Utc), 7, true, 20, new DateTime(2026, 7, 20, 8, 0, 0, 0, DateTimeKind.Utc), 2, 4, null, 1, null }
+                    { 101, new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 7, 8, 9, 45, 0, 0, DateTimeKind.Utc), 3, true, 20, new DateTime(2026, 7, 8, 9, 0, 0, 0, DateTimeKind.Utc), 3, 4, null, 8, null },
+                    { 102, new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 7, 9, 17, 55, 0, 0, DateTimeKind.Utc), 6, true, 12, new DateTime(2026, 7, 9, 17, 0, 0, 0, DateTimeKind.Utc), 3, 7, null, 9, null },
+                    { 103, new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 7, 10, 18, 50, 0, 0, DateTimeKind.Utc), 5, true, 18, new DateTime(2026, 7, 10, 18, 0, 0, 0, DateTimeKind.Utc), 3, 4, null, 10, null },
+                    { 104, new DateTime(2026, 7, 1, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 7, 11, 19, 55, 0, 0, DateTimeKind.Utc), 4, true, 16, new DateTime(2026, 7, 11, 19, 0, 0, 0, DateTimeKind.Utc), 3, 6, null, 11, null },
+                    { 105, new DateTime(2026, 7, 5, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 7, 14, 8, 0, 0, 0, DateTimeKind.Utc), 5, true, 22, new DateTime(2026, 7, 14, 7, 30, 0, 0, DateTimeKind.Utc), 3, 5, null, 12, null },
+                    { 106, new DateTime(2026, 7, 5, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 7, 15, 19, 20, 0, 0, DateTimeKind.Utc), 2, true, 15, new DateTime(2026, 7, 15, 18, 30, 0, 0, DateTimeKind.Utc), 3, 7, null, 13, null },
+                    { 107, new DateTime(2026, 7, 5, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 7, 16, 11, 0, 0, 0, DateTimeKind.Utc), 1, true, 1, new DateTime(2026, 7, 16, 10, 0, 0, 0, DateTimeKind.Utc), 3, 8, null, 14, null },
+                    { 108, new DateTime(2026, 7, 10, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 7, 18, 9, 40, 0, 0, DateTimeKind.Utc), 5, true, 14, new DateTime(2026, 7, 18, 9, 0, 0, 0, DateTimeKind.Utc), 3, 5, null, 15, null },
+                    { 109, new DateTime(2026, 7, 10, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 7, 20, 8, 45, 0, 0, DateTimeKind.Utc), 7, true, 20, new DateTime(2026, 7, 20, 8, 0, 0, 0, DateTimeKind.Utc), 2, 4, null, 1, null }
                 });
         }
 
@@ -312,47 +312,47 @@ namespace FitBook.Services.Migrations
             migrationBuilder.DeleteData(
                 table: "TrainingTerms",
                 keyColumn: "Id",
-                keyValue: 6);
+                keyValue: 101);
 
             migrationBuilder.DeleteData(
                 table: "TrainingTerms",
                 keyColumn: "Id",
-                keyValue: 7);
+                keyValue: 102);
 
             migrationBuilder.DeleteData(
                 table: "TrainingTerms",
                 keyColumn: "Id",
-                keyValue: 8);
+                keyValue: 103);
 
             migrationBuilder.DeleteData(
                 table: "TrainingTerms",
                 keyColumn: "Id",
-                keyValue: 9);
+                keyValue: 104);
 
             migrationBuilder.DeleteData(
                 table: "TrainingTerms",
                 keyColumn: "Id",
-                keyValue: 10);
+                keyValue: 105);
 
             migrationBuilder.DeleteData(
                 table: "TrainingTerms",
                 keyColumn: "Id",
-                keyValue: 11);
+                keyValue: 106);
 
             migrationBuilder.DeleteData(
                 table: "TrainingTerms",
                 keyColumn: "Id",
-                keyValue: 12);
+                keyValue: 107);
 
             migrationBuilder.DeleteData(
                 table: "TrainingTerms",
                 keyColumn: "Id",
-                keyValue: 13);
+                keyValue: 108);
 
             migrationBuilder.DeleteData(
                 table: "TrainingTerms",
                 keyColumn: "Id",
-                keyValue: 14);
+                keyValue: 109);
 
             migrationBuilder.DeleteData(
                 table: "Trainings",
