@@ -22,11 +22,13 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<FitBookDbContext>(options => options.UseSqlServer(connectionString));
 builder.Services.AddScoped<IReminderService, ReminderService>();
 builder.Services.AddScoped<IMembershipExpiryService, MembershipExpiryService>();
+builder.Services.AddScoped<IRefreshTokenCleanupService, RefreshTokenCleanupService>();
 
 builder.Services.AddHostedService<EmailNotificationConsumer>();
 builder.Services.AddHostedService<ReservationReminderBackgroundService>();
 builder.Services.AddHostedService<MembershipExpiryReminderBackgroundService>();
 builder.Services.AddHostedService<MembershipExpiryBackgroundService>();
+builder.Services.AddHostedService<RefreshTokenCleanupBackgroundService>();
 
 var host = builder.Build();
 host.Run();
