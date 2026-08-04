@@ -77,14 +77,14 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IValidator<UserAccountAdminPasswordResetRequest>, UserAccountAdminPasswordResetRequestValidator>();
 
         services.AddScoped<IValidator<ReservationInsertRequest>, ReservationInsertRequestValidator>();
-        services.AddScoped<IValidator<ReservationUpdateRequest>, NullReservationUpdateRequestValidator>();
+        services.AddScoped<IValidator<ReservationUpdateRequest>>(_ => new InlineValidator<ReservationUpdateRequest>());
         services.AddScoped<IValidator<ReservationCancelRequest>, ReservationCancelRequestValidator>();
 
         services.AddScoped<IValidator<MembershipPackageInsertRequest>, MembershipPackageInsertRequestValidator>();
         services.AddScoped<IValidator<MembershipPackageUpdateRequest>, MembershipPackageUpdateRequestValidator>();
 
         services.AddScoped<IValidator<UserMembershipInsertRequest>, UserMembershipInsertRequestValidator>();
-        services.AddScoped<IValidator<UserMembershipUpdateRequest>, NullUserMembershipUpdateRequestValidator>();
+        services.AddScoped<IValidator<UserMembershipUpdateRequest>>(_ => new InlineValidator<UserMembershipUpdateRequest>());
         services.AddScoped<IValidator<UserMembershipCancelRequest>, UserMembershipCancelRequestValidator>();
 
         services.AddScoped<IValidator<TrainingCategoryInsertRequest>, TrainingCategoryInsertRequestValidator>();
