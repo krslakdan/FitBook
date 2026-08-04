@@ -12,6 +12,8 @@ public class RecommendationService : IRecommendationService
     private const decimal ContentBasedWeight = 0.7m;
     private const decimal PopularityWeight = 0.3m;
     private const decimal ContentDominantThreshold = 0.6m;
+    private const int DefaultRecommendations = 5;
+    private const int MaxRecommendations = 20;
 
     private readonly FitBookDbContext _dbContext;
     private readonly ICurrentUserService _currentUserService;
@@ -27,9 +29,9 @@ public class RecommendationService : IRecommendationService
         _logger = logger;
     }
 
-    public async Task<List<TrainingRecommendationResponse>> GetRecommendationsForCurrentUserAsync(int maxResults = 5, CancellationToken cancellationToken = default)
+    public async Task<List<TrainingRecommendationResponse>> GetRecommendationsForCurrentUserAsync(int maxResults = DefaultRecommendations, CancellationToken cancellationToken = default)
     {
-        var take = maxResults > 0 ? maxResults : 5;
+        var take = Math.Clamp(maxResults <= 0 ? DefaultRecommendations : maxResults, 1, MaxRecommendations);
         var userId = _currentUserService.GetRequiredUserId();
 
         var categoryAffinities = await _dbContext.RecommendationSignals

@@ -359,6 +359,13 @@ public class ReservationService
 
         EnsureValidTransition(reservation.Status, ReservationStatus.Cancelled);
 
+        if (!_currentUserService.IsAdmin()
+            && reservation.TrainingTerm is not null
+            && reservation.TrainingTerm.EndTimeUtc < DateTime.UtcNow)
+        {
+            throw new BusinessException("Nije moguće otkazati rezervaciju za termin koji je već završen.");
+        }
+
         ApplyCancellation(reservation, request.Reason);
 
         if (isOwner && reservation.TrainingTerm?.Trainer is not null
@@ -721,4 +728,6 @@ public class ReservationService
             CreatedAtUtc = DateTime.UtcNow,
         });
     }
+
+    protected override string NotFoundMessage => "Rezervacija nije pronađena.";
 }

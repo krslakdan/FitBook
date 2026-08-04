@@ -57,4 +57,6 @@ public class HallService
             throw new BusinessException($"Sala '{entity.Name}' ne može biti obrisana jer postoje termini treninga koji je koriste. Označite je kao neaktivnu umjesto brisanja.");
         }
     }
+
+    protected override string NotFoundMessage => "Sala nije pronađena.";
 }

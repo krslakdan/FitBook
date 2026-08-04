@@ -79,4 +79,6 @@ public class EquipmentService
             throw new BusinessException($"Oprema sa nazivom '{name.Trim()}' već postoji.");
         }
     }
+
+    protected override string NotFoundMessage => "Oprema nije pronađena.";
 }

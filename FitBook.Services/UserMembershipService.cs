@@ -674,4 +674,6 @@ public class UserMembershipService
                 $"Nije moguća tranzicija statusa članarine iz '{from}' u '{to}'.");
         }
     }
+
+    protected override string NotFoundMessage => "Članarina nije pronađena.";
 }

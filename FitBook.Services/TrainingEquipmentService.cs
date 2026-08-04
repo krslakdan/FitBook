@@ -97,4 +97,6 @@ public class TrainingEquipmentService
             throw new BusinessException("Odabrana oprema je već dodijeljena ovom treningu.");
         }
     }
+
+    protected override string NotFoundMessage => "Oprema treninga nije pronađena.";
 }

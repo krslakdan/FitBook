@@ -48,4 +48,6 @@ public class MembershipPaymentService
 
         return query;
     }
+
+    protected override string NotFoundMessage => "Plaćanje članarine nije pronađeno.";
 }

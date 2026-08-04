@@ -367,4 +367,6 @@ public class TrainingTermService
             throw new BusinessException(errorMessage);
         }
     }
+
+    protected override string NotFoundMessage => "Termin treninga nije pronađen.";
 }

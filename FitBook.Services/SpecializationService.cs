@@ -79,4 +79,6 @@ public class SpecializationService
             throw new BusinessException($"Specijalizacija sa nazivom '{name.Trim()}' već postoji.");
         }
     }
+
+    protected override string NotFoundMessage => "Specijalizacija nije pronađena.";
 }

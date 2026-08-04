@@ -299,4 +299,6 @@ public class UserAccountService
             throw new BusinessException("Korisničko ime već postoji.");
         }
     }
+
+    protected override string NotFoundMessage => "Korisnički račun nije pronađen.";
 }

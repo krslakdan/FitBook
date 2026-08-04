@@ -99,4 +99,6 @@ public class NewsItemService
     {
         return query.OrderByDescending(x => x.PublishedAtUtc);
     }
+
+    protected override string NotFoundMessage => "Novost nije pronađena.";
 }

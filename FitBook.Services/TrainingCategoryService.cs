@@ -57,4 +57,6 @@ public class TrainingCategoryService
             throw new BusinessException($"Kategorija treninga '{entity.Name}' ne može biti obrisana jer postoje treninzi koji je koriste. Označite je kao neaktivnu umjesto brisanja.");
         }
     }
+
+    protected override string NotFoundMessage => "Kategorija treninga nije pronađena.";
 }
