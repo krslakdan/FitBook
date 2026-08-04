@@ -105,7 +105,7 @@ class _UserAccountsDetailsScreenState extends State<UserAccountsDetailsScreen> {
     final text = value?.trim() ?? '';
     if (text.isEmpty) return 'Broj telefona je obavezan.';
     if (!_phonePattern.hasMatch(text)) {
-      return 'Broj telefona nije u ispravnom formatu (npr. +387 61 123 456).';
+      return 'Broj telefona mora biti u formatu: +38761234567 ili 061234567 (6-20 cifara).';
     }
     return null;
   }

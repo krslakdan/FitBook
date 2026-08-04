@@ -69,7 +69,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? _validatePhone(String? value) {
     final trimmed = value?.trim() ?? '';
     if (trimmed.isEmpty) return 'Broj telefona je obavezan.';
-    if (!_phonePattern.hasMatch(trimmed)) return 'Broj telefona nije u ispravnom formatu.';
+    if (!_phonePattern.hasMatch(trimmed)) return 'Broj telefona mora biti u formatu: +38761234567 ili 061234567 (6-20 cifara).';
     return null;
   }
 

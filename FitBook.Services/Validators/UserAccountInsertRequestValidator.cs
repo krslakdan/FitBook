@@ -24,7 +24,7 @@ public class UserAccountInsertRequestValidator : AbstractValidator<UserAccountIn
         RuleFor(x => x.PhoneNumber)
             .NotEmpty().WithMessage("Broj telefona je obavezan.")
             .Matches(ValidationPatterns.Phone)
-            .WithMessage("Broj telefona nije u ispravnom formatu.")
+            .WithMessage("Broj telefona mora biti u formatu: +38761234567 ili 061234567 (6-20 cifara).")
             .MaximumLength(30).WithMessage("Broj telefona ne smije biti duži od 30 karaktera.");
         RuleFor(x => x.Username)
             .NotEmpty().WithMessage("Korisničko ime je obavezno.")
@@ -37,7 +37,7 @@ public class UserAccountInsertRequestValidator : AbstractValidator<UserAccountIn
         RuleFor(x => x.Role)
             .NotEmpty().WithMessage("Uloga je obavezna.")
             .Must(role => Roles.All.Contains(role))
-            .WithMessage($"Role mora biti jedna od: {string.Join(", ", Roles.All)}.");
+            .WithMessage($"Uloga mora biti jedna od: {string.Join(", ", Roles.All)}.");
         RuleFor(x => x.ProfileImageUrl)
             .MaximumLength(500).WithMessage("URL profilne slike ne smije biti duži od 500 karaktera.");
     }
