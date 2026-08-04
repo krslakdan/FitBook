@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../theme/app_theme.dart';
 import '../../utils/app_config.dart';
+import '../../utils/image_headers.dart';
 
 class ImagePickerField extends StatelessWidget {
   const ImagePickerField({
@@ -51,6 +52,7 @@ class ImagePickerField extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         child: Image.network(
           existingUrl,
+          headers: authorizedImageHeaders(),
           width: 132,
           height: 132,
           fit: BoxFit.cover,

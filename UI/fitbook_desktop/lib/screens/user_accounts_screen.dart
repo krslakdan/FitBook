@@ -21,6 +21,7 @@ import '../widgets/crud/form_dialog.dart';
 import '../widgets/crud/table_action_buttons.dart';
 import '../widgets/status_chip.dart';
 import 'user_accounts_details_screen.dart';
+import '../utils/image_headers.dart';
 
 class UserAccountsScreen extends StatefulWidget {
   const UserAccountsScreen({super.key});
@@ -340,7 +341,7 @@ class _UserAccountsScreenState extends State<UserAccountsScreen> {
         CircleAvatar(
           radius: 19,
           backgroundColor: AppColors.primarySoft,
-          foregroundImage: imageUrl == null ? null : NetworkImage(imageUrl),
+          foregroundImage: imageUrl == null ? null : NetworkImage(imageUrl, headers: authorizedImageHeaders()),
           child: Text(
             initials.toUpperCase(),
             style: const TextStyle(
@@ -404,7 +405,7 @@ class _UserDetailsDialog extends StatelessWidget {
                 backgroundColor: AppColors.primarySoft,
                 foregroundImage: imageUrl == null
                     ? null
-                    : NetworkImage(imageUrl),
+                    : NetworkImage(imageUrl, headers: authorizedImageHeaders()),
                 child: Text(
                   initials.toUpperCase(),
                   style: const TextStyle(

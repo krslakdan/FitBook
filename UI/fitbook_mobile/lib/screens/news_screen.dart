@@ -10,6 +10,7 @@ import '../utils/api_client_exception.dart';
 import '../utils/app_config.dart';
 import '../utils/formatters.dart';
 import 'news_detail_screen.dart';
+import '../utils/image_headers.dart';
 
 class NewsScreen extends StatefulWidget {
   const NewsScreen({super.key});
@@ -142,6 +143,7 @@ class _NewsCard extends StatelessWidget {
               if (imageUrl != null)
                 Image.network(
                   imageUrl,
+                  headers: authorizedImageHeaders(),
                   width: double.infinity,
                   height: 160,
                   fit: BoxFit.cover,

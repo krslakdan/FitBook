@@ -6,6 +6,7 @@ using FitBook.Services.Database;
 using FitBook.Services.Files;
 using FitBook.Services.Interfaces;
 using FitBook.WebAPI.Filters;
+using FitBook.WebAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -141,8 +142,16 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("FitBookCors");
-app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseWhen(
+    context => context.Request.Path.StartsWithSegments(UploadedFileAccessMiddleware.UploadsSegment),
+    branch =>
+    {
+        branch.UseMiddleware<UploadedFileAccessMiddleware>();
+        branch.UseStaticFiles();
+    });
+
 app.MapControllers();
 app.Run();
