@@ -8,11 +8,13 @@ class CreatePaymentIntentResponse {
     required this.clientSecret,
     required this.paymentId,
     required this.publishableKey,
+    this.alreadyPaid = false,
   });
 
   final String clientSecret;
   final int paymentId;
   final String publishableKey;
+  final bool alreadyPaid;
 
   factory CreatePaymentIntentResponse.fromJson(Map<String, dynamic> json) =>
       _$CreatePaymentIntentResponseFromJson(json);

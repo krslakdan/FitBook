@@ -26,6 +26,10 @@ class MembershipPaymentFlow {
     try {
       final intent = await provider.createPaymentIntent(membershipId);
 
+      if (intent.alreadyPaid) {
+        return _finalize(provider, membershipId);
+      }
+
       if (intent.publishableKey.isEmpty) {
         return const MembershipPaymentResult(
           MembershipPaymentOutcome.notConfigured,

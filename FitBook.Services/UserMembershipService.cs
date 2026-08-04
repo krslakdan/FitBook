@@ -339,7 +339,7 @@ public class UserMembershipService
         {
             if (existingActivePayment.Status == PaymentStatus.Completed)
             {
-                throw new BusinessException("Ova članarina je već uspješno plaćena.");
+                return AlreadyPaidResponse(existingActivePayment.Id);
             }
 
             var existingIntent = await _stripePaymentService.GetPaymentIntentAsync(existingActivePayment.PaymentIntentId, cancellationToken);
@@ -347,7 +347,7 @@ public class UserMembershipService
             if (existingIntent.Status == StripeIntentSucceeded)
             {
                 await MarkPaymentSuccessfulAsync(existingActivePayment.PaymentIntentId, cancellationToken);
-                throw new BusinessException("Ova članarina je već uspješno plaćena.");
+                return AlreadyPaidResponse(existingActivePayment.Id);
             }
             else if (existingIntent.Status == StripeIntentCanceled)
             {
@@ -458,6 +458,16 @@ public class UserMembershipService
         }
 
         return await GetByIdAsync(id, cancellationToken);
+    }
+
+    private CreatePaymentIntentResponse AlreadyPaidResponse(int paymentId)
+    {
+        return new CreatePaymentIntentResponse
+        {
+            PaymentId = paymentId,
+            PublishableKey = _stripePublishableKey,
+            AlreadyPaid = true
+        };
     }
 
     private async Task<bool> HasActivePaymentAsync(int userMembershipId, int excludePaymentId, CancellationToken cancellationToken)
