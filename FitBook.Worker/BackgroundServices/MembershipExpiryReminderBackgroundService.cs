@@ -31,7 +31,7 @@ public class MembershipExpiryReminderBackgroundService : BackgroundService
                 var reminderService = scope.ServiceProvider.GetRequiredService<IReminderService>();
                 await reminderService.SendDueMembershipExpiryRemindersAsync(ReminderLeadTime, stoppingToken);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!stoppingToken.IsCancellationRequested)
             {
                 _logger.LogError(ex, "Failed to process due membership expiry reminders. Retrying in {Delay}.", FailureRetryInterval);
                 nextDelay = FailureRetryInterval;
@@ -41,8 +41,10 @@ public class MembershipExpiryReminderBackgroundService : BackgroundService
             {
                 await Task.Delay(nextDelay, stoppingToken);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
+                _logger.LogInformation("MembershipExpiryReminderBackgroundService is stopping because the host is shutting down.");
+                break;
             }
         }
     }

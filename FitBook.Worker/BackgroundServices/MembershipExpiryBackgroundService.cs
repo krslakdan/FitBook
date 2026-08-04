@@ -30,7 +30,7 @@ public class MembershipExpiryBackgroundService : BackgroundService
                 var expiryService = scope.ServiceProvider.GetRequiredService<IMembershipExpiryService>();
                 await expiryService.ExpireDueMembershipsAsync(stoppingToken);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!stoppingToken.IsCancellationRequested)
             {
                 _logger.LogError(ex, "Failed to expire due memberships. Retrying in {Delay}.", FailureRetryInterval);
                 nextDelay = FailureRetryInterval;
@@ -40,8 +40,10 @@ public class MembershipExpiryBackgroundService : BackgroundService
             {
                 await Task.Delay(nextDelay, stoppingToken);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
+                _logger.LogInformation("MembershipExpiryBackgroundService is stopping because the host is shutting down.");
+                break;
             }
         }
     }

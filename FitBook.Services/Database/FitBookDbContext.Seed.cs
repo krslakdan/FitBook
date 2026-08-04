@@ -99,7 +99,7 @@ public partial class FitBookDbContext
                 LastName = "Doe",
                 Email = "johndoe@fitbook.com",
                 PhoneNumber = "+38761555001",
-                Username = "johndoe",
+                Username = "trainer",
                 PasswordHash = SeedData.TestPasswordHash,
                 Role = Roles.Trainer,
                 ProfileImageUrl = "uploads/trainers/trainer1.jpg",

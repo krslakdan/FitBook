@@ -61,8 +61,9 @@ public sealed class EmailNotificationConsumer : BackgroundService
         {
             await Task.Delay(Timeout.Infinite, stoppingToken);
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
+            _logger.LogInformation("EmailNotificationConsumer is stopping because the host is shutting down.");
         }
     }
 
