@@ -64,6 +64,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDashboardService, DashboardService>();
 
         services.Configure<RabbitMqOptions>(configuration.GetSection("RabbitMQ"));
+        services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
+        services.Configure<RefreshTokenOptions>(configuration.GetSection(RefreshTokenOptions.SectionName));
         services.AddSingleton<IEmailNotificationPublisher, RabbitMqEmailNotificationPublisher>();
 
         services.AddScoped<IJwtTokenService, JwtTokenService>();

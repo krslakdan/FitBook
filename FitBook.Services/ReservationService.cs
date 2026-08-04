@@ -396,7 +396,7 @@ public class ReservationService
         return await GetByIdAsync(id, cancellationToken);
     }
 
-    public async Task CancelAllForTrainingTermAsync(int trainingTermId, string reason, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Reservation>> CancelAllForTrainingTermAsync(int trainingTermId, string reason, CancellationToken cancellationToken = default)
     {
         var reservations = await _dbContext.Reservations
             .Include(r => r.UserAccount)
@@ -414,17 +414,23 @@ public class ReservationService
             reservations.Select(r => r.Id).ToList(),
             cancellationToken);
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
-
-        foreach (var reservation in reservations)
-        {
-            await PublishCancellationEmailAsync(reservation, reason, cancellationToken);
-        }
-
         _logger.LogInformation(
             "Cancelled {Count} reservations for TrainingTerm {TermId}.",
             reservations.Count,
             trainingTermId);
+
+        return reservations;
+    }
+
+    public async Task PublishCancellationEmailsAsync(
+        IReadOnlyList<Reservation> reservations,
+        string? reason,
+        CancellationToken cancellationToken = default)
+    {
+        foreach (var reservation in reservations)
+        {
+            await PublishCancellationEmailAsync(reservation, reason, cancellationToken);
+        }
     }
 
     private void ApplyCancellation(Reservation reservation, string? reason)

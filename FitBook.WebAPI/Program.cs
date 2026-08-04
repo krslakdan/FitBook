@@ -45,8 +45,8 @@ var webRootPath = string.IsNullOrWhiteSpace(builder.Environment.WebRootPath)
 builder.Services.Configure<FileStorageOptions>(options => options.RootPath = webRootPath);
 builder.Services.AddScoped<IFileStorageService, FileStorageService>();
 
-var jwtSecret = builder.Configuration["JwtToken:SecretKey"];
-if (string.IsNullOrWhiteSpace(jwtSecret))
+var jwtOptions = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>() ?? new JwtOptions();
+if (string.IsNullOrWhiteSpace(jwtOptions.SecretKey))
 {
     throw new InvalidOperationException(
         "JwtToken:SecretKey configuration value is required but was not provided. Set it via the JwtToken__SecretKey environment variable (.env).");
@@ -63,9 +63,9 @@ builder.Services
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidIssuer = builder.Configuration["JwtToken:Issuer"],
-            ValidAudience = builder.Configuration["JwtToken:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+            ValidIssuer = jwtOptions.Issuer,
+            ValidAudience = jwtOptions.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey)),
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateLifetime = true,

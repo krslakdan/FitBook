@@ -56,17 +56,10 @@ public class UserAccountsController
     public override async Task<ActionResult<UserAccountResponse>> Update(int id, [FromBody] UserAccountUpdateRequest request, CancellationToken cancellationToken = default)
     {
         var currentUserId = _currentUserService.GetRequiredUserId();
-        var isAdmin = _currentUserService.IsAdmin();
-        
-        if (!isAdmin && currentUserId != id)
+
+        if (!_currentUserService.IsAdmin() && currentUserId != id)
         {
             return Forbid();
-        }
-
-        if (!isAdmin)
-        {
-            request.Role = null;
-            request.IsActive = null;
         }
 
         return await base.Update(id, request, cancellationToken);
