@@ -60,9 +60,12 @@ public class ReservationsController
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<List<ReservationStatusAuditResponse>>> GetStatusAudit(int id, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<PageResult<ReservationStatusAuditResponse>>> GetStatusAudit(
+        int id,
+        [FromQuery] BaseSearchObject searchObject,
+        CancellationToken cancellationToken = default)
     {
-        var result = await Service.GetStatusAuditAsync(id, cancellationToken);
+        var result = await Service.GetStatusAuditAsync(id, searchObject, cancellationToken);
         return Ok(result);
     }
 

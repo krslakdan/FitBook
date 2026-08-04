@@ -16,6 +16,7 @@ import 'reservations_screen.dart';
 import 'system_notifications_screen.dart';
 import 'trainings_screen.dart';
 import 'user_memberships_screen.dart';
+import '../utils/image_headers.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -720,7 +721,7 @@ class _RecentReservationRow extends StatelessWidget {
         CircleAvatar(
           radius: 17,
           backgroundColor: AppColors.primarySoft,
-          foregroundImage: imageUrl == null ? null : NetworkImage(imageUrl),
+          foregroundImage: imageUrl == null ? null : NetworkImage(imageUrl, headers: authorizedImageHeaders()),
           child: Text(
             initials,
             style: const TextStyle(

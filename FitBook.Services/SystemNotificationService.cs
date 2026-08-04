@@ -113,4 +113,6 @@ public class SystemNotificationService
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
     }
+
+    protected override string NotFoundMessage => "Obavijest nije pronađena.";
 }

@@ -138,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<List<TrainingRecommendationResponse>> _fetchRecommendations() {
-    return context.read<RecommendationProvider>().getRecommendations(maxResults: 5);
+    return context.read<RecommendationProvider>().getRecommendations(pageSize: 5);
   }
 
   void _openNotifications() {

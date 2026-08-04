@@ -29,6 +29,7 @@ public class UserAccountService
 
     private readonly IRefreshTokenService _refreshTokenService;
     private readonly ICryptoService _cryptoService;
+    private readonly IValidator<UserAccountInsertRequest> _insertRequestValidator;
     private readonly IValidator<UserAccountChangeOwnPasswordRequest> _changeOwnPasswordValidator;
     private readonly IValidator<UserAccountAdminPasswordResetRequest> _adminPasswordResetValidator;
     private readonly IEmailNotificationPublisher _emailNotificationPublisher;
@@ -49,7 +50,8 @@ public class UserAccountService
         : base(dbContext, mapper, loggerFactory, insertValidator, updateValidator)
     {
         _cryptoService = cryptoService;
-        _refreshTokenService= refreshTokenService;
+        _refreshTokenService = refreshTokenService;
+        _insertRequestValidator = insertValidator;
         _changeOwnPasswordValidator = changeOwnPasswordValidator;
         _adminPasswordResetValidator = adminPasswordResetValidator;
         _emailNotificationPublisher = emailNotificationPublisher;
@@ -175,6 +177,31 @@ public class UserAccountService
         return Task.CompletedTask;
     }
 
+    protected override Task BeforeUpdate(int id, UserAccountUpdateRequest request, UserAccount entity, CancellationToken cancellationToken)
+    {
+        if (!_currentUserService.IsAdmin())
+        {
+            request.Role = null;
+            request.IsActive = null;
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public async Task<UserAccount> CreateUserAsync(UserAccountInsertRequest request, CancellationToken cancellationToken = default)
+    {
+        await _insertRequestValidator.ValidateAndThrowAsync(request, cancellationToken);
+        await ValidateInsert(request, cancellationToken);
+
+        var entity = MapInsertToEntity(request);
+        ApplyInsertDefaults(entity);
+        await BeforeInsert(request, entity, cancellationToken);
+
+        _dbContext.UserAccounts.Add(entity);
+
+        return entity;
+    }
+
     public async Task ChangeOwnPasswordAsync(int userId, UserAccountChangeOwnPasswordRequest request, CancellationToken cancellationToken = default)
     {
         await _changeOwnPasswordValidator.ValidateAndThrowAsync(request, cancellationToken);
@@ -235,8 +262,8 @@ public class UserAccountService
 
         user.PasswordHash = _cryptoService.HashPassword(newPassword);
         user.UpdatedAtUtc = DateTime.UtcNow;
-        await _dbContext.SaveChangesAsync(cancellationToken);
         await _refreshTokenService.RevokeAllUserRefreshTokensAsync(user.Id, cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
     }
@@ -272,4 +299,6 @@ public class UserAccountService
             throw new BusinessException("Korisničko ime već postoji.");
         }
     }
+
+    protected override string NotFoundMessage => "Korisnički račun nije pronađen.";
 }

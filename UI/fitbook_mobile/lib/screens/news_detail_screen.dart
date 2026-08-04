@@ -5,6 +5,7 @@ import '../models/responses/news_item_response.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_config.dart';
 import '../utils/formatters.dart';
+import '../utils/image_headers.dart';
 
 class NewsDetailScreen extends StatelessWidget {
   const NewsDetailScreen({super.key, required this.item});
@@ -26,6 +27,7 @@ class NewsDetailScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(18),
               child: Image.network(
                 imageUrl,
+                headers: authorizedImageHeaders(),
                 width: double.infinity,
                 height: 200,
                 fit: BoxFit.cover,

@@ -4,7 +4,7 @@ namespace FitBook.Services.Interfaces.Auth;
 
 public interface IRefreshTokenService
 {
-    Task<RefreshToken> GenerateRefreshTokenAsync(int userId, CancellationToken cancellationToken = default);
+    RefreshToken CreateRefreshToken(int userId);
     Task<RefreshToken?> GetByTokenAsync(string token, CancellationToken cancellationToken = default);
     Task RevokeRefreshTokenAsync(string token, CancellationToken cancellationToken = default);
     Task RevokeAllUserRefreshTokensAsync(int userId, CancellationToken cancellationToken = default);

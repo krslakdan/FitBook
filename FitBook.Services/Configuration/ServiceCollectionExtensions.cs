@@ -38,6 +38,7 @@ public static class ServiceCollectionExtensions
         var mapsterConfig = TypeAdapterConfig.GlobalSettings;
         mapsterConfig.Scan(typeof(UserAccountMappingConfig).Assembly);
 
+        services.AddMemoryCache();
         services.AddSingleton(mapsterConfig);
         services.AddScoped<IMapper, ServiceMapper>();
 
@@ -64,6 +65,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDashboardService, DashboardService>();
 
         services.Configure<RabbitMqOptions>(configuration.GetSection("RabbitMQ"));
+        services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
+        services.Configure<RefreshTokenOptions>(configuration.GetSection(RefreshTokenOptions.SectionName));
         services.AddSingleton<IEmailNotificationPublisher, RabbitMqEmailNotificationPublisher>();
 
         services.AddScoped<IJwtTokenService, JwtTokenService>();
@@ -77,14 +80,14 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IValidator<UserAccountAdminPasswordResetRequest>, UserAccountAdminPasswordResetRequestValidator>();
 
         services.AddScoped<IValidator<ReservationInsertRequest>, ReservationInsertRequestValidator>();
-        services.AddScoped<IValidator<ReservationUpdateRequest>, NullReservationUpdateRequestValidator>();
+        services.AddScoped<IValidator<ReservationUpdateRequest>>(_ => new InlineValidator<ReservationUpdateRequest>());
         services.AddScoped<IValidator<ReservationCancelRequest>, ReservationCancelRequestValidator>();
 
         services.AddScoped<IValidator<MembershipPackageInsertRequest>, MembershipPackageInsertRequestValidator>();
         services.AddScoped<IValidator<MembershipPackageUpdateRequest>, MembershipPackageUpdateRequestValidator>();
 
         services.AddScoped<IValidator<UserMembershipInsertRequest>, UserMembershipInsertRequestValidator>();
-        services.AddScoped<IValidator<UserMembershipUpdateRequest>, NullUserMembershipUpdateRequestValidator>();
+        services.AddScoped<IValidator<UserMembershipUpdateRequest>>(_ => new InlineValidator<UserMembershipUpdateRequest>());
         services.AddScoped<IValidator<UserMembershipCancelRequest>, UserMembershipCancelRequestValidator>();
 
         services.AddScoped<IValidator<TrainingCategoryInsertRequest>, TrainingCategoryInsertRequestValidator>();

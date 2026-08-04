@@ -8,4 +8,6 @@ public interface IFileStorageService
         string contentType,
         string folder,
         CancellationToken cancellationToken = default);
+
+    Task<bool> CanCurrentUserAccessAsync(string requestPath, CancellationToken cancellationToken = default);
 }

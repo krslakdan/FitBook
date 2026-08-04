@@ -12,6 +12,7 @@ CreatePaymentIntentResponse _$CreatePaymentIntentResponseFromJson(
   clientSecret: json['clientSecret'] as String,
   paymentId: (json['paymentId'] as num).toInt(),
   publishableKey: json['publishableKey'] as String,
+  alreadyPaid: json['alreadyPaid'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$CreatePaymentIntentResponseToJson(
@@ -20,4 +21,5 @@ Map<String, dynamic> _$CreatePaymentIntentResponseToJson(
   'clientSecret': instance.clientSecret,
   'paymentId': instance.paymentId,
   'publishableKey': instance.publishableKey,
+  'alreadyPaid': instance.alreadyPaid,
 };

@@ -19,6 +19,7 @@ import '../widgets/crud/form_dialog.dart';
 import '../widgets/crud/table_action_buttons.dart';
 import '../widgets/status_chip.dart';
 import 'news_items_details_screen.dart';
+import '../utils/image_headers.dart';
 
 class NewsItemsScreen extends StatefulWidget {
   const NewsItemsScreen({super.key});
@@ -177,6 +178,7 @@ class _NewsItemsScreenState extends State<NewsItemsScreen> {
                 )
               : Image.network(
                   imageUrl,
+                  headers: authorizedImageHeaders(),
                   width: 44,
                   height: 44,
                   fit: BoxFit.cover,
@@ -362,6 +364,7 @@ class _NewsItemDetailsDialog extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               child: Image.network(
                 imageUrl,
+                headers: authorizedImageHeaders(),
                 height: 180,
                 fit: BoxFit.cover,
                 errorBuilder: (_, _, _) => const SizedBox.shrink(),

@@ -72,7 +72,8 @@ public class AuthService : IAuthService
         }
 
         var accessToken = _jwtTokenService.GenerateAccessToken(user);
-        var refreshToken = await _refreshTokenService.GenerateRefreshTokenAsync(user.Id, cancellationToken);
+        var refreshToken = _refreshTokenService.CreateRefreshToken(user.Id);
+        await _context.SaveChangesAsync(cancellationToken);
 
         return new UserLoginResponse
         {
@@ -96,7 +97,8 @@ public class AuthService : IAuthService
             IsActive = true
         };
 
-        await _userAccountService.InsertAsync(insertRequest, cancellationToken);
+        await _userAccountService.CreateUserAsync(insertRequest, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
 
         await _emailNotificationPublisher.PublishAsync(new EmailNotificationMessage
         {
@@ -122,6 +124,7 @@ public class AuthService : IAuthService
             {
                 _logger.LogWarning("Attempted reuse of revoked refresh token for user {UserId}", refreshToken.UserId);
                 await _refreshTokenService.RevokeAllUserRefreshTokensAsync(refreshToken.UserId, cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
             }
             throw new BusinessException("Nevažeći ili istekao refresh token.");
         }
@@ -135,6 +138,8 @@ public class AuthService : IAuthService
         }
 
         var newRefreshToken = await _refreshTokenService.RotateRefreshTokenAsync(refreshToken.Token, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+
         var newAccessToken = _jwtTokenService.GenerateAccessToken(user);
 
         return new RefreshTokenResponse
@@ -155,6 +160,7 @@ public class AuthService : IAuthService
         }
 
         await _refreshTokenService.RevokeRefreshTokenAsync(request.RefreshToken.Trim(), cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken cancellationToken = default)

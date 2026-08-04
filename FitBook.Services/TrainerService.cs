@@ -116,4 +116,6 @@ public class TrainerService
             throw new BusinessException($"Trener '{entity.FirstName} {entity.LastName}' ne može biti obrisan jer postoje termini treninga vezani za njega. Označite ga kao neaktivnog umjesto brisanja.");
         }
     }
+
+    protected override string NotFoundMessage => "Trener nije pronađen.";
 }

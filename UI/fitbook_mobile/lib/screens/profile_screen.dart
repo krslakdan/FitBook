@@ -14,6 +14,7 @@ import 'change_password_screen.dart';
 import 'edit_profile_screen.dart';
 import 'news_screen.dart';
 import 'notifications_screen.dart';
+import '../utils/image_headers.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -304,6 +305,7 @@ class _Avatar extends StatelessWidget {
         ),
         child: Image.network(
           imageUrl!,
+          headers: authorizedImageHeaders(),
           width: _size,
           height: _size,
           fit: BoxFit.cover,

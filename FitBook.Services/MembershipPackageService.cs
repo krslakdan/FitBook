@@ -83,4 +83,6 @@ public class MembershipPackageService
             throw new BusinessException("Paket se ne može obrisati jer postoje članarine vezane za njega. Ako više nije u upotrebi, označite ga kao neaktivan.");
         }
     }
+
+    protected override string NotFoundMessage => "Paket članarine nije pronađen.";
 }

@@ -60,8 +60,11 @@ class SystemNotificationsScreen extends StatefulWidget {
 }
 
 class _SystemNotificationsScreenState extends State<SystemNotificationsScreen> {
+  static const _pollInterval = Duration(seconds: 30);
+
   final _searchController = TextEditingController();
   Timer? _searchDebounce;
+  Timer? _pollTimer;
 
   NotificationType? _notificationType;
   bool? _isRead;
@@ -79,20 +82,24 @@ class _SystemNotificationsScreenState extends State<SystemNotificationsScreen> {
   void initState() {
     super.initState();
     _load();
+    _pollTimer = Timer.periodic(_pollInterval, (_) => _load(silent: true));
   }
 
   @override
   void dispose() {
     _searchDebounce?.cancel();
+    _pollTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
-  Future<void> _load() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+  Future<void> _load({bool silent = false}) async {
+    if (!silent) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
 
     try {
       final result = await context.read<SystemNotificationProvider>().get(
@@ -108,12 +115,15 @@ class _SystemNotificationsScreenState extends State<SystemNotificationsScreen> {
         ),
       );
       if (!mounted) return;
-      setState(() => _data = result);
+      setState(() {
+        _data = result;
+        _error = null;
+      });
     } on ApiClientException catch (e) {
-      if (!mounted) return;
+      if (!mounted || silent) return;
       setState(() => _error = e.message);
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted && !silent) setState(() => _loading = false);
     }
   }
 

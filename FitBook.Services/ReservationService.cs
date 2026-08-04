@@ -4,6 +4,7 @@ using FitBook.Model.Enums;
 using FitBook.Model.Exceptions;
 using FitBook.Model.Messages;
 using FitBook.Model.Requests.Reservations;
+using FitBook.Model.Responses;
 using FitBook.Model.Responses.Reservations;
 using FitBook.Model.SearchObjects;
 using FitBook.Services.Database;
@@ -359,6 +360,13 @@ public class ReservationService
 
         EnsureValidTransition(reservation.Status, ReservationStatus.Cancelled);
 
+        if (!_currentUserService.IsAdmin()
+            && reservation.TrainingTerm is not null
+            && reservation.TrainingTerm.EndTimeUtc < DateTime.UtcNow)
+        {
+            throw new BusinessException("Nije moguće otkazati rezervaciju za termin koji je već završen.");
+        }
+
         ApplyCancellation(reservation, request.Reason);
 
         if (isOwner && reservation.TrainingTerm?.Trainer is not null
@@ -396,7 +404,7 @@ public class ReservationService
         return await GetByIdAsync(id, cancellationToken);
     }
 
-    public async Task CancelAllForTrainingTermAsync(int trainingTermId, string reason, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Reservation>> CancelAllForTrainingTermAsync(int trainingTermId, string reason, CancellationToken cancellationToken = default)
     {
         var reservations = await _dbContext.Reservations
             .Include(r => r.UserAccount)
@@ -414,17 +422,23 @@ public class ReservationService
             reservations.Select(r => r.Id).ToList(),
             cancellationToken);
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
-
-        foreach (var reservation in reservations)
-        {
-            await PublishCancellationEmailAsync(reservation, reason, cancellationToken);
-        }
-
         _logger.LogInformation(
             "Cancelled {Count} reservations for TrainingTerm {TermId}.",
             reservations.Count,
             trainingTermId);
+
+        return reservations;
+    }
+
+    public async Task PublishCancellationEmailsAsync(
+        IReadOnlyList<Reservation> reservations,
+        string? reason,
+        CancellationToken cancellationToken = default)
+    {
+        foreach (var reservation in reservations)
+        {
+            await PublishCancellationEmailAsync(reservation, reason, cancellationToken);
+        }
     }
 
     private void ApplyCancellation(Reservation reservation, string? reason)
@@ -675,15 +689,32 @@ public class ReservationService
         await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<List<ReservationStatusAuditResponse>> GetStatusAuditAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<PageResult<ReservationStatusAuditResponse>> GetStatusAuditAsync(int id, BaseSearchObject? search = null, CancellationToken cancellationToken = default)
     {
         await GetByIdAsync(id, cancellationToken);
 
-        return await _dbContext.ReservationStatusAudits
+        var searchObject = search ?? new BaseSearchObject();
+
+        var query = _dbContext.ReservationStatusAudits
             .AsNoTracking()
-            .Where(x => x.ReservationId == id)
+            .Where(x => x.ReservationId == id);
+
+        int? totalCount = null;
+        int? totalPages = null;
+
+        if (searchObject.IncludeTotalCount == true)
+        {
+            totalCount = await query.CountAsync(cancellationToken);
+            totalPages = totalCount == 0
+                ? 0
+                : (int)Math.Ceiling(totalCount.Value / (double)searchObject.PageSize);
+        }
+
+        var items = await query
             .OrderBy(x => x.ChangedAtUtc)
             .ThenBy(x => x.Id)
+            .Skip((searchObject.Page - 1) * searchObject.PageSize)
+            .Take(searchObject.PageSize)
             .Select(x => new ReservationStatusAuditResponse
             {
                 Id = x.Id,
@@ -696,6 +727,15 @@ public class ReservationService
                     : x.ChangedByUserAccount.FirstName + " " + x.ChangedByUserAccount.LastName,
             })
             .ToListAsync(cancellationToken);
+
+        return new PageResult<ReservationStatusAuditResponse>
+        {
+            Page = searchObject.Page,
+            PageSize = searchObject.PageSize,
+            TotalCount = totalCount,
+            TotalPages = totalPages,
+            Items = items
+        };
     }
 
     private void AddStatusAudit(
@@ -715,4 +755,6 @@ public class ReservationService
             CreatedAtUtc = DateTime.UtcNow,
         });
     }
+
+    protected override string NotFoundMessage => "Rezervacija nije pronađena.";
 }

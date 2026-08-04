@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../theme/app_theme.dart';
 import '../utils/app_config.dart';
+import '../utils/image_headers.dart';
 
 class ProfileAvatarPicker extends StatelessWidget {
   const ProfileAvatarPicker({
@@ -46,6 +47,7 @@ class ProfileAvatarPicker extends StatelessWidget {
     } else if (existingUrl != null) {
       avatar = Image.network(
         existingUrl,
+        headers: authorizedImageHeaders(),
         width: _size,
         height: _size,
         fit: BoxFit.cover,

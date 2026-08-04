@@ -27,7 +27,7 @@ Score = ContentScore * 0.70 + PopularityScore * 0.30
 - `ContentScore` — suma težina signala korisnika po kategoriji treninga, normalizovana u odnosu na njegovu najjaču kategoriju (0–1). Favorizuje kategorije koje korisnik najčešće bira.
 - `PopularityScore` — broj rezervacija treninga podijeljen sa brojem rezervacija najpopularnijeg treninga (0–1).
 
-U kandidate ulaze samo aktivni treninzi koji imaju barem jedan aktivan zakazan termin u budućnosti. Isključuju se treninzi koje korisnik već ima rezervisane (neotkazane rezervacije). Vraća se top 5 preporuka sortiranih po score-u.
+U kandidate ulaze samo aktivni treninzi koji imaju barem jedan aktivan zakazan termin u budućnosti. Isključuju se treninzi koje korisnik već ima rezervisane (neotkazane rezervacije). Rezultati se sortiraju po score-u; endpoint podrazumijevano vraća top 5 preporuka, a kroz `maxResults` se može tražiti do najviše 20.
 
 ## Objašnjenje preporuke
 

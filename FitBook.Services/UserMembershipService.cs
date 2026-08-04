@@ -4,6 +4,7 @@ using FitBook.Model.Enums;
 using FitBook.Model.Exceptions;
 using FitBook.Model.Messages;
 using FitBook.Model.Requests.UserMemberships;
+using FitBook.Model.Responses;
 using FitBook.Model.Responses.Payments;
 using FitBook.Model.Responses.UserMemberships;
 using FitBook.Model.SearchObjects;
@@ -339,7 +340,7 @@ public class UserMembershipService
         {
             if (existingActivePayment.Status == PaymentStatus.Completed)
             {
-                throw new BusinessException("Ova članarina je već uspješno plaćena.");
+                return AlreadyPaidResponse(existingActivePayment.Id);
             }
 
             var existingIntent = await _stripePaymentService.GetPaymentIntentAsync(existingActivePayment.PaymentIntentId, cancellationToken);
@@ -347,7 +348,7 @@ public class UserMembershipService
             if (existingIntent.Status == StripeIntentSucceeded)
             {
                 await MarkPaymentSuccessfulAsync(existingActivePayment.PaymentIntentId, cancellationToken);
-                throw new BusinessException("Ova članarina je već uspješno plaćena.");
+                return AlreadyPaidResponse(existingActivePayment.Id);
             }
             else if (existingIntent.Status == StripeIntentCanceled)
             {
@@ -458,6 +459,16 @@ public class UserMembershipService
         }
 
         return await GetByIdAsync(id, cancellationToken);
+    }
+
+    private CreatePaymentIntentResponse AlreadyPaidResponse(int paymentId)
+    {
+        return new CreatePaymentIntentResponse
+        {
+            PaymentId = paymentId,
+            PublishableKey = _stripePublishableKey,
+            AlreadyPaid = true
+        };
     }
 
     private async Task<bool> HasActivePaymentAsync(int userMembershipId, int excludePaymentId, CancellationToken cancellationToken)
@@ -609,7 +620,7 @@ public class UserMembershipService
         _logger.LogInformation("Payment {PaymentId} marked as Failed.", payment.Id);
     }
 
-    public async Task<List<UserMembershipStatusAuditResponse>> GetStatusAuditAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<PageResult<UserMembershipStatusAuditResponse>> GetStatusAuditAsync(int id, BaseSearchObject? search = null, CancellationToken cancellationToken = default)
     {
         var membership = await _dbContext.UserMemberships
             .AsNoTracking()
@@ -617,19 +628,36 @@ public class UserMembershipService
 
         if (membership is null)
         {
-            throw new NotFoundException($"Članarina sa ID {id} nije pronađena.");
+            throw new NotFoundException(NotFoundMessage);
         }
 
         if (!_currentUserService.IsAdmin() && membership.UserAccountId != _currentUserService.GetRequiredUserId())
         {
-            throw new NotFoundException($"Članarina sa ID {id} nije pronađena.");
+            throw new NotFoundException(NotFoundMessage);
         }
 
-        return await _dbContext.UserMembershipStatusAudits
+        var searchObject = search ?? new BaseSearchObject();
+
+        var query = _dbContext.UserMembershipStatusAudits
             .AsNoTracking()
-            .Where(x => x.UserMembershipId == id)
+            .Where(x => x.UserMembershipId == id);
+
+        int? totalCount = null;
+        int? totalPages = null;
+
+        if (searchObject.IncludeTotalCount == true)
+        {
+            totalCount = await query.CountAsync(cancellationToken);
+            totalPages = totalCount == 0
+                ? 0
+                : (int)Math.Ceiling(totalCount.Value / (double)searchObject.PageSize);
+        }
+
+        var items = await query
             .OrderBy(x => x.ChangedAtUtc)
             .ThenBy(x => x.Id)
+            .Skip((searchObject.Page - 1) * searchObject.PageSize)
+            .Take(searchObject.PageSize)
             .Select(x => new UserMembershipStatusAuditResponse
             {
                 Id = x.Id,
@@ -642,6 +670,15 @@ public class UserMembershipService
                     : x.ChangedByUserAccount.FirstName + " " + x.ChangedByUserAccount.LastName,
             })
             .ToListAsync(cancellationToken);
+
+        return new PageResult<UserMembershipStatusAuditResponse>
+        {
+            Page = searchObject.Page,
+            PageSize = searchObject.PageSize,
+            TotalCount = totalCount,
+            TotalPages = totalPages,
+            Items = items
+        };
     }
 
     private void AddStatusAudit(UserMembership membership, MembershipStatus previousStatus, MembershipStatus newStatus, string? reason)
@@ -674,4 +711,6 @@ public class UserMembershipService
                 $"Nije moguća tranzicija statusa članarine iz '{from}' u '{to}'.");
         }
     }
+
+    protected override string NotFoundMessage => "Članarina nije pronađena.";
 }

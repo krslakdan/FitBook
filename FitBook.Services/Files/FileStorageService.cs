@@ -1,5 +1,8 @@
+using FitBook.Model.Constants;
 using FitBook.Model.Exceptions;
+using FitBook.Services.Database;
 using FitBook.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace FitBook.Services.Files;
@@ -7,9 +10,11 @@ namespace FitBook.Services.Files;
 public class FileStorageService : IFileStorageService
 {
     private const long MaxFileSizeBytes = 5 * 1024 * 1024;
+    private const string UploadsRoot = "uploads";
 
     private static readonly string[] AllowedFolders = ["users", "trainers", "news"];
     private static readonly string[] AdminOnlyFolders = ["trainers", "news"];
+    private static readonly string[] OwnerScopedFolders = ["users"];
 
     private static readonly Dictionary<string, string> AllowedContentTypeByExtension = new()
     {
@@ -21,8 +26,12 @@ public class FileStorageService : IFileStorageService
 
     private readonly string _rootPath;
     private readonly ICurrentUserService _currentUserService;
+    private readonly FitBookDbContext _dbContext;
 
-    public FileStorageService(IOptions<FileStorageOptions> options, ICurrentUserService currentUserService)
+    public FileStorageService(
+        IOptions<FileStorageOptions> options,
+        ICurrentUserService currentUserService,
+        FitBookDbContext dbContext)
     {
         _rootPath = options.Value.RootPath;
 
@@ -32,6 +41,43 @@ public class FileStorageService : IFileStorageService
         }
 
         _currentUserService = currentUserService;
+        _dbContext = dbContext;
+    }
+
+    public async Task<bool> CanCurrentUserAccessAsync(string requestPath, CancellationToken cancellationToken = default)
+    {
+        var normalizedPath = requestPath.Replace('\\', '/').Trim('/');
+        var segments = normalizedPath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+
+        if (segments.Length != 3 || !string.Equals(segments[0], UploadsRoot, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var folder = segments[1].ToLowerInvariant();
+        if (!AllowedFolders.Contains(folder))
+        {
+            return false;
+        }
+
+        if (!OwnerScopedFolders.Contains(folder))
+        {
+            return true;
+        }
+
+        if (_currentUserService.IsAdmin() || _currentUserService.IsInRole(Roles.Trainer))
+        {
+            return true;
+        }
+
+        var currentUserId = _currentUserService.GetRequiredUserId();
+        var ownImageUrl = await _dbContext.UserAccounts
+            .Where(user => user.Id == currentUserId)
+            .Select(user => user.ProfileImageUrl)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return !string.IsNullOrWhiteSpace(ownImageUrl)
+            && string.Equals(ownImageUrl.Replace('\\', '/').Trim('/'), normalizedPath, StringComparison.OrdinalIgnoreCase);
     }
 
     public async Task<string> SaveImageAsync(

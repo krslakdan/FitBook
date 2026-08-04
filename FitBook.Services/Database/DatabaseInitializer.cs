@@ -61,6 +61,15 @@ public static class DatabaseInitializer
 
     private static async Task SeedDemoDataAsync(FitBookDbContext dbContext, ILogger logger, CancellationToken cancellationToken)
     {
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+        await SeedDemoDataCoreAsync(dbContext, logger, cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
+    }
+
+    private static async Task SeedDemoDataCoreAsync(FitBookDbContext dbContext, ILogger logger, CancellationToken cancellationToken)
+    {
         var now = DateTime.UtcNow;
 
         var mobileUser = await dbContext.UserAccounts.FirstOrDefaultAsync(u => u.Username == "mobile", cancellationToken);

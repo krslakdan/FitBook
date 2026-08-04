@@ -18,6 +18,7 @@ import '../utils/app_config.dart';
 import '../utils/formatters.dart';
 import '../utils/reservation_display.dart';
 import '../widgets/status_chip.dart';
+import '../utils/image_headers.dart';
 
 class TrainerTermDetailScreen extends StatefulWidget {
   const TrainerTermDetailScreen({super.key, required this.term});
@@ -610,6 +611,7 @@ class _UserAvatar extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         child: Image.network(
           url,
+          headers: authorizedImageHeaders(),
           width: _size,
           height: _size,
           fit: BoxFit.cover,

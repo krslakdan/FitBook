@@ -1,6 +1,6 @@
 using System.Text.Json;
 using FitBook.Model.Messages;
-using FitBook.Worker.Messaging;
+using FitBook.Services.Messaging;
 using FitBook.Worker.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -61,8 +61,9 @@ public sealed class EmailNotificationConsumer : BackgroundService
         {
             await Task.Delay(Timeout.Infinite, stoppingToken);
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
+            _logger.LogInformation("EmailNotificationConsumer is stopping because the host is shutting down.");
         }
     }
 

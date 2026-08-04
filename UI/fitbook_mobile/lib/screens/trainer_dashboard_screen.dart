@@ -28,10 +28,14 @@ class TrainerDashboardScreen extends StatefulWidget {
 }
 
 class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
-  final List<TrainingTermResponse> _terms = [];
+  static const _todayTermsPageSize = 50;
+
+  final List<TrainingTermResponse> _todayTerms = [];
+  TrainingTermResponse? _nextTerm;
   int? _trainerId;
   int _pendingCount = 0;
   bool _loading = true;
+  bool _loaded = false;
   bool _noProfile = false;
   String? _error;
 
@@ -65,22 +69,54 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
       }
       _trainerId = trainerId;
 
-      final terms = await _loadAllTerms(termProvider, trainerId);
-      final pendingResult = await reservationProvider.get(
-        filter: ReservationSearchObject(
-          trainerId: trainerId,
-          status: ReservationStatus.pending,
-          pageSize: 1,
-          includeTotalCount: true,
+      final nowUtc = DateTime.now().toUtc();
+      final localToday = DateTime.now();
+      final dayStart = DateTime(localToday.year, localToday.month, localToday.day);
+
+      final results = await Future.wait([
+        termProvider.get(
+          filter: TrainingTermSearchObject(
+            trainerId: trainerId,
+            isUpcoming: true,
+            startFromUtc: nowUtc,
+            page: 1,
+            pageSize: 1,
+          ),
         ),
-      );
+        termProvider.get(
+          filter: TrainingTermSearchObject(
+            trainerId: trainerId,
+            isActive: true,
+            startFromUtc: dayStart.toUtc(),
+            startToUtc: dayStart.add(const Duration(days: 1)).toUtc(),
+            page: 1,
+            pageSize: _todayTermsPageSize,
+          ),
+        ),
+        reservationProvider.get(
+          filter: ReservationSearchObject(
+            trainerId: trainerId,
+            status: ReservationStatus.pending,
+            pageSize: 1,
+            includeTotalCount: true,
+          ),
+        ),
+      ]);
+
       if (!mounted) return;
+
+      final upcoming = results[0].items.cast<TrainingTermResponse>();
+      final today = results[1].items.cast<TrainingTermResponse>().toList()
+        ..sort((a, b) => a.startTimeUtc.compareTo(b.startTimeUtc));
+
       setState(() {
-        _terms
+        _nextTerm = upcoming.isEmpty ? null : upcoming.first;
+        _todayTerms
           ..clear()
-          ..addAll(terms);
-        _pendingCount = pendingResult.totalCount ?? 0;
+          ..addAll(today);
+        _pendingCount = results[2].totalCount ?? 0;
         _loading = false;
+        _loaded = true;
       });
     } on ApiClientException catch (e) {
       if (!mounted) return;
@@ -97,40 +133,6 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
       filter: TrainerSearchObject(userAccountId: userId, pageSize: 1),
     );
     return result.items.isEmpty ? null : result.items.first.id;
-  }
-
-  Future<List<TrainingTermResponse>> _loadAllTerms(
-    TrainingTermProvider provider,
-    int trainerId,
-  ) {
-    return provider.getAllPages(
-      filterForPage: (page) => TrainingTermSearchObject(
-        trainerId: trainerId,
-        page: page,
-        pageSize: 100,
-      ),
-      idOf: (term) => term.id,
-    );
-  }
-
-  List<TrainingTermResponse> get _upcomingScheduled {
-    final now = DateTime.now().toUtc();
-    return _terms
-        .where((t) => t.status == TrainingTermStatus.scheduled && t.startTimeUtc.isAfter(now))
-        .toList()
-      ..sort((a, b) => a.startTimeUtc.compareTo(b.startTimeUtc));
-  }
-
-  List<TrainingTermResponse> get _todayTerms {
-    final now = DateTime.now();
-    return _terms.where((t) {
-      final start = t.startTimeUtc.toLocal();
-      return start.year == now.year &&
-          start.month == now.month &&
-          start.day == now.day &&
-          t.status != TrainingTermStatus.cancelled;
-    }).toList()
-      ..sort((a, b) => a.startTimeUtc.compareTo(b.startTimeUtc));
   }
 
   Future<void> _openTerm(TrainingTermResponse term) async {
@@ -152,7 +154,7 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
   }
 
   Widget _buildBody() {
-    if (_loading && _terms.isEmpty) {
+    if (_loading && !_loaded) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -164,11 +166,11 @@ class _TrainerDashboardScreenState extends State<TrainerDashboardScreen> {
       );
     }
 
-    if (_error != null && _terms.isEmpty) {
+    if (_error != null && !_loaded) {
       return _ErrorView(message: _error!, onRetry: _load);
     }
 
-    final nextTerm = _upcomingScheduled.isEmpty ? null : _upcomingScheduled.first;
+    final nextTerm = _nextTerm;
     final todayTerms = _todayTerms;
 
     return RefreshIndicator(

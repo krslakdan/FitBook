@@ -98,4 +98,6 @@ public class TrainingService
             throw new NotFoundException($"Nivo težine sa ID {difficultyLevelId} nije pronađen.");
         }
     }
+
+    protected override string NotFoundMessage => "Trening nije pronađen.";
 }

@@ -38,11 +38,13 @@ public abstract class BaseReadService<TEntity, TResponse, TSearch> : IBaseReadSe
 
         if (response is null)
         {
-            throw new NotFoundException($"Zapis tipa '{typeof(TEntity).Name}' sa ID {id} nije pronađen.");
+            throw new NotFoundException(NotFoundMessage);
         }
 
         return response;
     }
+
+    protected virtual string NotFoundMessage => "Traženi zapis nije pronađen.";
 
     public virtual async Task<PageResult<TResponse>> GetAllAsync(TSearch? search = null, CancellationToken cancellationToken = default)
     {

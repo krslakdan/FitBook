@@ -20,7 +20,7 @@ Backend je ASP.NET Core 9 (WebAPI + Worker mikroservis, RabbitMQ, SQL Server), a
 | ------------------------ | -------------- | ------- |
 | Desktop verzija          | desktop        | test    |
 | Mobilna verzija          | mobile         | test    |
-| Trener (mobilna verzija) | johndoe        | test    |
+| Trener (mobilna verzija) | trainer        | test    |
 
 ## Pokretanje backenda
 

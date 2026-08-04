@@ -32,7 +32,7 @@ public class ReservationReminderBackgroundService : BackgroundService
                 await reminderService.SendDueReservationRemindersAsync(ReminderLeadTime, stoppingToken);
                 await reminderService.SendDueTrainerTermRemindersAsync(ReminderLeadTime, stoppingToken);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!stoppingToken.IsCancellationRequested)
             {
                 _logger.LogError(ex, "Failed to process due reservation reminders. Retrying in {Delay}.", FailureRetryInterval);
                 nextDelay = FailureRetryInterval;
@@ -42,8 +42,10 @@ public class ReservationReminderBackgroundService : BackgroundService
             {
                 await Task.Delay(nextDelay, stoppingToken);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
+                _logger.LogInformation("ReservationReminderBackgroundService is stopping because the host is shutting down.");
+                break;
             }
         }
     }

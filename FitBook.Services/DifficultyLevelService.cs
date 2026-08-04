@@ -57,4 +57,6 @@ public class DifficultyLevelService
             throw new BusinessException($"Nivo težine '{entity.Name}' ne može biti obrisan jer postoje treninzi koji ga koriste. Označite ga kao neaktivan umjesto brisanja.");
         }
     }
+
+    protected override string NotFoundMessage => "Nivo težine nije pronađen.";
 }

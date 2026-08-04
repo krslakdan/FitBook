@@ -11,4 +11,5 @@ public class TrainingTermSearchObject : BaseSearchObject
     public DateTime? StartFromUtc { get; set; }
     public DateTime? StartToUtc { get; set; }
     public bool? IsActive { get; set; }
+    public bool? IsUpcoming { get; set; }
 }

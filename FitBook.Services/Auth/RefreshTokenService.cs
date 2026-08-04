@@ -1,39 +1,36 @@
 using System.Security.Cryptography;
 using FitBook.Model.Exceptions;
+using FitBook.Services.Configuration;
 using FitBook.Services.Database;
 using FitBook.Services.Database.Entities;
 using FitBook.Services.Interfaces.Auth;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace FitBook.Services.Auth;
 
 public class RefreshTokenService : IRefreshTokenService
 {
     private readonly FitBookDbContext _context;
-    private readonly IConfiguration _configuration;
+    private readonly RefreshTokenOptions _options;
 
-    public RefreshTokenService(FitBookDbContext context, IConfiguration configuration)
+    public RefreshTokenService(FitBookDbContext context, IOptions<RefreshTokenOptions> options)
     {
         _context = context;
-        _configuration = configuration;
+        _options = options.Value;
     }
 
-    public async Task<RefreshToken> GenerateRefreshTokenAsync(int userId, CancellationToken cancellationToken = default)
+    public RefreshToken CreateRefreshToken(int userId)
     {
-        var token = GenerateSecureToken();
-        var daysToLive = int.Parse(_configuration["RefreshToken:ExpirationDays"] ?? "7");
-        
         var refreshToken = new RefreshToken
         {
-            Token = token,
+            Token = GenerateSecureToken(),
             UserId = userId,
-            ExpiresAtUtc = DateTime.UtcNow.AddDays(daysToLive),
+            ExpiresAtUtc = DateTime.UtcNow.AddDays(_options.ExpirationDays),
             CreatedAtUtc = DateTime.UtcNow
         };
 
         _context.RefreshTokens.Add(refreshToken);
-        await _context.SaveChangesAsync(cancellationToken);
 
         return refreshToken;
     }
@@ -47,11 +44,10 @@ public class RefreshTokenService : IRefreshTokenService
     public async Task RevokeRefreshTokenAsync(string token, CancellationToken cancellationToken = default)
     {
         var refreshToken = await _context.RefreshTokens.SingleOrDefaultAsync(x => x.Token == token, cancellationToken);
-        
+
         if (refreshToken != null)
         {
             refreshToken.RevokedAtUtc = DateTime.UtcNow;
-            await _context.SaveChangesAsync(cancellationToken);
         }
     }
 
@@ -65,8 +61,6 @@ public class RefreshTokenService : IRefreshTokenService
         {
             token.RevokedAtUtc = DateTime.UtcNow;
         }
-
-        await _context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<RefreshToken> RotateRefreshTokenAsync(string existingToken, CancellationToken cancellationToken = default)
@@ -74,22 +68,10 @@ public class RefreshTokenService : IRefreshTokenService
         var oldToken = await _context.RefreshTokens.SingleOrDefaultAsync(x => x.Token == existingToken, cancellationToken);
         if (oldToken == null) throw new NotFoundException("Refresh token nije pronađen.");
 
-        var newToken = GenerateSecureToken();
-        var daysToLive = int.Parse(_configuration["RefreshToken:ExpirationDays"] ?? "7");
-        
+        var refreshToken = CreateRefreshToken(oldToken.UserId);
+
         oldToken.RevokedAtUtc = DateTime.UtcNow;
-        oldToken.ReplacedByToken = newToken;
-
-        var refreshToken = new RefreshToken
-        {
-            Token = newToken,
-            UserId = oldToken.UserId,
-            ExpiresAtUtc = DateTime.UtcNow.AddDays(daysToLive),
-            CreatedAtUtc = DateTime.UtcNow
-        };
-
-        _context.RefreshTokens.Add(refreshToken);
-        await _context.SaveChangesAsync(cancellationToken);
+        oldToken.ReplacedByToken = refreshToken.Token;
 
         return refreshToken;
     }

@@ -82,7 +82,25 @@ public class TrainingTermService
             query = query.Where(x => x.StartTimeUtc <= search.StartToUtc.Value);
         }
 
+        if (search.IsUpcoming.HasValue)
+        {
+            var nowUtc = DateTime.UtcNow;
+            query = search.IsUpcoming.Value
+                ? query.Where(x => x.Status == TrainingTermStatus.Scheduled && x.EndTimeUtc > nowUtc)
+                : query.Where(x => x.Status != TrainingTermStatus.Scheduled || x.EndTimeUtc <= nowUtc);
+        }
+
         return query;
+    }
+
+    protected override IOrderedQueryable<TrainingTerm> ApplyOrdering(IQueryable<TrainingTerm> query, TrainingTermSearchObject search)
+    {
+        return search.IsUpcoming switch
+        {
+            true => query.OrderBy(x => x.StartTimeUtc).ThenBy(x => x.Id),
+            false => query.OrderByDescending(x => x.StartTimeUtc).ThenByDescending(x => x.Id),
+            _ => base.ApplyOrdering(query, search),
+        };
     }
 
     protected override IQueryable<TrainingTerm> ApplySearch(IQueryable<TrainingTerm> query, TrainingTermSearchObject search)
@@ -181,21 +199,26 @@ public class TrainingTermService
             throw new BusinessException("Nije moguće otkazati završeni termin treninga.");
         }
 
+        var cancellationReason = request.Reason ?? "Termin treninga je otkazan od strane administratora.";
+        IReadOnlyList<Reservation> cancelledReservations;
+
         await using (var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken))
         {
             term.Status = TrainingTermStatus.Cancelled;
             term.IsActive = false;
             term.UpdatedAtUtc = DateTime.UtcNow;
 
-            await _reservationService.CancelAllForTrainingTermAsync(
+            cancelledReservations = await _reservationService.CancelAllForTrainingTermAsync(
                 term.Id,
-                request.Reason ?? "Termin treninga je otkazan od strane administratora.",
+                cancellationReason,
                 cancellationToken);
 
             await _dbContext.SaveChangesAsync(cancellationToken);
 
             await transaction.CommitAsync(cancellationToken);
         }
+
+        await _reservationService.PublishCancellationEmailsAsync(cancelledReservations, cancellationReason, cancellationToken);
 
         _logger.LogInformation(
             "TrainingTerm {TermId} cancelled. Reason: {Reason}",
@@ -362,4 +385,6 @@ public class TrainingTermService
             throw new BusinessException(errorMessage);
         }
     }
+
+    protected override string NotFoundMessage => "Termin treninga nije pronađen.";
 }
