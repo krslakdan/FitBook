@@ -5,8 +5,11 @@ import '../layouts/master_screen.dart';
 import '../models/enums/membership_status.dart';
 import '../models/responses/membership_payment_response.dart';
 import '../models/requests/user_membership_cancel_request.dart';
+import '../models/requests/user_membership_change_package_request.dart';
 import '../models/responses/user_membership_response.dart';
+import '../models/search_objects/membership_package_search_object.dart';
 import '../models/search_objects/membership_payment_search_object.dart';
+import '../providers/membership_package_provider.dart';
 import '../providers/membership_payment_provider.dart';
 import '../providers/user_membership_provider.dart';
 import '../theme/app_theme.dart';
@@ -15,6 +18,7 @@ import '../utils/formatters.dart';
 import '../utils/membership_display.dart';
 import '../utils/membership_payment_flow.dart';
 import '../widgets/cancel_membership_dialog.dart';
+import '../widgets/change_package_dialog.dart';
 import '../widgets/status_chip.dart';
 
 class MembershipDetailsScreen extends StatefulWidget {
@@ -48,7 +52,7 @@ class _MembershipDetailsScreenState extends State<MembershipDetailsScreen> {
   Future<void> _refreshMembership() async {
     final provider = context.read<UserMembershipProvider>();
     try {
-      final updated = await provider.getById(widget.membership.id);
+      final updated = await provider.getById(_membership.id);
       if (!mounted) return;
       setState(() => _membership = updated);
     } on ApiClientException {
@@ -66,7 +70,7 @@ class _MembershipDetailsScreenState extends State<MembershipDetailsScreen> {
     try {
       final result = await provider.get(
         filter: MembershipPaymentSearchObject(
-          userMembershipId: widget.membership.id,
+          userMembershipId: _membership.id,
           page: 1,
           pageSize: 100,
           includeTotalCount: true,
@@ -123,6 +127,56 @@ class _MembershipDetailsScreenState extends State<MembershipDetailsScreen> {
         isPaid ? 'Članarina je otkazana. Povrat sredstava je pokrenut.' : 'Članarina je otkazana.',
       );
       await _loadPayments();
+    } on ApiClientException catch (e) {
+      if (!mounted) return;
+      _showMessage(e.message);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _changePackage() async {
+    setState(() => _busy = true);
+    final packageProvider = context.read<MembershipPackageProvider>();
+    final membershipProvider = context.read<UserMembershipProvider>();
+
+    try {
+      final result = await packageProvider.get(
+        filter: const MembershipPackageSearchObject(page: 1, pageSize: 100, isActive: true),
+      );
+      final available = result.items
+          .where((package) => package.id != _membership.membershipPackageId)
+          .toList();
+
+      if (!mounted) return;
+      if (available.isEmpty) {
+        _showMessage('Trenutno nema drugih dostupnih paketa članarine.');
+        return;
+      }
+
+      final chosen = await showChangePackageDialog(
+        context,
+        packages: available,
+        currentPackageName: _membership.packageName,
+        refundExpected: _membership.isPaid,
+      );
+      if (chosen == null || !mounted) return;
+
+      final replacement = await membershipProvider.changePackage(
+        _membership.id,
+        UserMembershipChangePackageRequest(membershipPackageId: chosen.id),
+      );
+      if (!mounted) return;
+      setState(() => _membership = replacement);
+
+      final payment = await MembershipPaymentFlow.pay(
+        provider: membershipProvider,
+        membershipId: replacement.id,
+      );
+      if (!mounted) return;
+      final (message, success) = membershipPaymentResultMessage(payment);
+      _showMessage(message, success: success);
+      await _refresh();
     } on ApiClientException catch (e) {
       if (!mounted) return;
       _showMessage(e.message);
@@ -230,20 +284,32 @@ class _MembershipDetailsScreenState extends State<MembershipDetailsScreen> {
           label: Text(_busy ? 'Obrada...' : 'Dovršite plaćanje'),
         );
       case MembershipStatus.active:
-        return FilledButton.icon(
-          onPressed: _busy ? null : _cancel,
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.danger,
-            minimumSize: const Size.fromHeight(52),
-          ),
-          icon: _busy
-              ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
-                )
-              : const Icon(Icons.cancel_outlined, size: 20),
-          label: Text(_busy ? 'Obrada...' : 'Otkaži članarinu'),
+        return Column(
+          children: [
+            FilledButton.icon(
+              onPressed: _busy ? null : _changePackage,
+              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+              icon: _busy
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
+                    )
+                  : const Icon(Icons.swap_horiz_rounded, size: 20),
+              label: Text(_busy ? 'Obrada...' : 'Promijeni paket'),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: _busy ? null : _cancel,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.danger,
+                side: const BorderSide(color: AppColors.danger),
+                minimumSize: const Size.fromHeight(52),
+              ),
+              icon: const Icon(Icons.cancel_outlined, size: 20),
+              label: const Text('Otkaži članarinu'),
+            ),
+          ],
         );
       case MembershipStatus.expired:
       case MembershipStatus.cancelled:

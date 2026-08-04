@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../models/requests/user_membership_cancel_request.dart';
+import '../models/requests/user_membership_change_package_request.dart';
 import '../models/requests/user_membership_insert_request.dart';
 import '../models/responses/create_payment_intent_response.dart';
 import '../models/responses/user_membership_response.dart';
@@ -20,6 +21,14 @@ class UserMembershipProvider extends BaseReadProvider<UserMembershipResponse> {
 
   Future<UserMembershipResponse> cancel(int id, UserMembershipCancelRequest request) async {
     final response = await apiPost('$endpoint/$id/cancel', body: request);
+    return fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+  }
+
+  Future<UserMembershipResponse> changePackage(
+    int id,
+    UserMembershipChangePackageRequest request,
+  ) async {
+    final response = await apiPost('$endpoint/$id/change-package', body: request);
     return fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
 

@@ -89,6 +89,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IValidator<UserMembershipInsertRequest>, UserMembershipInsertRequestValidator>();
         services.AddScoped<IValidator<UserMembershipUpdateRequest>>(_ => new InlineValidator<UserMembershipUpdateRequest>());
         services.AddScoped<IValidator<UserMembershipCancelRequest>, UserMembershipCancelRequestValidator>();
+        services.AddScoped<IValidator<UserMembershipChangePackageRequest>, UserMembershipChangePackageRequestValidator>();
 
         services.AddScoped<IValidator<TrainingCategoryInsertRequest>, TrainingCategoryInsertRequestValidator>();
         services.AddScoped<IValidator<TrainingCategoryUpdateRequest>, TrainingCategoryUpdateRequestValidator>();
