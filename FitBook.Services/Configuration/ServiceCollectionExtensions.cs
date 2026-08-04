@@ -38,6 +38,7 @@ public static class ServiceCollectionExtensions
         var mapsterConfig = TypeAdapterConfig.GlobalSettings;
         mapsterConfig.Scan(typeof(UserAccountMappingConfig).Assembly);
 
+        services.AddMemoryCache();
         services.AddSingleton(mapsterConfig);
         services.AddScoped<IMapper, ServiceMapper>();
 

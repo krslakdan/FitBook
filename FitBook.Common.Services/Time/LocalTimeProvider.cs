@@ -50,6 +50,11 @@ public static class LocalTimeProvider
         return ToLocal(utc).Date;
     }
 
+    public static double OffsetHours(DateTime utc)
+    {
+        return Zone.GetUtcOffset(DateTime.SpecifyKind(utc, DateTimeKind.Utc)).TotalHours;
+    }
+
     public static string FormatDateTime(DateTime utc)
     {
         return ToLocal(utc).ToString("dd.MM.yyyy. HH:mm");

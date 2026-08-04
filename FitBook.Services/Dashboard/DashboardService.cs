@@ -5,6 +5,7 @@ using FitBook.Model.Responses.Dashboard;
 using FitBook.Services.Database;
 using FitBook.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 namespace FitBook.Services.Dashboard;
@@ -15,20 +16,39 @@ public class DashboardService : IDashboardService
     private const int MaxReservationsDays = 30;
     private const int TopTrainingsCount = 4;
     private const int RecentItemsCount = 4;
+    private const string CacheKeyPrefix = "dashboard:summary:";
+
+    private static readonly TimeSpan CacheLifetime = TimeSpan.FromSeconds(30);
 
     private readonly FitBookDbContext _dbContext;
+    private readonly IMemoryCache _cache;
     private readonly ILogger<DashboardService> _logger;
 
-    public DashboardService(FitBookDbContext dbContext, ILogger<DashboardService> logger)
+    public DashboardService(FitBookDbContext dbContext, IMemoryCache cache, ILogger<DashboardService> logger)
     {
         _dbContext = dbContext;
+        _cache = cache;
         _logger = logger;
     }
 
     public async Task<DashboardSummaryResponse> GetSummaryAsync(int reservationsDays, CancellationToken cancellationToken = default)
     {
         var days = Math.Clamp(reservationsDays, MinReservationsDays, MaxReservationsDays);
+        var cacheKey = CacheKeyPrefix + days;
 
+        if (_cache.TryGetValue<DashboardSummaryResponse>(cacheKey, out var cached) && cached is not null)
+        {
+            return cached;
+        }
+
+        var summary = await BuildSummaryAsync(days, cancellationToken);
+        _cache.Set(cacheKey, summary, CacheLifetime);
+
+        return summary;
+    }
+
+    private async Task<DashboardSummaryResponse> BuildSummaryAsync(int days, CancellationToken cancellationToken)
+    {
         var nowUtc = DateTime.UtcNow;
         var localToday = LocalTimeProvider.LocalDate(nowUtc);
         var localMonthStart = new DateTime(localToday.Year, localToday.Month, 1);
@@ -37,54 +57,59 @@ public class DashboardService : IDashboardService
         var monthStartUtc = LocalTimeProvider.ToUtc(localMonthStart);
         var previousMonthStartUtc = LocalTimeProvider.ToUtc(localMonthStart.AddMonths(-1));
         var thirtyDaysAgoUtc = nowUtc.AddDays(-30);
-
-        var totalUsers = await _dbContext.UserAccounts
-            .CountAsync(u => !u.IsDeleted && u.Role == Roles.User, cancellationToken);
-        var usersBeforeThisMonth = await _dbContext.UserAccounts
-            .CountAsync(
-                u => !u.IsDeleted && u.Role == Roles.User && u.CreatedAtUtc < monthStartUtc,
-                cancellationToken);
-
-        var activeMemberships = await _dbContext.UserMemberships
-            .CountAsync(
-                m => !m.IsDeleted
-                    && m.Status == MembershipStatus.Active
-                    && m.EndDateUtc >= nowUtc,
-                cancellationToken);
-        var membershipsActiveThirtyDaysAgo = await _dbContext.UserMemberships
-            .CountAsync(
-                m => !m.IsDeleted
-                    && m.Status != MembershipStatus.Pending
-                    && m.StartDateUtc <= thirtyDaysAgoUtc
-                    && m.EndDateUtc >= thirtyDaysAgoUtc,
-                cancellationToken);
-
-        var todayReservations = await _dbContext.Reservations
-            .CountAsync(r => r.ReservedAtUtc >= todayUtc, cancellationToken);
-        var yesterdayReservations = await _dbContext.Reservations
-            .CountAsync(r => r.ReservedAtUtc >= yesterdayUtc && r.ReservedAtUtc < todayUtc, cancellationToken);
-
-        var monthRevenue = await _dbContext.MembershipPayments
-            .Where(p => (p.Status == PaymentStatus.Completed || p.Status == PaymentStatus.Refunded)
-                && p.PaidAtUtc >= monthStartUtc)
-            .SumAsync(p => (decimal?)(p.Amount - (p.RefundAmount ?? 0m)), cancellationToken) ?? 0m;
-        var previousMonthRevenue = await _dbContext.MembershipPayments
-            .Where(p => (p.Status == PaymentStatus.Completed || p.Status == PaymentStatus.Refunded)
-                && p.PaidAtUtc >= previousMonthStartUtc
-                && p.PaidAtUtc < monthStartUtc)
-            .SumAsync(p => (decimal?)(p.Amount - (p.RefundAmount ?? 0m)), cancellationToken) ?? 0m;
-
-        var revenueCurrency = PaymentConstants.Currency;
-
         var seriesFromLocal = localToday.AddDays(-(days - 1));
         var seriesFromUtc = LocalTimeProvider.ToUtc(seriesFromLocal);
-        var reservedAtValues = await _dbContext.Reservations
+        var offsetHours = LocalTimeProvider.OffsetHours(nowUtc);
+
+        var userStats = await _dbContext.UserAccounts
+            .Where(u => !u.IsDeleted && u.Role == Roles.User)
+            .GroupBy(u => 1)
+            .Select(g => new
+            {
+                Total = g.Count(),
+                BeforeThisMonth = g.Count(u => u.CreatedAtUtc < monthStartUtc),
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var membershipStats = await _dbContext.UserMemberships
+            .Where(m => !m.IsDeleted)
+            .GroupBy(m => 1)
+            .Select(g => new
+            {
+                ActiveNow = g.Count(m => m.Status == MembershipStatus.Active && m.EndDateUtc >= nowUtc),
+                ActiveThirtyDaysAgo = g.Count(m => m.Status != MembershipStatus.Pending
+                    && m.StartDateUtc <= thirtyDaysAgoUtc
+                    && m.EndDateUtc >= thirtyDaysAgoUtc),
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var reservationStats = await _dbContext.Reservations
+            .GroupBy(r => 1)
+            .Select(g => new
+            {
+                Total = g.Count(),
+                Today = g.Count(r => r.ReservedAtUtc >= todayUtc),
+                Yesterday = g.Count(r => r.ReservedAtUtc >= yesterdayUtc && r.ReservedAtUtc < todayUtc),
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var revenueStats = await _dbContext.MembershipPayments
+            .Where(p => (p.Status == PaymentStatus.Completed || p.Status == PaymentStatus.Refunded)
+                && p.PaidAtUtc >= previousMonthStartUtc)
+            .GroupBy(p => 1)
+            .Select(g => new
+            {
+                CurrentMonth = g.Sum(p => p.PaidAtUtc >= monthStartUtc ? p.Amount - (p.RefundAmount ?? 0m) : 0m),
+                PreviousMonth = g.Sum(p => p.PaidAtUtc < monthStartUtc ? p.Amount - (p.RefundAmount ?? 0m) : 0m),
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var reservationsGrouped = await _dbContext.Reservations
             .Where(r => r.ReservedAtUtc >= seriesFromUtc)
-            .Select(r => r.ReservedAtUtc)
-            .ToListAsync(cancellationToken);
-        var reservationsGrouped = reservedAtValues
-            .GroupBy(LocalTimeProvider.LocalDate)
-            .ToDictionary(group => group.Key, group => group.Count());
+            .GroupBy(r => r.ReservedAtUtc.AddHours(offsetHours).Date)
+            .Select(g => new { Day = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.Day, x => x.Count, cancellationToken);
+
         var reservationsPerDay = Enumerable.Range(0, days)
             .Select(offset =>
             {
@@ -97,7 +122,6 @@ public class DashboardService : IDashboardService
             })
             .ToList();
 
-        var totalReservations = await _dbContext.Reservations.CountAsync(cancellationToken);
         var topTrainings = await _dbContext.Trainings
             .Select(t => new
             {
@@ -153,6 +177,16 @@ public class DashboardService : IDashboardService
             })
             .ToListAsync(cancellationToken);
 
+        var totalUsers = userStats?.Total ?? 0;
+        var usersBeforeThisMonth = userStats?.BeforeThisMonth ?? 0;
+        var activeMemberships = membershipStats?.ActiveNow ?? 0;
+        var membershipsActiveThirtyDaysAgo = membershipStats?.ActiveThirtyDaysAgo ?? 0;
+        var totalReservations = reservationStats?.Total ?? 0;
+        var todayReservations = reservationStats?.Today ?? 0;
+        var yesterdayReservations = reservationStats?.Yesterday ?? 0;
+        var monthRevenue = revenueStats?.CurrentMonth ?? 0m;
+        var previousMonthRevenue = revenueStats?.PreviousMonth ?? 0m;
+
         _logger.LogInformation(
             "Dashboard summary generated. Users: {TotalUsers}, active memberships: {ActiveMemberships}, today reservations: {TodayReservations}.",
             totalUsers,
@@ -168,7 +202,7 @@ public class DashboardService : IDashboardService
             TodayReservations = todayReservations,
             TodayReservationsChangePercent = ChangePercent(todayReservations, yesterdayReservations),
             MonthRevenue = monthRevenue,
-            RevenueCurrency = revenueCurrency,
+            RevenueCurrency = PaymentConstants.Currency,
             MonthRevenueChangePercent = ChangePercent((double)monthRevenue, (double)previousMonthRevenue),
             ReservationsPerDay = reservationsPerDay,
             TopTrainings = topTrainings
