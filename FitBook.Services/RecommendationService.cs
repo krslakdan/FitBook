@@ -14,8 +14,6 @@ public class RecommendationService : IRecommendationService
     private const decimal ContentBasedWeight = 0.7m;
     private const decimal PopularityWeight = 0.3m;
     private const decimal ContentDominantThreshold = 0.6m;
-    private const int DefaultRecommendations = 5;
-    private const int MaxRecommendations = 20;
 
     private readonly FitBookDbContext _dbContext;
     private readonly ICurrentUserService _currentUserService;
