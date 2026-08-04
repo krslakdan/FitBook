@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 
 import '../layouts/master_screen.dart';
@@ -28,6 +29,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
 
   bool _downloadingReservations = false;
   bool _downloadingPopularity = false;
+  bool _printingReservations = false;
+  bool _printingPopularity = false;
 
   static const _pdfTypeGroup = XTypeGroup(label: 'PDF dokument', extensions: ['pdf']);
 
@@ -92,6 +95,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
     _showSuccess('$successLabel je uspješno preuzet: $path');
   }
 
+  Future<void> _printReport({
+    required String documentName,
+    required Future<Uint8List> Function() fetch,
+  }) async {
+    final bytes = await fetch();
+    await Printing.layoutPdf(name: documentName, onLayout: (_) async => bytes);
+  }
+
   Future<void> _downloadReservationsReport() async {
     final error = _validateRange();
     setState(() => _rangeError = error);
@@ -103,9 +114,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     try {
       await _saveReport(
         suggestedName: 'izvjestaj-rezervacije-$dateStamp.pdf',
-        fetch: () => context.read<ReportProvider>().getReservationsReport(
-          ReservationsReportRequest(fromDate: _from!, toDate: _to!),
-        ),
+        fetch: _fetchReservationsReport,
         successLabel: 'Izvještaj o rezervacijama',
       );
     } on ApiClientException catch (e) {
@@ -117,6 +126,26 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
   }
 
+  Future<void> _printReservationsReport() async {
+    final error = _validateRange();
+    setState(() => _rangeError = error);
+    if (error != null) return;
+
+    final dateStamp = '${formatDateStamp(_from!)}-${formatDateStamp(_to!)}';
+
+    setState(() => _printingReservations = true);
+    try {
+      await _printReport(
+        documentName: 'izvjestaj-rezervacije-$dateStamp',
+        fetch: _fetchReservationsReport,
+      );
+    } on ApiClientException catch (e) {
+      if (mounted) _showError(e.message);
+    } finally {
+      if (mounted) setState(() => _printingReservations = false);
+    }
+  }
+
   Future<void> _downloadPopularityReport() async {
     final dateStamp = formatDateStamp(DateTime.now());
 
@@ -124,7 +153,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     try {
       await _saveReport(
         suggestedName: 'izvjestaj-popularnost-treninga-$dateStamp.pdf',
-        fetch: () => context.read<ReportProvider>().getTrainingPopularityReport(),
+        fetch: _fetchPopularityReport,
         successLabel: 'Izvještaj o popularnosti treninga',
       );
     } on ApiClientException catch (e) {
@@ -134,6 +163,32 @@ class _ReportsScreenState extends State<ReportsScreen> {
     } finally {
       if (mounted) setState(() => _downloadingPopularity = false);
     }
+  }
+
+  Future<void> _printPopularityReport() async {
+    final dateStamp = formatDateStamp(DateTime.now());
+
+    setState(() => _printingPopularity = true);
+    try {
+      await _printReport(
+        documentName: 'izvjestaj-popularnost-treninga-$dateStamp',
+        fetch: _fetchPopularityReport,
+      );
+    } on ApiClientException catch (e) {
+      if (mounted) _showError(e.message);
+    } finally {
+      if (mounted) setState(() => _printingPopularity = false);
+    }
+  }
+
+  Future<Uint8List> _fetchReservationsReport() {
+    return context.read<ReportProvider>().getReservationsReport(
+      ReservationsReportRequest(fromDate: _from!, toDate: _to!),
+    );
+  }
+
+  Future<Uint8List> _fetchPopularityReport() {
+    return context.read<ReportProvider>().getTrainingPopularityReport();
   }
 
   @override
@@ -197,11 +252,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
-              _DownloadButton(
-                loading: _downloadingReservations,
-                onPressed: _downloadingReservations ? null : _downloadReservationsReport,
-              ),
             ],
           ),
           if (_rangeError != null)
@@ -212,6 +262,13 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 style: const TextStyle(fontSize: 12, color: AppColors.danger),
               ),
             ),
+          const SizedBox(height: 14),
+          _ReportActions(
+            downloading: _downloadingReservations,
+            printing: _printingReservations,
+            onDownload: _downloadReservationsReport,
+            onPrint: _printReservationsReport,
+          ),
         ],
       ),
     );
@@ -224,9 +281,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
       description:
           'Rang lista svih treninga po ukupnom broju rezervacija, sa kategorijom '
           'treninga. Obuhvata sve podatke u sistemu.',
-      child: _DownloadButton(
-        loading: _downloadingPopularity,
-        onPressed: _downloadingPopularity ? null : _downloadPopularityReport,
+      child: _ReportActions(
+        downloading: _downloadingPopularity,
+        printing: _printingPopularity,
+        onDownload: _downloadPopularityReport,
+        onPrint: _printPopularityReport,
       ),
     );
   }
@@ -337,27 +396,56 @@ class _DateField extends StatelessWidget {
   }
 }
 
-class _DownloadButton extends StatelessWidget {
-  const _DownloadButton({required this.loading, required this.onPressed});
+class _ReportActions extends StatelessWidget {
+  const _ReportActions({
+    required this.downloading,
+    required this.printing,
+    required this.onDownload,
+    required this.onPrint,
+  });
 
-  final bool loading;
-  final VoidCallback? onPressed;
+  final bool downloading;
+  final bool printing;
+  final VoidCallback onDownload;
+  final VoidCallback onPrint;
 
   @override
   Widget build(BuildContext context) {
-    return FilledButton.icon(
-      onPressed: onPressed,
-      style: FilledButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      ),
-      icon: loading
-          ? const SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-            )
-          : const Icon(Icons.download_outlined, size: 18),
-      label: Text(loading ? 'Preuzimanje…' : 'Preuzmi PDF'),
+    final busy = downloading || printing;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        OutlinedButton.icon(
+          onPressed: busy ? null : onPrint,
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          ),
+          icon: printing
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.print_outlined, size: 18),
+          label: Text(printing ? 'Priprema…' : 'Štampaj PDF'),
+        ),
+        const SizedBox(width: 12),
+        FilledButton.icon(
+          onPressed: busy ? null : onDownload,
+          style: FilledButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          ),
+          icon: downloading
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                )
+              : const Icon(Icons.download_outlined, size: 18),
+          label: Text(downloading ? 'Preuzimanje…' : 'Preuzmi PDF'),
+        ),
+      ],
     );
   }
 }

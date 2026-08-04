@@ -97,9 +97,7 @@ class SystemNotificationProvider extends BaseReadProvider<SystemNotificationResp
     final unreadIds = _notifications.where((n) => !n.isRead).map((n) => n.id).toList();
     if (unreadIds.isEmpty) return;
 
-    for (final id in unreadIds) {
-      await apiPut('SystemNotifications/$id/read');
-    }
+    await Future.wait(unreadIds.map((id) => apiPut('SystemNotifications/$id/read')));
 
     for (var i = 0; i < _notifications.length; i++) {
       if (!_notifications[i].isRead) {
