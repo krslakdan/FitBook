@@ -14,6 +14,7 @@ NewsItemResponse _$NewsItemResponseFromJson(Map<String, dynamic> json) =>
       imageUrl: json['imageUrl'] as String,
       publishedAtUtc: DateTime.parse(json['publishedAtUtc'] as String),
       isActive: json['isActive'] as bool,
+      createdByFullName: json['createdByFullName'] as String,
       createdAtUtc: DateTime.parse(json['createdAtUtc'] as String),
       updatedAtUtc: json['updatedAtUtc'] == null
           ? null
@@ -28,6 +29,7 @@ Map<String, dynamic> _$NewsItemResponseToJson(NewsItemResponse instance) =>
       'imageUrl': instance.imageUrl,
       'publishedAtUtc': instance.publishedAtUtc.toIso8601String(),
       'isActive': instance.isActive,
+      'createdByFullName': instance.createdByFullName,
       'createdAtUtc': instance.createdAtUtc.toIso8601String(),
       'updatedAtUtc': instance.updatedAtUtc?.toIso8601String(),
     };

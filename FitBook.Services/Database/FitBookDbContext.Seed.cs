@@ -1307,7 +1307,8 @@ public partial class FitBookDbContext
                 Content = "Sa zadovoljstvom objavljujemo da je naš novi premium studio za jogu i pilates na prvom spratu sada otvoren za rezervacije.",
                 ImageUrl = "uploads/news/yoga_opening.jpg",
                 PublishedAtUtc = new DateTime(2026, 6, 15, 9, 0, 0, DateTimeKind.Utc),
-                IsActive = true
+                IsActive = true,
+                CreatedByUserAccountId = 1
             },
             new NewsItem
             {
@@ -1316,7 +1317,8 @@ public partial class FitBookDbContext
                 Content = "Prošireni smo novim setovima utega i spravama za trening snage u glavnoj dvorani. Dođite isprobati!",
                 ImageUrl = "uploads/news/new_equipment.jpg",
                 PublishedAtUtc = new DateTime(2026, 6, 10, 9, 0, 0, DateTimeKind.Utc),
-                IsActive = true
+                IsActive = true,
+                CreatedByUserAccountId = 1
             },
             new NewsItem
             {
@@ -1325,7 +1327,8 @@ public partial class FitBookDbContext
                 Content = "Od ovog mjeseca u ponudi su dva nova programa: Osnove boksa za sve nivoe i Jutarnji klub trčanja za ljubitelje trčanja. Rezervišite svoje mjesto već danas.",
                 ImageUrl = "uploads/news/yoga_opening.jpg",
                 PublishedAtUtc = new DateTime(2026, 6, 20, 9, 0, 0, DateTimeKind.Utc),
-                IsActive = true
+                IsActive = true,
+                CreatedByUserAccountId = 1
             },
             new NewsItem
             {
@@ -1334,7 +1337,8 @@ public partial class FitBookDbContext
                 Content = "U prizemlju je uređena funkcionalna zona sa TRX trakama, girjama i prostorom za kružni trening. Zona je dostupna svim članovima bez dodatne naknade.",
                 ImageUrl = "uploads/news/new_equipment.jpg",
                 PublishedAtUtc = new DateTime(2026, 6, 28, 10, 0, 0, DateTimeKind.Utc),
-                IsActive = true
+                IsActive = true,
+                CreatedByUserAccountId = 1
             },
             new NewsItem
             {
@@ -1343,7 +1347,8 @@ public partial class FitBookDbContext
                 Content = "Novi studio na drugom spratu opremljen je reformerima. Termini su ograničeni na 12 mjesta, pa preporučujemo raniju rezervaciju.",
                 ImageUrl = "uploads/news/yoga_opening.jpg",
                 PublishedAtUtc = new DateTime(2026, 7, 3, 9, 30, 0, DateTimeKind.Utc),
-                IsActive = true
+                IsActive = true,
+                CreatedByUserAccountId = 1
             },
             new NewsItem
             {
@@ -1352,7 +1357,8 @@ public partial class FitBookDbContext
                 Content = "Tokom jula i augusta jutarnji termini počinju sat ranije zbog visokih temperatura. Provjerite ažurirani raspored u aplikaciji.",
                 ImageUrl = "uploads/news/new_equipment.jpg",
                 PublishedAtUtc = new DateTime(2026, 7, 6, 8, 0, 0, DateTimeKind.Utc),
-                IsActive = true
+                IsActive = true,
+                CreatedByUserAccountId = 1
             },
             new NewsItem
             {
@@ -1361,7 +1367,8 @@ public partial class FitBookDbContext
                 Content = "Tarik Mujkić, bivši takmičar u boksu, pridružio se našem timu i vodi programe Osnove boksa i Kickboks za početnike.",
                 ImageUrl = "uploads/news/yoga_opening.jpg",
                 PublishedAtUtc = new DateTime(2026, 7, 9, 11, 0, 0, DateTimeKind.Utc),
-                IsActive = true
+                IsActive = true,
+                CreatedByUserAccountId = 1
             },
             new NewsItem
             {
@@ -1370,7 +1377,8 @@ public partial class FitBookDbContext
                 Content = "Uveli smo Polugodišnji Standard paket koji donosi neograničene grupne treninge i dva besplatna personalna treninga.",
                 ImageUrl = "uploads/news/new_equipment.jpg",
                 PublishedAtUtc = new DateTime(2026, 7, 14, 12, 0, 0, DateTimeKind.Utc),
-                IsActive = true
+                IsActive = true,
+                CreatedByUserAccountId = 1
             },
             new NewsItem
             {
@@ -1379,7 +1387,8 @@ public partial class FitBookDbContext
                 Content = "Pokrenuli smo program prilagođen starijim članovima, s naglaskom na ravnotežu, mobilnost i laganu snagu. Termini su dva puta sedmično.",
                 ImageUrl = "uploads/news/yoga_opening.jpg",
                 PublishedAtUtc = new DateTime(2026, 7, 19, 9, 0, 0, DateTimeKind.Utc),
-                IsActive = true
+                IsActive = true,
+                CreatedByUserAccountId = 1
             },
             new NewsItem
             {
@@ -1388,7 +1397,8 @@ public partial class FitBookDbContext
                 Content = "Sala za oporavak je privremeno zatvorena zbog radova na instalacijama. O ponovnom otvaranju obavijestit ćemo vas kroz aplikaciju.",
                 ImageUrl = "uploads/news/new_equipment.jpg",
                 PublishedAtUtc = new DateTime(2026, 7, 25, 15, 0, 0, DateTimeKind.Utc),
-                IsActive = false
+                IsActive = false,
+                CreatedByUserAccountId = 1
             }
         );
     }

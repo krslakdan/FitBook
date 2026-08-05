@@ -8,6 +8,7 @@ public class NewsItemResponse : IEntityResponse
     public string ImageUrl { get; set; } = string.Empty;
     public DateTime PublishedAtUtc { get; set; }
     public bool IsActive { get; set; }
+    public string CreatedByFullName { get; set; } = string.Empty;
     public DateTime CreatedAtUtc { get; set; }
     public DateTime? UpdatedAtUtc { get; set; }
 }

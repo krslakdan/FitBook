@@ -1,3 +1,4 @@
+using FitBook.Model.Constants;
 using FitBook.Model.Requests.MembershipPackages;
 using FluentValidation;
 
@@ -14,12 +15,12 @@ public class MembershipPackageInsertRequestValidator : AbstractValidator<Members
             .WithMessage("Naziv paketa ne smije biti duži od 150 karaktera.");
 
         RuleFor(x => x.DurationDays)
-            .GreaterThan(0)
-            .WithMessage("Trajanje paketa mora biti pozitivan broj dana.");
+            .InclusiveBetween(MembershipPackageConstants.MinDurationDays, MembershipPackageConstants.MaxDurationDays)
+            .WithMessage($"Trajanje paketa mora biti između {MembershipPackageConstants.MinDurationDays} i {MembershipPackageConstants.MaxDurationDays} dana.");
 
         RuleFor(x => x.Price)
-            .GreaterThan(0)
-            .WithMessage("Cijena paketa mora biti veća od nule.");
+            .InclusiveBetween(PaymentConstants.MinChargeAmount, PaymentConstants.MaxChargeAmount)
+            .WithMessage($"Cijena paketa mora biti između {PaymentConstants.MinChargeAmount:0.00} i {PaymentConstants.MaxChargeAmount:0.00} {PaymentConstants.Currency.ToUpperInvariant()}.");
 
         When(x => x.SavingsAmount.HasValue, () =>
         {

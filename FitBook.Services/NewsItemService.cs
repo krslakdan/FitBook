@@ -17,14 +17,18 @@ public class NewsItemService
     : BaseCRUDService<NewsItem, NewsItemResponse, NewsItemSearchObject, NewsItemInsertRequest, NewsItemUpdateRequest>,
       INewsItemService
 {
+    private readonly ICurrentUserService _currentUserService;
+
     public NewsItemService(
         FitBookDbContext dbContext,
         IMapper mapper,
         ILoggerFactory loggerFactory,
         IValidator<NewsItemInsertRequest> insertValidator,
-        IValidator<NewsItemUpdateRequest> updateValidator)
+        IValidator<NewsItemUpdateRequest> updateValidator,
+        ICurrentUserService currentUserService)
         : base(dbContext, mapper, loggerFactory, insertValidator, updateValidator)
     {
+        _currentUserService = currentUserService;
     }
 
     protected override IQueryable<NewsItem> ApplyFilter(IQueryable<NewsItem> query, NewsItemSearchObject search)
@@ -53,6 +57,7 @@ public class NewsItemService
     protected override async Task BeforeInsert(NewsItemInsertRequest request, NewsItem entity, CancellationToken cancellationToken)
     {
         entity.PublishedAtUtc = DateTime.UtcNow;
+        entity.CreatedByUserAccountId = _currentUserService.GetRequiredUserId();
 
         if (entity.IsActive)
         {

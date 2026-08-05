@@ -1,10 +1,19 @@
+using FitBook.Model.Exceptions;
 using FitBook.Services.Interfaces;
+using Microsoft.Extensions.Logging;
 using Stripe;
 
 namespace FitBook.Services.Payments;
 
 public class StripePaymentService : IStripePaymentService
 {
+    private readonly ILogger<StripePaymentService> _logger;
+
+    public StripePaymentService(ILogger<StripePaymentService> logger)
+    {
+        _logger = logger;
+    }
+
     public async Task<PaymentIntent> CreatePaymentIntentAsync(decimal amount, string currency, string idempotencyKey, CancellationToken ct)
     {
         var options = new PaymentIntentCreateOptions
@@ -20,7 +29,22 @@ public class StripePaymentService : IStripePaymentService
         };
 
         var service = new PaymentIntentService();
-        return await service.CreateAsync(options, requestOptions, ct);
+
+        try
+        {
+            return await service.CreateAsync(options, requestOptions, ct);
+        }
+        catch (StripeException ex)
+        {
+            _logger.LogError(
+                ex,
+                "Stripe rejected PaymentIntent creation for amount {Amount} {Currency}. Stripe code: {StripeCode}.",
+                amount,
+                currency,
+                ex.StripeError?.Code);
+
+            throw new BusinessException("Plaćanje trenutno nije moguće pokrenuti za odabrani paket. Kontaktirajte administratora.");
+        }
     }
 
     public async Task<PaymentIntent> GetPaymentIntentAsync(string paymentIntentId, CancellationToken ct)

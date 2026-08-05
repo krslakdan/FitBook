@@ -11,6 +11,7 @@ class NewsItemResponse {
     required this.imageUrl,
     required this.publishedAtUtc,
     required this.isActive,
+    required this.createdByFullName,
     required this.createdAtUtc,
     this.updatedAtUtc,
   });
@@ -21,6 +22,7 @@ class NewsItemResponse {
   final String imageUrl;
   final DateTime publishedAtUtc;
   final bool isActive;
+  final String createdByFullName;
   final DateTime createdAtUtc;
   final DateTime? updatedAtUtc;
 
