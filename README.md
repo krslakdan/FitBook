@@ -22,6 +22,19 @@ Backend je ASP.NET Core 9 (WebAPI + Worker mikroservis, RabbitMQ, SQL Server), a
 | Mobilna verzija          | mobile         | test    |
 | Trener (mobilna verzija) | trainer        | test    |
 
+## Testiranje plaćanja
+
+Plaćanje članarine ide preko Stripe sandbox okruženja. Za testnu uplatu koristiti:
+
+| Podatak     | Vrijednost            |
+| ----------- | --------------------- |
+| Broj kartice | `4242 4242 4242 4242` |
+| Datum isteka | bilo koji budući      |
+| CVC          | bilo koja tri broja   |
+| ZIP / poštanski broj | bilo koji     |
+
+Otkazivanjem članarine ili promjenom paketa pokreće se stvarni Stripe refund nad prethodno naplaćenim iznosom.
+
 ## Pokretanje backenda
 
 Potreban je Docker. U root direktoriju repozitorija treba postojati `.env` fajl:
