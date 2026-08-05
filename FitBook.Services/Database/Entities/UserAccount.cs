@@ -23,4 +23,5 @@ public class UserAccount : SoftDeletableEntity
     public ICollection<MembershipPayment> Payments { get; set; } = [];
     public ICollection<RecommendationSignal> RecommendationSignals { get; set; } = [];
     public ICollection<RefreshToken> RefreshTokens { get; set; } = [];
+    public ICollection<NewsItem> PublishedNewsItems { get; set; } = [];
 }

@@ -43,6 +43,18 @@ class NewsDetailScreen extends StatelessWidget {
                 formatDate(item.publishedAtUtc.toLocal()),
                 style: const TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
               ),
+              if (item.createdByFullName.isNotEmpty) ...[
+                const SizedBox(width: 12),
+                const Icon(Icons.person_outline, size: 15, color: AppColors.textSecondary),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    item.createdByFullName,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 10),

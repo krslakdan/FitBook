@@ -1,7 +1,6 @@
 FROM mcr.microsoft.com/dotnet/aspnet:9.0-bookworm-slim AS base
 WORKDIR /app
 EXPOSE 5121
-ENV ASPNETCORE_URLS=http://+:5121
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0-bookworm-slim AS publish
 ARG BUILD_CONFIGURATION=Release

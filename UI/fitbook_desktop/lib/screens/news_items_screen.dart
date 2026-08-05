@@ -403,6 +403,13 @@ class _NewsItemDetailsDialog extends StatelessWidget {
             value: formatDateTime(newsItem.publishedAtUtc),
           ),
           DetailRow(
+            icon: Icons.person_outline,
+            label: 'Objavio',
+            value: newsItem.createdByFullName.isEmpty
+                ? 'Sistem'
+                : newsItem.createdByFullName,
+          ),
+          DetailRow(
             icon: Icons.event_outlined,
             label: 'Kreirano',
             value: formatDateTime(newsItem.createdAtUtc),

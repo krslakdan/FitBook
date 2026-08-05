@@ -19,5 +19,10 @@ public class NewsItemConfiguration : IEntityTypeConfiguration<NewsItem>
         builder.Property(x => x.IsActive).IsRequired();
 
         builder.HasIndex(x => x.PublishedAtUtc);
+
+        builder.HasOne(x => x.CreatedByUserAccount)
+            .WithMany(x => x.PublishedNewsItems)
+            .HasForeignKey(x => x.CreatedByUserAccountId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

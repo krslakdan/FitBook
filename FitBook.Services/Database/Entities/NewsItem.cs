@@ -7,4 +7,7 @@ public class NewsItem : BaseEntity
     public string ImageUrl { get; set; } = string.Empty;
     public DateTime PublishedAtUtc { get; set; }
     public bool IsActive { get; set; }
+
+    public int? CreatedByUserAccountId { get; set; }
+    public UserAccount? CreatedByUserAccount { get; set; }
 }
