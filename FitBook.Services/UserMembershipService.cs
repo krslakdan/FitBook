@@ -23,7 +23,7 @@ using System.Collections.Concurrent;
 namespace FitBook.Services;
 
 public class UserMembershipService
-    : BaseCRUDService<UserMembership, UserMembershipResponse, MembershipSearchObject, UserMembershipInsertRequest, UserMembershipUpdateRequest>,
+    : BaseInsertService<UserMembership, UserMembershipResponse, MembershipSearchObject, UserMembershipInsertRequest>,
       IUserMembershipService
 {
     private static readonly Dictionary<MembershipStatus, MembershipStatus[]> _allowedTransitions = new()
@@ -58,13 +58,12 @@ public class UserMembershipService
         ILoggerFactory loggerFactory,
         ICurrentUserService currentUserService,
         IValidator<UserMembershipInsertRequest> insertValidator,
-        IValidator<UserMembershipUpdateRequest> updateValidator,
         IValidator<UserMembershipCancelRequest> cancelValidator,
         IValidator<UserMembershipChangePackageRequest> changePackageValidator,
         IStripePaymentService stripePaymentService,
         IEmailNotificationPublisher emailNotificationPublisher,
         IConfiguration configuration)
-        : base(dbContext, mapper, loggerFactory, insertValidator, updateValidator)
+        : base(dbContext, mapper, loggerFactory, insertValidator)
     {
         _currentUserService = currentUserService;
         _cancelValidator = cancelValidator;
@@ -188,16 +187,6 @@ public class UserMembershipService
     {
         AddStatusAudit(entity, MembershipStatus.Pending, MembershipStatus.Pending, "Članarina je kreirana.");
         await _dbContext.SaveChangesAsync(cancellationToken);
-    }
-
-    public override Task<UserMembershipResponse> UpdateAsync(int id, UserMembershipUpdateRequest request, CancellationToken cancellationToken = default)
-    {
-        throw new BusinessException("Članarine se ne mogu mijenjati putem generičkog Update endpointa.");
-    }
-
-    public override Task DeleteAsync(int id, CancellationToken cancellationToken = default)
-    {
-        throw new BusinessException("Članarine se ne brišu (čuvaju istoriju). Status se mijenja kroz namjenske endpointe.");
     }
 
     public async Task<UserMembershipResponse> CancelAsync(int id, UserMembershipCancelRequest request, CancellationToken cancellationToken = default)
@@ -693,7 +682,7 @@ public class UserMembershipService
             membership.IsActive = true;
             membership.StartDateUtc = DateTime.UtcNow;
 
-            AddStatusAudit(membership, previousStatus, MembershipStatus.Active, reason: null);
+            AddStatusAudit(membership, previousStatus, MembershipStatus.Active, reason: "Članarina je aktivirana nakon uspješnog plaćanja.");
             if (membership.MembershipPackage != null)
             {
                 membership.EndDateUtc = DateTime.UtcNow.AddDays(membership.MembershipPackage.DurationDays);

@@ -7,7 +7,7 @@ using FitBook.Model.SearchObjects;
 namespace FitBook.Services.Interfaces;
 
 public interface IUserMembershipService
-    : IBaseCRUDService<UserMembershipResponse, MembershipSearchObject, UserMembershipInsertRequest, UserMembershipUpdateRequest>
+    : IBaseInsertService<UserMembershipResponse, MembershipSearchObject, UserMembershipInsertRequest>
 {
     Task<UserMembershipResponse> CancelAsync(int id, UserMembershipCancelRequest request, CancellationToken cancellationToken = default);
     Task<UserMembershipResponse> ChangePackageAsync(int id, UserMembershipChangePackageRequest request, CancellationToken cancellationToken = default);

@@ -7,7 +7,7 @@ using FitBook.Services.Database.Entities;
 namespace FitBook.Services.Interfaces;
 
 public interface IReservationService
-    : IBaseCRUDService<ReservationResponse, ReservationSearchObject, ReservationInsertRequest, ReservationUpdateRequest>
+    : IBaseInsertService<ReservationResponse, ReservationSearchObject, ReservationInsertRequest>
 {
     Task<ReservationResponse> ConfirmAsync(int id, CancellationToken cancellationToken = default);
     Task<ReservationResponse> CancelAsync(int id, ReservationCancelRequest request, CancellationToken cancellationToken = default);

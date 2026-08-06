@@ -10,11 +10,10 @@ using Microsoft.AspNetCore.Mvc;
 namespace FitBook.WebAPI.Controllers;
 
 public class ReservationsController
-    : BaseCRUDController<
+    : BaseInsertController<
         ReservationResponse,
         ReservationSearchObject,
         ReservationInsertRequest,
-        ReservationUpdateRequest,
         IReservationService>
 {
     public ReservationsController(IReservationService service)
