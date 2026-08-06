@@ -18,7 +18,7 @@ public class BaseSearchObject
         get => _pageSize;
         set => _pageSize = value switch
         {
-            < 1 => 10,
+            < 1 => _pageSize,
             > MaxPageSize => MaxPageSize,
             _ => value
         };
