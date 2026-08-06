@@ -447,6 +447,7 @@ public static class DatabaseInitializer
         DateTime now, ILogger logger, CancellationToken cancellationToken)
     {
         const int desiredTermsPerTraining = 2;
+        const int trainingsLeftWithoutTerms = 3;
 
         var upcomingTermCounts = await dbContext.TrainingTerms
             .Where(t => t.Status == TrainingTermStatus.Scheduled && t.IsActive && t.StartTimeUtc > now)
@@ -454,11 +455,25 @@ public static class DatabaseInitializer
             .Select(g => new { TrainingId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.TrainingId, x => x.Count, cancellationToken);
 
+        var withoutTerms = trainings
+            .Where(t => upcomingTermCounts.GetValueOrDefault(t.Id, 0) == 0)
+            .ToList();
+
+        var demoTrainingIds = withoutTerms
+            .Skip(Math.Max(0, withoutTerms.Count - trainingsLeftWithoutTerms))
+            .Select(t => t.Id)
+            .ToHashSet();
+
         var addedCount = 0;
         var slot = 0;
 
         foreach (var training in trainings)
         {
+            if (demoTrainingIds.Contains(training.Id))
+            {
+                continue;
+            }
+
             var existing = upcomingTermCounts.GetValueOrDefault(training.Id, 0);
 
             for (var created = existing; created < desiredTermsPerTraining; created++)
@@ -492,9 +507,10 @@ public static class DatabaseInitializer
         if (addedCount > 0)
         {
             logger.LogInformation(
-                "Topped up bookable training terms so every active training has at least {Desired} upcoming term(s) (added {Count}).",
+                "Topped up bookable training terms to {Desired} per training (added {Count}). Left {DemoCount} training(s) without upcoming terms so the disabled booking action can be demonstrated.",
                 desiredTermsPerTraining,
-                addedCount);
+                addedCount,
+                demoTrainingIds.Count);
         }
     }
   
