@@ -455,12 +455,9 @@ public static class DatabaseInitializer
             .Select(g => new { TrainingId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.TrainingId, x => x.Count, cancellationToken);
 
-        var withoutTerms = trainings
-            .Where(t => upcomingTermCounts.GetValueOrDefault(t.Id, 0) == 0)
-            .ToList();
-
-        var demoTrainingIds = withoutTerms
-            .Skip(Math.Max(0, withoutTerms.Count - trainingsLeftWithoutTerms))
+        var demoTrainingIds = trainings
+            .OrderByDescending(t => t.Id)
+            .Take(trainingsLeftWithoutTerms)
             .Select(t => t.Id)
             .ToHashSet();
 
@@ -504,14 +501,11 @@ public static class DatabaseInitializer
             }
         }
 
-        if (addedCount > 0)
-        {
-            logger.LogInformation(
-                "Topped up bookable training terms to {Desired} per training (added {Count}). Left {DemoCount} training(s) without upcoming terms so the disabled booking action can be demonstrated.",
-                desiredTermsPerTraining,
-                addedCount,
-                demoTrainingIds.Count);
-        }
+        logger.LogInformation(
+            "Bookable training terms topped up to {Desired} per training (added {Count}). Trainings {DemoIds} are intentionally left unscheduled so the disabled booking action can be demonstrated.",
+            desiredTermsPerTraining,
+            addedCount,
+            string.Join(", ", demoTrainingIds.OrderBy(id => id)));
     }
   
     private static async Task EnsureFullCapacityScenarioAsync(
