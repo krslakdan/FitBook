@@ -44,6 +44,16 @@ public class MembershipExpiryService : IMembershipExpiryService
         foreach (var membership in dueMemberships)
         {
             var previousStatus = membership.Status;
+
+            if (!MembershipStatusTransitions.IsAllowed(previousStatus, MembershipStatus.Expired))
+            {
+                _logger.LogWarning(
+                    "Skipping membership {MembershipId}: transition from {PreviousStatus} to Expired is not allowed.",
+                    membership.Id,
+                    previousStatus);
+                continue;
+            }
+
             membership.Status = MembershipStatus.Expired;
             membership.IsActive = false;
             membership.UpdatedAtUtc = now;

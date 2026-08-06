@@ -15,7 +15,6 @@ using FluentValidation;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Collections.Concurrent;
 
 namespace FitBook.Services;
 
@@ -37,8 +36,8 @@ public class ReservationService
         ReservationStatus.Confirmed,
     ];
 
-    private static readonly ConcurrentDictionary<int, SemaphoreSlim> _termBookingLocks = new();
-    private static readonly ConcurrentDictionary<int, SemaphoreSlim> _userBookingLocks = new();
+    private static readonly KeyedSemaphores _termBookingLocks = new();
+    private static readonly KeyedSemaphores _userBookingLocks = new();
 
     private const decimal ReservationCreatedSignalWeight = 0.3m;
     private const decimal ReservationConfirmedSignalWeight = 0.5m;
@@ -66,11 +65,11 @@ public class ReservationService
     public override async Task<ReservationResponse> InsertAsync(ReservationInsertRequest request, CancellationToken cancellationToken = default)
     {
         var currentUserId = _currentUserService.GetRequiredUserId();
-        var userLock = _userBookingLocks.GetOrAdd(currentUserId, static _ => new SemaphoreSlim(1, 1));
+        var userLock = _userBookingLocks.For(currentUserId);
         await userLock.WaitAsync(cancellationToken);
         try
         {
-            var termLock = _termBookingLocks.GetOrAdd(request.TrainingTermId, static _ => new SemaphoreSlim(1, 1));
+            var termLock = _termBookingLocks.For(request.TrainingTermId);
             await termLock.WaitAsync(cancellationToken);
             try
             {
