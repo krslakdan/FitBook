@@ -211,7 +211,7 @@ class _TermDetailsScreenState extends State<TermDetailsScreen> {
               child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white),
             )
           : const Icon(Icons.event_available_outlined, size: 20),
-      label: Text(_reserving ? 'Rezervišem...' : 'Rezerviši termin'),
+      label: Text(_reserving ? 'Rezervišem...' : 'Rezerviši mjesto'),
     );
   }
 }

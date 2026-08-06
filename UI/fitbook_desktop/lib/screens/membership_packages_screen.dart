@@ -209,7 +209,7 @@ class _MembershipPackagesScreenState extends State<MembershipPackagesScreen> {
                 FilledButton.icon(
                   onPressed: () => _openForm(),
                   icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Dodaj paket'),
+                  label: const Text('Novi paket'),
                 ),
                 OutlinedButton.icon(
                   onPressed: _clearFilters,
