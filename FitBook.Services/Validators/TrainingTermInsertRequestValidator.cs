@@ -21,12 +21,12 @@ public class TrainingTermInsertRequestValidator : AbstractValidator<TrainingTerm
             .GreaterThan(0).WithMessage("Maksimalni broj učesnika mora biti pozitivan broj.");
 
         RuleFor(x => x.TrainingId)
-            .GreaterThan(0).WithMessage("TrainingId mora biti pozitivan broj.");
+            .GreaterThan(0).WithMessage("Trening je obavezan.");
 
         RuleFor(x => x.TrainerId)
-            .GreaterThan(0).WithMessage("TrainerId mora biti pozitivan broj.");
+            .GreaterThan(0).WithMessage("Trener je obavezan.");
 
         RuleFor(x => x.HallId)
-            .GreaterThan(0).WithMessage("HallId mora biti pozitivan broj.");
+            .GreaterThan(0).WithMessage("Sala je obavezna.");
     }
 }

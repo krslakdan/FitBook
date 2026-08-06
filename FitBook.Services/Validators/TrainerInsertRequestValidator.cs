@@ -27,6 +27,6 @@ public class TrainerInsertRequestValidator : AbstractValidator<TrainerInsertRequ
             .When(x => x.ImageUrl is not null);
 
         RuleFor(x => x.UserAccountId)
-            .GreaterThan(0).WithMessage("UserAccountId mora biti pozitivan broj.");
+            .GreaterThan(0).WithMessage("Korisnički račun trenera je obavezan.");
     }
 }

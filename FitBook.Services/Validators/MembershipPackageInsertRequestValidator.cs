@@ -22,8 +22,16 @@ public class MembershipPackageInsertRequestValidator : AbstractValidator<Members
             .InclusiveBetween(PaymentConstants.MinChargeAmount, PaymentConstants.MaxChargeAmount)
             .WithMessage($"Cijena paketa mora biti između {PaymentConstants.MinChargeAmount:0.00} i {PaymentConstants.MaxChargeAmount:0.00} {PaymentConstants.Currency.ToUpperInvariant()}.");
 
+        RuleFor(x => x.Price)
+            .Must(price => decimal.Round(price, 2) == price)
+            .WithMessage("Cijena paketa može imati najviše dvije decimale (npr. 49.99).");
+
         When(x => x.SavingsAmount.HasValue, () =>
         {
+            RuleFor(x => x.SavingsAmount!.Value)
+                .Must(amount => decimal.Round(amount, 2) == amount)
+                .WithMessage("Ušteda može imati najviše dvije decimale (npr. 10.50).");
+
             RuleFor(x => x.SavingsAmount!.Value)
                 .GreaterThanOrEqualTo(0)
                 .WithMessage("Iznos uštedine ne može biti negativan.");
