@@ -1,50 +1,24 @@
 using FitBook.Services.Interfaces;
+using FitBook.Worker.Services;
 
 namespace FitBook.Worker.BackgroundServices;
 
-public class MembershipExpiryBackgroundService : BackgroundService
+public class MembershipExpiryBackgroundService : PollingBackgroundService
 {
-    private static readonly TimeSpan PollInterval = TimeSpan.FromHours(1);
-    private static readonly TimeSpan FailureRetryInterval = TimeSpan.FromSeconds(30);
-
-    private readonly IServiceScopeFactory _scopeFactory;
-    private readonly ILogger<MembershipExpiryBackgroundService> _logger;
-
-    public MembershipExpiryBackgroundService(
-        IServiceScopeFactory scopeFactory,
-        ILogger<MembershipExpiryBackgroundService> logger)
+    public MembershipExpiryBackgroundService(IServiceScopeFactory scopeFactory, DatabaseReadyGate databaseReadyGate, ILogger<MembershipExpiryBackgroundService> logger)
+        : base(scopeFactory, databaseReadyGate, logger)
     {
-        _scopeFactory = scopeFactory;
-        _logger = logger;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override TimeSpan PollInterval => TimeSpan.FromHours(1);
+
+    protected override TimeSpan FailureRetryInterval => TimeSpan.FromSeconds(30);
+
+    protected override string FailureMessage => "Failed to expire due memberships.";
+
+    protected override async Task RunIterationAsync(IServiceProvider scopedServices, CancellationToken stoppingToken)
     {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            var nextDelay = PollInterval;
-
-            try
-            {
-                using var scope = _scopeFactory.CreateScope();
-                var expiryService = scope.ServiceProvider.GetRequiredService<IMembershipExpiryService>();
-                await expiryService.ExpireDueMembershipsAsync(stoppingToken);
-            }
-            catch (Exception ex) when (!stoppingToken.IsCancellationRequested)
-            {
-                _logger.LogError(ex, "Failed to expire due memberships. Retrying in {Delay}.", FailureRetryInterval);
-                nextDelay = FailureRetryInterval;
-            }
-
-            try
-            {
-                await Task.Delay(nextDelay, stoppingToken);
-            }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-            {
-                _logger.LogInformation("MembershipExpiryBackgroundService is stopping because the host is shutting down.");
-                break;
-            }
-        }
+        var expiryService = scopedServices.GetRequiredService<IMembershipExpiryService>();
+        await expiryService.ExpireDueMembershipsAsync(stoppingToken);
     }
 }

@@ -133,8 +133,8 @@ public sealed class EmailNotificationConsumer : BackgroundService
         }
         catch (Exception ex)
         {
-            Ack(eventArgs.DeliveryTag);
             await HandleFailureAsync(message, ex, stoppingToken);
+            Ack(eventArgs.DeliveryTag);
         }
     }
 
