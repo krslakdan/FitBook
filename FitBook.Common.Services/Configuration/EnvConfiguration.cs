@@ -2,11 +2,6 @@ namespace FitBook.Common.Services.Configuration;
 
 public static class EnvConfiguration
 {
-    private static readonly HashSet<string> ExcludedKeys =
-    [
-        "ASPNETCORE_URLS"
-    ];
-
     public static void LoadDotEnv()
     {
         var envPath = FindEnvFile();
@@ -30,17 +25,18 @@ public static class EnvConfiguration
             }
 
             var key = line[..separatorIndex].Trim();
-            if (ExcludedKeys.Contains(key))
+            if (string.IsNullOrEmpty(key))
+            {
+                continue;
+            }
+
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable(key)))
             {
                 continue;
             }
 
             var value = line[(separatorIndex + 1)..].Trim().Trim('"');
-
-            if (!string.IsNullOrEmpty(key))
-            {
-                Environment.SetEnvironmentVariable(key, value);
-            }
+            Environment.SetEnvironmentVariable(key, value);
         }
     }
 

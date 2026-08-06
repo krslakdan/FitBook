@@ -50,7 +50,21 @@ public class StripePaymentService : IStripePaymentService
     public async Task<PaymentIntent> GetPaymentIntentAsync(string paymentIntentId, CancellationToken ct)
     {
         var service = new PaymentIntentService();
-        return await service.GetAsync(paymentIntentId, null, requestOptions: null, cancellationToken: ct);
+
+        try
+        {
+            return await service.GetAsync(paymentIntentId, null, requestOptions: null, cancellationToken: ct);
+        }
+        catch (StripeException ex)
+        {
+            _logger.LogError(
+                ex,
+                "Stripe could not return PaymentIntent {PaymentIntentId}. Stripe code: {StripeCode}.",
+                paymentIntentId,
+                ex.StripeError?.Code);
+
+            throw new BusinessException("Trenutno nije moguće provjeriti status plaćanja. Pokušajte ponovo za nekoliko trenutaka.");
+        }
     }
 
     public async Task<decimal> CreateRefundAsync(string paymentIntentId, CancellationToken ct)

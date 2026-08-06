@@ -35,17 +35,19 @@ public class TrainingTermsController : BaseCRUDController<TrainingTermResponse, 
         return base.Delete(id, cancellationToken);
     }
 
-    [HttpPost("{id}/cancel")]
+    [HttpPost("{id:int}/cancel")]
     [Authorize(Roles = Roles.Admin + "," + Roles.Trainer)]
-    public async Task<TrainingTermResponse> Cancel(int id, [FromBody] TrainingTermCancelRequest request, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<TrainingTermResponse>> Cancel(int id, [FromBody] TrainingTermCancelRequest request, CancellationToken cancellationToken = default)
     {
-        return await _trainingTermService.CancelAsync(id, request, cancellationToken);
+        var result = await _trainingTermService.CancelAsync(id, request, cancellationToken);
+        return Ok(result);
     }
 
-    [HttpPost("{id}/complete")]
+    [HttpPost("{id:int}/complete")]
     [Authorize(Roles = Roles.Admin + "," + Roles.Trainer)]
-    public async Task<TrainingTermResponse> Complete(int id, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<TrainingTermResponse>> Complete(int id, CancellationToken cancellationToken = default)
     {
-        return await _trainingTermService.CompleteAsync(id, cancellationToken);
+        var result = await _trainingTermService.CompleteAsync(id, cancellationToken);
+        return Ok(result);
     }
 }
