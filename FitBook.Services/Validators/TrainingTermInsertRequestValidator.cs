@@ -8,7 +8,9 @@ public class TrainingTermInsertRequestValidator : AbstractValidator<TrainingTerm
     public TrainingTermInsertRequestValidator()
     {
         RuleFor(x => x.StartTimeUtc)
-            .NotEmpty().WithMessage("Vrijeme početka termina je obavezno.");
+            .NotEmpty().WithMessage("Vrijeme početka termina je obavezno.")
+            .Must(startTime => startTime > DateTime.UtcNow)
+            .WithMessage("Termin se ne može zakazati u prošlosti. Odaberite datum i vrijeme u budućnosti.");
 
         RuleFor(x => x.EndTimeUtc)
             .NotEmpty().WithMessage("Vrijeme završetka termina je obavezno.")

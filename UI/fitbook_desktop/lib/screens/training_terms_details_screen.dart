@@ -117,10 +117,14 @@ class _TrainingTermsDetailsScreenState
     required ValueChanged<DateTime> onPicked,
   }) async {
     final now = DateTime.now();
+    final originalStart = widget.term?.startTimeUtc.toLocal();
+    final earliest = originalStart != null && originalStart.isBefore(now)
+        ? originalStart
+        : now;
     final date = await showDatePicker(
       context: context,
       initialDate: current ?? now,
-      firstDate: DateTime(2020),
+      firstDate: DateTime(earliest.year, earliest.month, earliest.day),
       lastDate: DateTime(2035),
     );
     if (date == null || !mounted) return;
@@ -146,6 +150,12 @@ class _TrainingTermsDetailsScreenState
 
   String? _validateStartTime(String? _) {
     if (_startTime == null) return 'Vrijeme početka je obavezno.';
+    final originalStart = widget.term?.startTimeUtc.toLocal();
+    final unchanged =
+        originalStart != null && originalStart.isAtSameMomentAs(_startTime!);
+    if (!unchanged && !_startTime!.isAfter(DateTime.now())) {
+      return 'Termin se ne može zakazati u prošlosti.';
+    }
     return null;
   }
 

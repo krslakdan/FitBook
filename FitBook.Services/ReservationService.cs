@@ -20,7 +20,7 @@ using System.Collections.Concurrent;
 namespace FitBook.Services;
 
 public class ReservationService
-    : BaseCRUDService<Reservation, ReservationResponse, ReservationSearchObject, ReservationInsertRequest, ReservationUpdateRequest>,
+    : BaseInsertService<Reservation, ReservationResponse, ReservationSearchObject, ReservationInsertRequest>,
       IReservationService
 {
     private static readonly Dictionary<ReservationStatus, ReservationStatus[]> _allowedTransitions = new()
@@ -54,10 +54,9 @@ public class ReservationService
         ILoggerFactory loggerFactory,
         ICurrentUserService currentUserService,
         IValidator<ReservationInsertRequest> insertValidator,
-        IValidator<ReservationUpdateRequest> updateValidator,
         IValidator<ReservationCancelRequest> cancelValidator,
         IEmailNotificationPublisher emailNotificationPublisher)
-        : base(dbContext, mapper, loggerFactory, insertValidator, updateValidator)
+        : base(dbContext, mapper, loggerFactory, insertValidator)
     {
         _currentUserService = currentUserService;
         _cancelValidator = cancelValidator;
@@ -257,16 +256,6 @@ public class ReservationService
         return Task.CompletedTask;
     }
 
-    public override Task<ReservationResponse> UpdateAsync(int id, ReservationUpdateRequest request, CancellationToken cancellationToken = default)
-    {
-        throw new BusinessException("Rezervacije se ne mogu mijenjati putem generičkog Update endpointa. Koristite /confirm, /cancel ili /complete.");
-    }
-
-    public override Task DeleteAsync(int id, CancellationToken cancellationToken = default)
-    {
-        throw new BusinessException("Rezervacije se ne brišu. Status se mijenja kroz namjenske endpointe.");
-    }
-
     public async Task<ReservationResponse> ConfirmAsync(int id, CancellationToken cancellationToken = default)
     {
         var reservation = await FindTrackedReservationAsync(id, cancellationToken);
@@ -292,7 +281,7 @@ public class ReservationService
         reservation.UpdatedAtUtc = DateTime.UtcNow;
         reservation.LastStatusChangedByUserAccountId = _currentUserService.GetRequiredUserId();
 
-        AddStatusAudit(reservation, previousStatus, ReservationStatus.Confirmed, reason: null);
+        AddStatusAudit(reservation, previousStatus, ReservationStatus.Confirmed, reason: "Rezervacija je potvrđena.");
 
         var termStartFormatted = reservation.TrainingTerm is not null
             ? LocalTimeProvider.FormatDateTime(reservation.TrainingTerm.StartTimeUtc)
@@ -531,7 +520,7 @@ public class ReservationService
         reservation.UpdatedAtUtc = DateTime.UtcNow;
         reservation.LastStatusChangedByUserAccountId = _currentUserService.GetRequiredUserId();
 
-        AddStatusAudit(reservation, previousStatus, ReservationStatus.Completed, reason: null);
+        AddStatusAudit(reservation, previousStatus, ReservationStatus.Completed, reason: "Trening je evidentiran kao završen.");
 
         var termStartFormatted = reservation.TrainingTerm is not null
             ? LocalTimeProvider.FormatDateTime(reservation.TrainingTerm.StartTimeUtc)

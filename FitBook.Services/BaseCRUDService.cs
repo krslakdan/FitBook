@@ -11,12 +11,11 @@ using Microsoft.Extensions.Logging;
 namespace FitBook.Services;
 
 public abstract class BaseCRUDService<TEntity, TResponse, TSearch, TInsertRequest, TUpdateRequest>
-    : BaseReadService<TEntity, TResponse, TSearch>,
+    : BaseInsertService<TEntity, TResponse, TSearch, TInsertRequest>,
       IBaseCRUDService<TResponse, TSearch, TInsertRequest, TUpdateRequest>
     where TEntity : BaseEntity
     where TSearch : BaseSearchObject, new()
 {
-    private readonly IValidator<TInsertRequest> _insertValidator;
     private readonly IValidator<TUpdateRequest> _updateValidator;
 
     protected BaseCRUDService(
@@ -25,37 +24,9 @@ public abstract class BaseCRUDService<TEntity, TResponse, TSearch, TInsertReques
         ILoggerFactory loggerFactory,
         IValidator<TInsertRequest> insertValidator,
         IValidator<TUpdateRequest> updateValidator)
-        : base(dbContext, mapper, loggerFactory)
+        : base(dbContext, mapper, loggerFactory, insertValidator)
     {
-        _insertValidator = insertValidator;
         _updateValidator = updateValidator;
-    }
-
-    public virtual async Task<TResponse> InsertAsync(TInsertRequest request, CancellationToken cancellationToken = default)
-    {
-        await _insertValidator.ValidateAndThrowAsync(request, cancellationToken);
-        await ValidateInsert(request, cancellationToken);
-
-        var entity = MapInsertToEntity(request);
-        ApplyInsertDefaults(entity);
-        await BeforeInsert(request, entity, cancellationToken);
-
-        await using (var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken))
-        {
-            _dbContext.Set<TEntity>().Add(entity);
-            await _dbContext.SaveChangesAsync(cancellationToken);
-
-            await AfterInsert(entity, cancellationToken);
-
-            await transaction.CommitAsync(cancellationToken);
-        }
-
-        _logger.LogInformation(
-            "Inserted {EntityType} with id {EntityId}",
-            typeof(TEntity).Name,
-            entity.Id);
-
-        return _mapper.Map<TResponse>(entity);
     }
 
     public virtual async Task<TResponse> UpdateAsync(int id, TUpdateRequest request, CancellationToken cancellationToken = default)
@@ -136,33 +107,13 @@ public abstract class BaseCRUDService<TEntity, TResponse, TSearch, TInsertReques
             .FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
     }
 
-    protected virtual TEntity MapInsertToEntity(TInsertRequest request)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-        return _mapper.Map<TEntity>(request);
-    }
-
     protected virtual void MapUpdateToEntity(TUpdateRequest request, TEntity entity)
     {
         _mapper.Map(request, entity);
     }
 
-    protected virtual void ApplyInsertDefaults(TEntity entity)
-    {
-        entity.CreatedAtUtc = DateTime.UtcNow;
-        entity.UpdatedAtUtc = null;
-
-        if (entity is ISoftDeletable softDeletableEntity)
-        {
-            softDeletableEntity.IsDeleted = false;
-        }
-    }
-
-    protected virtual Task ValidateInsert(TInsertRequest request, CancellationToken cancellationToken) => Task.CompletedTask;
     protected virtual Task ValidateUpdate(int id, TUpdateRequest request, TEntity entity, CancellationToken cancellationToken) => Task.CompletedTask;
     protected virtual Task ValidateDelete(int id, TEntity entity, CancellationToken cancellationToken) => Task.CompletedTask;
-    protected virtual Task BeforeInsert(TInsertRequest request, TEntity entity, CancellationToken cancellationToken) => Task.CompletedTask;
-    protected virtual Task AfterInsert(TEntity entity, CancellationToken cancellationToken) => Task.CompletedTask;
     protected virtual Task BeforeUpdate(int id, TUpdateRequest request, TEntity entity, CancellationToken cancellationToken) => Task.CompletedTask;
     protected virtual Task AfterUpdate(int id, TUpdateRequest request, TEntity entity, CancellationToken cancellationToken) => Task.CompletedTask;
     protected virtual Task BeforeDelete(int id, TEntity entity, CancellationToken cancellationToken) => Task.CompletedTask;

@@ -8,7 +8,7 @@ namespace FitBook.WebAPI.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 public abstract class BaseCRUDController<TResponse, TSearch, TInsertRequest, TUpdateRequest, TService>
-    : BaseReadController<TResponse, TSearch, TService>
+    : BaseInsertController<TResponse, TSearch, TInsertRequest, TService>
     where TResponse : class, IEntityResponse
     where TSearch : BaseSearchObject, new()
     where TService : IBaseCRUDService<TResponse, TSearch, TInsertRequest, TUpdateRequest>
@@ -16,15 +16,6 @@ public abstract class BaseCRUDController<TResponse, TSearch, TInsertRequest, TUp
     protected BaseCRUDController(TService service)
         : base(service)
     {
-    }
-
-    [HttpPost]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public virtual async Task<ActionResult<TResponse>> Insert([FromBody] TInsertRequest request, CancellationToken cancellationToken = default)
-    {
-        var result = await Service.InsertAsync(request, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
     [HttpPut("{id:int}")]

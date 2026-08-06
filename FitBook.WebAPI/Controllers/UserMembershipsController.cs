@@ -10,11 +10,10 @@ using Microsoft.AspNetCore.Mvc;
 namespace FitBook.WebAPI.Controllers;
 
 public class UserMembershipsController
-    : BaseCRUDController<
+    : BaseInsertController<
         UserMembershipResponse,
         MembershipSearchObject,
         UserMembershipInsertRequest,
-        UserMembershipUpdateRequest,
         IUserMembershipService>
 {
     public UserMembershipsController(IUserMembershipService service)

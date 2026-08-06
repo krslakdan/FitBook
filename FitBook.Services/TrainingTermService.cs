@@ -129,6 +129,11 @@ public class TrainingTermService
     {
         await ValidateTrainerAndHall(request.TrainerId, request.HallId, request.MaxParticipants, cancellationToken);
 
+        if (entity.StartTimeUtc != request.StartTimeUtc && request.StartTimeUtc <= DateTime.UtcNow)
+        {
+            throw new BusinessException("Termin se ne može premjestiti u prošlost. Odaberite datum i vrijeme u budućnosti.");
+        }
+
         var activeReservationCount = await _dbContext.Reservations
             .CountAsync(r => r.TrainingTermId == id && _activeReservationStatuses.Contains(r.Status), cancellationToken);
 
