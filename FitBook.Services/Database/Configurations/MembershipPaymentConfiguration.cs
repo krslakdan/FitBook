@@ -1,3 +1,4 @@
+using FitBook.Model.Enums;
 using FitBook.Services.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -26,7 +27,7 @@ public class MembershipPaymentConfiguration : IEntityTypeConfiguration<Membershi
 
         builder.HasIndex(x => x.UserMembershipId)
             .IsUnique()
-            .HasFilter("[Status] IN (1, 2)")
+            .HasFilter($"[Status] IN ({(int)PaymentStatus.Pending}, {(int)PaymentStatus.Completed})")
             .HasDatabaseName("IX_MembershipPayments_UserMembershipId_ActiveOnly");
 
         builder.HasOne(x => x.UserMembership)

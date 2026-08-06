@@ -1,3 +1,4 @@
+using FitBook.Model.Enums;
 using FitBook.Services.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -18,7 +19,7 @@ public class ReservationConfiguration : IEntityTypeConfiguration<Reservation>
 
         builder.HasIndex(x => new { x.UserAccountId, x.TrainingTermId })
             .IsUnique()
-            .HasFilter("[Status] IN (1, 2)");
+            .HasFilter($"[Status] IN ({(int)ReservationStatus.Pending}, {(int)ReservationStatus.Confirmed})");
         builder.HasIndex(x => new { x.TrainingTermId, x.Status });
         builder.HasIndex(x => new { x.Status, x.ReminderSentAtUtc });
 
