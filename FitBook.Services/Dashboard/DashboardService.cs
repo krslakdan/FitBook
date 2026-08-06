@@ -127,7 +127,9 @@ public class DashboardService : IDashboardService
             {
                 t.Name,
                 CategoryName = t.TrainingCategory!.Name,
-                ReservationCount = t.TrainingTerms.SelectMany(tt => tt.Reservations).Count(),
+                ReservationCount = t.TrainingTerms
+                    .SelectMany(tt => tt.Reservations)
+                    .Count(r => r.Status != ReservationStatus.Cancelled),
             })
             .OrderByDescending(t => t.ReservationCount)
             .Take(TopTrainingsCount)
