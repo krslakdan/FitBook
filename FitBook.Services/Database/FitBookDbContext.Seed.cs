@@ -32,9 +32,9 @@ public partial class FitBookDbContext
     private void SeedDifficultyLevels(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<DifficultyLevel>().HasData(
-            new DifficultyLevel { Id = 1, Name = "Početni", SortOrder = 1, IsActive = true },
-            new DifficultyLevel { Id = 2, Name = "Srednji", SortOrder = 2, IsActive = true },
-            new DifficultyLevel { Id = 3, Name = "Napredni", SortOrder = 3, IsActive = true }
+            new DifficultyLevel { Id = 1, Name = "Početni", SortOrder = 1, IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new DifficultyLevel { Id = 2, Name = "Srednji", SortOrder = 2, IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new DifficultyLevel { Id = 3, Name = "Napredni", SortOrder = 3, IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
         );
     }
 
@@ -488,14 +488,14 @@ public partial class FitBookDbContext
     private void SeedTrainingCategories(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<TrainingCategory>().HasData(
-            new TrainingCategory { Id = 1, Name = "Kardio", Description = "Treninzi za poboljšanje zdravlja srca i izdržljivosti.", IsActive = true },
-            new TrainingCategory { Id = 2, Name = "Snaga", Description = "Trening s opterećenjem za izgradnju mišićne mase.", IsActive = true },
-            new TrainingCategory { Id = 3, Name = "Tijelo i um", Description = "Joga, istezanje i vježbe svjesnosti.", IsActive = true },
-            new TrainingCategory { Id = 4, Name = "Oporavak i mobilnost", Description = "Lagani oporavak, istezanje i vježbe mobilnosti.", IsActive = true },
-            new TrainingCategory { Id = 5, Name = "Borilački sportovi", Description = "Kondicija inspirisana boksom i borilačkim vještinama.", IsActive = true },
-            new TrainingCategory { Id = 6, Name = "Funkcionalni trening", Description = "Pokreti iz svakodnevnog života uz vlastitu težinu i sprave.", IsActive = true },
-            new TrainingCategory { Id = 7, Name = "Grupni fitnes", Description = "Energični grupni programi uz muziku i vodstvo trenera.", IsActive = true },
-            new TrainingCategory { Id = 8, Name = "Personalni trening", Description = "Individualni rad s trenerom po mjeri korisnika.", IsActive = true }
+            new TrainingCategory { Id = 1, Name = "Kardio", Description = "Treninzi za poboljšanje zdravlja srca i izdržljivosti.", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingCategory { Id = 2, Name = "Snaga", Description = "Trening s opterećenjem za izgradnju mišićne mase.", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingCategory { Id = 3, Name = "Tijelo i um", Description = "Joga, istezanje i vježbe svjesnosti.", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingCategory { Id = 4, Name = "Oporavak i mobilnost", Description = "Lagani oporavak, istezanje i vježbe mobilnosti.", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingCategory { Id = 5, Name = "Borilački sportovi", Description = "Kondicija inspirisana boksom i borilačkim vještinama.", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingCategory { Id = 6, Name = "Funkcionalni trening", Description = "Pokreti iz svakodnevnog života uz vlastitu težinu i sprave.", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingCategory { Id = 7, Name = "Grupni fitnes", Description = "Energični grupni programi uz muziku i vodstvo trenera.", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new TrainingCategory { Id = 8, Name = "Personalni trening", Description = "Individualni rad s trenerom po mjeri korisnika.", IsActive = true, CreatedAtUtc = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
         );
     }
 
@@ -1307,6 +1307,7 @@ public partial class FitBookDbContext
                 Content = "Sa zadovoljstvom objavljujemo da je naš novi premium studio za jogu i pilates na prvom spratu sada otvoren za rezervacije.",
                 ImageUrl = "uploads/news/yoga_opening.jpg",
                 PublishedAtUtc = new DateTime(2026, 6, 15, 9, 0, 0, DateTimeKind.Utc),
+                CreatedAtUtc = new DateTime(2026, 6, 15, 9, 0, 0, DateTimeKind.Utc),
                 IsActive = true,
                 CreatedByUserAccountId = 1
             },
@@ -1317,6 +1318,7 @@ public partial class FitBookDbContext
                 Content = "Prošireni smo novim setovima utega i spravama za trening snage u glavnoj dvorani. Dođite isprobati!",
                 ImageUrl = "uploads/news/new_equipment.jpg",
                 PublishedAtUtc = new DateTime(2026, 6, 10, 9, 0, 0, DateTimeKind.Utc),
+                CreatedAtUtc = new DateTime(2026, 6, 10, 9, 0, 0, DateTimeKind.Utc),
                 IsActive = true,
                 CreatedByUserAccountId = 1
             },
@@ -1327,6 +1329,7 @@ public partial class FitBookDbContext
                 Content = "Od ovog mjeseca u ponudi su dva nova programa: Osnove boksa za sve nivoe i Jutarnji klub trčanja za ljubitelje trčanja. Rezervišite svoje mjesto već danas.",
                 ImageUrl = "uploads/news/yoga_opening.jpg",
                 PublishedAtUtc = new DateTime(2026, 6, 20, 9, 0, 0, DateTimeKind.Utc),
+                CreatedAtUtc = new DateTime(2026, 6, 20, 9, 0, 0, DateTimeKind.Utc),
                 IsActive = true,
                 CreatedByUserAccountId = 1
             },
@@ -1337,6 +1340,7 @@ public partial class FitBookDbContext
                 Content = "U prizemlju je uređena funkcionalna zona sa TRX trakama, girjama i prostorom za kružni trening. Zona je dostupna svim članovima bez dodatne naknade.",
                 ImageUrl = "uploads/news/new_equipment.jpg",
                 PublishedAtUtc = new DateTime(2026, 6, 28, 10, 0, 0, DateTimeKind.Utc),
+                CreatedAtUtc = new DateTime(2026, 6, 28, 10, 0, 0, DateTimeKind.Utc),
                 IsActive = true,
                 CreatedByUserAccountId = 1
             },
@@ -1347,6 +1351,7 @@ public partial class FitBookDbContext
                 Content = "Novi studio na drugom spratu opremljen je reformerima. Termini su ograničeni na 12 mjesta, pa preporučujemo raniju rezervaciju.",
                 ImageUrl = "uploads/news/yoga_opening.jpg",
                 PublishedAtUtc = new DateTime(2026, 7, 3, 9, 30, 0, DateTimeKind.Utc),
+                CreatedAtUtc = new DateTime(2026, 7, 3, 9, 30, 0, DateTimeKind.Utc),
                 IsActive = true,
                 CreatedByUserAccountId = 1
             },
@@ -1357,6 +1362,7 @@ public partial class FitBookDbContext
                 Content = "Tokom jula i augusta jutarnji termini počinju sat ranije zbog visokih temperatura. Provjerite ažurirani raspored u aplikaciji.",
                 ImageUrl = "uploads/news/new_equipment.jpg",
                 PublishedAtUtc = new DateTime(2026, 7, 6, 8, 0, 0, DateTimeKind.Utc),
+                CreatedAtUtc = new DateTime(2026, 7, 6, 8, 0, 0, DateTimeKind.Utc),
                 IsActive = true,
                 CreatedByUserAccountId = 1
             },
@@ -1367,6 +1373,7 @@ public partial class FitBookDbContext
                 Content = "Tarik Mujkić, bivši takmičar u boksu, pridružio se našem timu i vodi programe Osnove boksa i Kickboks za početnike.",
                 ImageUrl = "uploads/news/yoga_opening.jpg",
                 PublishedAtUtc = new DateTime(2026, 7, 9, 11, 0, 0, DateTimeKind.Utc),
+                CreatedAtUtc = new DateTime(2026, 7, 9, 11, 0, 0, DateTimeKind.Utc),
                 IsActive = true,
                 CreatedByUserAccountId = 1
             },
@@ -1377,6 +1384,7 @@ public partial class FitBookDbContext
                 Content = "Uveli smo Polugodišnji Standard paket koji donosi neograničene grupne treninge i dva besplatna personalna treninga.",
                 ImageUrl = "uploads/news/new_equipment.jpg",
                 PublishedAtUtc = new DateTime(2026, 7, 14, 12, 0, 0, DateTimeKind.Utc),
+                CreatedAtUtc = new DateTime(2026, 7, 14, 12, 0, 0, DateTimeKind.Utc),
                 IsActive = true,
                 CreatedByUserAccountId = 1
             },
@@ -1387,6 +1395,7 @@ public partial class FitBookDbContext
                 Content = "Pokrenuli smo program prilagođen starijim članovima, s naglaskom na ravnotežu, mobilnost i laganu snagu. Termini su dva puta sedmično.",
                 ImageUrl = "uploads/news/yoga_opening.jpg",
                 PublishedAtUtc = new DateTime(2026, 7, 19, 9, 0, 0, DateTimeKind.Utc),
+                CreatedAtUtc = new DateTime(2026, 7, 19, 9, 0, 0, DateTimeKind.Utc),
                 IsActive = true,
                 CreatedByUserAccountId = 1
             },
@@ -1397,6 +1406,7 @@ public partial class FitBookDbContext
                 Content = "Sala za oporavak je privremeno zatvorena zbog radova na instalacijama. O ponovnom otvaranju obavijestit ćemo vas kroz aplikaciju.",
                 ImageUrl = "uploads/news/new_equipment.jpg",
                 PublishedAtUtc = new DateTime(2026, 7, 25, 15, 0, 0, DateTimeKind.Utc),
+                CreatedAtUtc = new DateTime(2026, 7, 25, 15, 0, 0, DateTimeKind.Utc),
                 IsActive = false,
                 CreatedByUserAccountId = 1
             }
