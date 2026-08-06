@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../layouts/master_screen.dart';
+import '../models/enums/training_term_status.dart';
 import '../models/responses/training_equipment_response.dart';
 import '../models/responses/training_response.dart';
 import '../models/search_objects/training_equipment_search_object.dart';
+import '../models/search_objects/training_term_search_object.dart';
 import '../providers/training_equipment_provider.dart';
+import '../providers/training_term_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/api_client_exception.dart';
 import '../widgets/status_chip.dart';
@@ -26,6 +29,8 @@ class _TrainingDetailsScreenState extends State<TrainingDetailsScreen> {
   bool _equipmentLoading = true;
   String? _equipmentError;
 
+  int? _upcomingTermCount;
+
   @override
   void initState() {
     super.initState();
@@ -33,7 +38,35 @@ class _TrainingDetailsScreenState extends State<TrainingDetailsScreen> {
   }
 
   Future<void> _loadAll() async {
-    await _loadEquipment();
+    await Future.wait([_loadEquipment(), _loadUpcomingTermCount()]);
+  }
+
+  Future<void> _loadUpcomingTermCount() async {
+    try {
+      final result = await context.read<TrainingTermProvider>().get(
+        filter: TrainingTermSearchObject(
+          trainingId: widget.training.id,
+          startFromUtc: DateTime.now().toUtc(),
+          status: TrainingTermStatus.scheduled,
+          isActive: true,
+          pageSize: 1,
+          includeTotalCount: true,
+        ),
+      );
+      if (!mounted) return;
+      setState(() => _upcomingTermCount = result.totalCount);
+    } on ApiClientException {
+      if (!mounted) return;
+      setState(() => _upcomingTermCount = null);
+    }
+  }
+
+  static String _termCountLabel(int count) {
+    final lastTwo = count % 100;
+    final last = count % 10;
+    if (last == 1 && lastTwo != 11) return '$count nadolazeći termin';
+    if (last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14)) return '$count nadolazeća termina';
+    return '$count nadolazećih termina';
   }
 
   Future<void> _loadEquipment() async {
@@ -92,22 +125,59 @@ class _TrainingDetailsScreenState extends State<TrainingDetailsScreen> {
             const SizedBox(height: 12),
             ..._buildEquipment(),
             const SizedBox(height: 28),
-            FilledButton.icon(
-              onPressed: _openTerms,
-              style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-              icon: const Icon(Icons.event_available_outlined, size: 20),
-              label: const Text('Pogledaj termine'),
-            ),
+            ..._buildTermsAction(),
           ],
         ),
       ),
     );
   }
 
+  List<Widget> _buildTermsAction() {
+    final count = _upcomingTermCount;
+    final hasTerms = count != null && count > 0;
+    final statusText = count == null
+        ? 'Provjera dostupnih termina...'
+        : hasTerms
+            ? _termCountLabel(count)
+            : 'Trenutno nema zakazanih termina za ovaj trening.';
+
+    return [
+      Row(
+        children: [
+          Icon(
+            hasTerms ? Icons.event_available_outlined : Icons.event_busy_outlined,
+            size: 18,
+            color: hasTerms ? AppColors.textPrimary : AppColors.textSecondary,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              statusText,
+              style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: hasTerms ? FontWeight.w600 : FontWeight.w400,
+                color: hasTerms ? AppColors.textPrimary : AppColors.textSecondary,
+              ),
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 12),
+      FilledButton.icon(
+        onPressed: hasTerms ? _openTerms : null,
+        style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+        icon: const Icon(Icons.event_available_outlined, size: 20),
+        label: const Text('Pogledaj termine'),
+      ),
+    ];
+  }
+
   Future<void> _openTerms() async {
     await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => TrainingTermsScreen(training: widget.training)),
     );
+    if (!mounted) return;
+    await _loadUpcomingTermCount();
   }
 
   List<Widget> _buildEquipment() {

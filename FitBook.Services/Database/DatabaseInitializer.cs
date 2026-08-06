@@ -98,7 +98,7 @@ public static class DatabaseInitializer
         await EnsureReminderScenarioAsync(dbContext, mobileUser, trainings, trainers, halls, now, logger, cancellationToken);
         await EnsurePendingConfirmScenarioAsync(dbContext, mobileUser, trainings, trainers, halls, now, logger, cancellationToken);
         await EnsureCompletableScenarioAsync(dbContext, mobileUser, trainings, trainers, halls, now, logger, cancellationToken);
-        await EnsureOpenBookableTermsAsync(dbContext, mobileUser, trainings, trainers, halls, now, logger, cancellationToken);
+        await EnsureOpenBookableTermsAsync(dbContext, trainings, trainers, halls, now, logger, cancellationToken);
 
         if (capacityFillUsers.Count > 0)
         {
@@ -443,95 +443,59 @@ public static class DatabaseInitializer
     }
 
     private static async Task EnsureOpenBookableTermsAsync(
-        FitBookDbContext dbContext, UserAccount mobileUser, List<Training> trainings, List<Trainer> trainers, List<Hall> halls,
+        FitBookDbContext dbContext, List<Training> trainings, List<Trainer> trainers, List<Hall> halls,
         DateTime now, ILogger logger, CancellationToken cancellationToken)
     {
-        const int desiredOpenTerms = 2;
+        const int desiredTermsPerTraining = 2;
 
-        var reservedTrainingIds = await dbContext.Reservations
-            .Where(r => r.UserAccountId == mobileUser.Id && r.Status != ReservationStatus.Cancelled)
-            .Select(r => r.TrainingTerm!.TrainingId)
-            .Distinct()
-            .ToListAsync(cancellationToken);
-
-        var affinityCategoryIds = await dbContext.RecommendationSignals
-            .Where(s => s.UserAccountId == mobileUser.Id)
-            .GroupBy(s => s.TrainingCategoryId)
-            .OrderByDescending(g => g.Sum(s => s.Weight))
-            .Select(g => g.Key)
-            .ToListAsync(cancellationToken);
-
-        var openTermTrainingIds = await dbContext.TrainingTerms
-            .Where(t => t.Status == TrainingTermStatus.Scheduled
-                        && t.IsActive
-                        && t.StartTimeUtc > now
-                        && !t.Reservations.Any(r => r.Status == ReservationStatus.Pending || r.Status == ReservationStatus.Confirmed))
-            .Select(t => t.TrainingId)
-            .ToListAsync(cancellationToken);
-
-        var recommendable = trainings.Where(t => !reservedTrainingIds.Contains(t.Id)).ToList();
-        if (recommendable.Count == 0)
-        {
-            recommendable = trainings;
-        }
-
-        var openRecommendableCount = openTermTrainingIds.Count(id => recommendable.Exists(t => t.Id == id));
-        var hasAffinityTerm = openTermTrainingIds.Exists(
-            id => recommendable.Exists(t => t.Id == id && affinityCategoryIds.Contains(t.TrainingCategoryId)));
-
-        var termsToCreate = new List<Training>();
-
-        if (affinityCategoryIds.Count > 0 && !hasAffinityTerm)
-        {
-            var affinityTraining = recommendable
-                .Where(t => affinityCategoryIds.Contains(t.TrainingCategoryId))
-                .OrderBy(t => affinityCategoryIds.IndexOf(t.TrainingCategoryId))
-                .FirstOrDefault();
-
-            if (affinityTraining is not null)
-            {
-                termsToCreate.Add(affinityTraining);
-            }
-        }
-
-        foreach (var training in recommendable)
-        {
-            if (openRecommendableCount + termsToCreate.Count >= desiredOpenTerms)
-            {
-                break;
-            }
-
-            if (!termsToCreate.Contains(training))
-            {
-                termsToCreate.Add(training);
-            }
-        }
-
-        if (termsToCreate.Count == 0)
-        {
-            return;
-        }
-
-        var offsets = new[] { TimeSpan.FromDays(9), TimeSpan.FromDays(16), TimeSpan.FromDays(23) };
-        var createdCount = Math.Min(termsToCreate.Count, offsets.Length);
+        var upcomingTermCounts = await dbContext.TrainingTerms
+            .Where(t => t.Status == TrainingTermStatus.Scheduled && t.IsActive && t.StartTimeUtc > now)
+            .GroupBy(t => t.TrainingId)
+            .Select(g => new { TrainingId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.TrainingId, x => x.Count, cancellationToken);
 
         var addedCount = 0;
-        for (var i = 0; i < createdCount; i++)
+        var slot = 0;
+
+        foreach (var training in trainings)
         {
-            var term = await BuildFreeTermAsync(
-                dbContext, termsToCreate[i], trainers[i % trainers.Count], halls[i % halls.Count], now.Add(offsets[i]), now, cancellationToken);
+            var existing = upcomingTermCounts.GetValueOrDefault(training.Id, 0);
 
-            if (term is null)
+            for (var created = existing; created < desiredTermsPerTraining; created++)
             {
-                continue;
-            }
+                var desiredStartUtc = now.Date
+                    .AddDays(2 + (slot % 21))
+                    .AddHours(8 + (slot % 11));
 
-            dbContext.TrainingTerms.Add(term);
-            await dbContext.SaveChangesAsync(cancellationToken);
-            addedCount++;
+                var term = await BuildFreeTermAsync(
+                    dbContext,
+                    training,
+                    trainers[slot % trainers.Count],
+                    halls[slot % halls.Count],
+                    desiredStartUtc,
+                    now,
+                    cancellationToken);
+
+                slot++;
+
+                if (term is null)
+                {
+                    continue;
+                }
+
+                dbContext.TrainingTerms.Add(term);
+                await dbContext.SaveChangesAsync(cancellationToken);
+                addedCount++;
+            }
         }
 
-        logger.LogInformation("Topped up open bookable training terms (added {Count}).", addedCount);
+        if (addedCount > 0)
+        {
+            logger.LogInformation(
+                "Topped up bookable training terms so every active training has at least {Desired} upcoming term(s) (added {Count}).",
+                desiredTermsPerTraining,
+                addedCount);
+        }
     }
   
     private static async Task EnsureFullCapacityScenarioAsync(
