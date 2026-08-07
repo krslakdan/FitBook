@@ -12,7 +12,7 @@ public sealed class RabbitMqEmailNotificationPublisher : IEmailNotificationPubli
 
     private readonly RabbitMqOptions _options;
     private readonly ILogger<RabbitMqEmailNotificationPublisher> _logger;
-    private readonly object _connectionLock = new();
+    private readonly SemaphoreSlim _publishGate = new(1, 1);
     private IConnection? _connection;
     private IModel? _channel;
 
@@ -22,31 +22,29 @@ public sealed class RabbitMqEmailNotificationPublisher : IEmailNotificationPubli
         _logger = logger;
     }
 
-    public Task PublishAsync(EmailNotificationMessage message, CancellationToken cancellationToken = default)
+    public async Task PublishAsync(EmailNotificationMessage message, CancellationToken cancellationToken = default)
     {
         try
         {
-            Publish(message);
+            await PublishCoreAsync(message, waitForConfirmation: false, cancellationToken);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to publish email notification to RabbitMQ for {ToEmail}. Continuing without this notification.", message.ToEmail);
         }
-
-        return Task.CompletedTask;
     }
 
     public Task PublishOrThrowAsync(EmailNotificationMessage message, CancellationToken cancellationToken = default)
     {
-        Publish(message, waitForConfirmation: true);
-        return Task.CompletedTask;
+        return PublishCoreAsync(message, waitForConfirmation: true, cancellationToken);
     }
 
-    private void Publish(EmailNotificationMessage message, bool waitForConfirmation = false)
+    private async Task PublishCoreAsync(EmailNotificationMessage message, bool waitForConfirmation, CancellationToken cancellationToken)
     {
         var body = JsonSerializer.SerializeToUtf8Bytes(message);
 
-        lock (_connectionLock)
+        await _publishGate.WaitAsync(cancellationToken);
+        try
         {
             var channel = GetOrCreateChannel();
 
@@ -60,6 +58,10 @@ public sealed class RabbitMqEmailNotificationPublisher : IEmailNotificationPubli
             {
                 channel.WaitForConfirmsOrDie(ConfirmTimeout);
             }
+        }
+        finally
+        {
+            _publishGate.Release();
         }
 
         _logger.LogInformation("Published email notification to queue {Queue} for {ToEmail}.", _options.NotificationQueue, message.ToEmail);
@@ -103,5 +105,6 @@ public sealed class RabbitMqEmailNotificationPublisher : IEmailNotificationPubli
         _channel?.Dispose();
         _connection?.Close();
         _connection?.Dispose();
+        _publishGate.Dispose();
     }
 }
