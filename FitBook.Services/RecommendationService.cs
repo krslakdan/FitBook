@@ -44,6 +44,7 @@ public class RecommendationService : IRecommendationService
             .ToDictionaryAsync(x => x.TrainingCategoryId, x => x.TotalWeight, cancellationToken);
 
         var popularityCounts = await _dbContext.Reservations
+            .Where(r => r.Status != ReservationStatus.Cancelled)
             .GroupBy(r => r.TrainingTerm!.TrainingId)
             .Select(g => new { TrainingId = g.Key, ReservationCount = g.Count() })
             .ToDictionaryAsync(x => x.TrainingId, x => x.ReservationCount, cancellationToken);

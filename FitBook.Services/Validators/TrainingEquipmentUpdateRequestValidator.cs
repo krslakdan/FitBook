@@ -15,6 +15,6 @@ public class TrainingEquipmentUpdateRequestValidator : AbstractValidator<Trainin
             .When(x => x.Note is not null);
 
         RuleFor(x => x.TrainingId)
-            .GreaterThan(0).WithMessage("TrainingId mora biti pozitivan broj.");
+            .GreaterThan(0).WithMessage("Trening je obavezan.");
     }
 }

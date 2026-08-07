@@ -22,9 +22,9 @@ public class TrainingUpdateRequestValidator : AbstractValidator<TrainingUpdateRe
             .GreaterThan(0).WithMessage("Maksimalni broj učesnika mora biti pozitivan broj.");
 
         RuleFor(x => x.TrainingCategoryId)
-            .GreaterThan(0).WithMessage("TrainingCategoryId mora biti pozitivan broj.");
+            .GreaterThan(0).WithMessage("Kategorija treninga je obavezna.");
 
         RuleFor(x => x.DifficultyLevelId)
-            .GreaterThan(0).WithMessage("DifficultyLevelId mora biti pozitivan broj.");
+            .GreaterThan(0).WithMessage("Nivo težine je obavezan.");
     }
 }

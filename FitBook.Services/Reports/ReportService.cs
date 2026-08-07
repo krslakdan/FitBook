@@ -1,4 +1,5 @@
 using FitBook.Common.Services.Time;
+using FitBook.Model.Enums;
 using FitBook.Model.Exceptions;
 using FitBook.Model.Requests.Reports;
 using FitBook.Services.Database;
@@ -80,7 +81,9 @@ public class ReportService : IReportService
             {
                 TrainingName = t.Name,
                 CategoryName = t.TrainingCategory!.Name,
-                ReservationCount = t.TrainingTerms.SelectMany(tt => tt.Reservations).Count(),
+                ReservationCount = t.TrainingTerms
+                    .SelectMany(tt => tt.Reservations)
+                    .Count(r => r.Status != ReservationStatus.Cancelled),
             })
             .OrderByDescending(r => r.ReservationCount)
             .ToListAsync(cancellationToken);

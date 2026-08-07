@@ -47,6 +47,36 @@ public class DifficultyLevelService
         return query;
     }
 
+    protected override Task ValidateInsert(DifficultyLevelInsertRequest request, CancellationToken cancellationToken)
+        => EnsureNameIsUniqueAsync(request.Name, null, cancellationToken);
+
+    protected override Task ValidateUpdate(int id, DifficultyLevelUpdateRequest request, DifficultyLevel entity, CancellationToken cancellationToken)
+        => EnsureNameIsUniqueAsync(request.Name, id, cancellationToken);
+
+    protected override Task BeforeInsert(DifficultyLevelInsertRequest request, DifficultyLevel entity, CancellationToken cancellationToken)
+    {
+        entity.Name = entity.Name.Trim();
+        return Task.CompletedTask;
+    }
+
+    protected override Task BeforeUpdate(int id, DifficultyLevelUpdateRequest request, DifficultyLevel entity, CancellationToken cancellationToken)
+    {
+        request.Name = request.Name.Trim();
+        return Task.CompletedTask;
+    }
+
+    private async Task EnsureNameIsUniqueAsync(string name, int? excludeId, CancellationToken cancellationToken)
+    {
+        var normalized = name.Trim().ToLowerInvariant();
+        var duplicateExists = await _dbContext.DifficultyLevels
+            .AnyAsync(x => x.Name.ToLower() == normalized && (excludeId == null || x.Id != excludeId.Value), cancellationToken);
+
+        if (duplicateExists)
+        {
+            throw new BusinessException($"Nivo težine sa nazivom '{name.Trim()}' već postoji.");
+        }
+    }
+
     protected override async Task ValidateDelete(int id, DifficultyLevel entity, CancellationToken cancellationToken)
     {
         var isUsed = await _dbContext.Trainings

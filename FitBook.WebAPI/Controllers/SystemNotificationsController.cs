@@ -14,7 +14,7 @@ public class SystemNotificationsController : BaseReadController<SystemNotificati
         _systemNotificationService = service;
     }
 
-    [HttpPut("{id}/read")]
+    [HttpPut("{id:int}/read")]
     public async Task<IActionResult> MarkAsRead(int id, CancellationToken cancellationToken = default)
     {
         await _systemNotificationService.MarkAsReadAsync(id, cancellationToken);

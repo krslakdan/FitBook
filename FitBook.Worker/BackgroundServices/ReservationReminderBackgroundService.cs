@@ -1,52 +1,27 @@
 using FitBook.Services.Interfaces;
+using FitBook.Worker.Services;
 
 namespace FitBook.Worker.BackgroundServices;
 
-public class ReservationReminderBackgroundService : BackgroundService
+public class ReservationReminderBackgroundService : PollingBackgroundService
 {
-    private static readonly TimeSpan PollInterval = TimeSpan.FromMinutes(15);
-    private static readonly TimeSpan FailureRetryInterval = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan ReminderLeadTime = TimeSpan.FromHours(24);
 
-    private readonly IServiceScopeFactory _scopeFactory;
-    private readonly ILogger<ReservationReminderBackgroundService> _logger;
-
-    public ReservationReminderBackgroundService(
-        IServiceScopeFactory scopeFactory,
-        ILogger<ReservationReminderBackgroundService> logger)
+    public ReservationReminderBackgroundService(IServiceScopeFactory scopeFactory, DatabaseReadyGate databaseReadyGate, ILogger<ReservationReminderBackgroundService> logger)
+        : base(scopeFactory, databaseReadyGate, logger)
     {
-        _scopeFactory = scopeFactory;
-        _logger = logger;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override TimeSpan PollInterval => TimeSpan.FromMinutes(15);
+
+    protected override TimeSpan FailureRetryInterval => TimeSpan.FromSeconds(30);
+
+    protected override string FailureMessage => "Failed to process due reservation reminders.";
+
+    protected override async Task RunIterationAsync(IServiceProvider scopedServices, CancellationToken stoppingToken)
     {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            var nextDelay = PollInterval;
-
-            try
-            {
-                using var scope = _scopeFactory.CreateScope();
-                var reminderService = scope.ServiceProvider.GetRequiredService<IReminderService>();
-                await reminderService.SendDueReservationRemindersAsync(ReminderLeadTime, stoppingToken);
-                await reminderService.SendDueTrainerTermRemindersAsync(ReminderLeadTime, stoppingToken);
-            }
-            catch (Exception ex) when (!stoppingToken.IsCancellationRequested)
-            {
-                _logger.LogError(ex, "Failed to process due reservation reminders. Retrying in {Delay}.", FailureRetryInterval);
-                nextDelay = FailureRetryInterval;
-            }
-
-            try
-            {
-                await Task.Delay(nextDelay, stoppingToken);
-            }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-            {
-                _logger.LogInformation("ReservationReminderBackgroundService is stopping because the host is shutting down.");
-                break;
-            }
-        }
+        var reminderService = scopedServices.GetRequiredService<IReminderService>();
+        await reminderService.SendDueReservationRemindersAsync(ReminderLeadTime, stoppingToken);
+        await reminderService.SendDueTrainerTermRemindersAsync(ReminderLeadTime, stoppingToken);
     }
 }

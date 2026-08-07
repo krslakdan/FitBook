@@ -57,6 +57,18 @@ public class EquipmentService
         await EnsureNameIsUniqueAsync(request.Name, excludeId: id, cancellationToken);
     }
 
+    protected override Task BeforeInsert(EquipmentInsertRequest request, EquipmentEntity entity, CancellationToken cancellationToken)
+    {
+        entity.Name = entity.Name.Trim();
+        return Task.CompletedTask;
+    }
+
+    protected override Task BeforeUpdate(int id, EquipmentUpdateRequest request, EquipmentEntity entity, CancellationToken cancellationToken)
+    {
+        request.Name = request.Name.Trim();
+        return Task.CompletedTask;
+    }
+
     protected override async Task ValidateDelete(int id, EquipmentEntity entity, CancellationToken cancellationToken)
     {
         var isUsed = await _dbContext.TrainingEquipment

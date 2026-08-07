@@ -1,6 +1,8 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using FitBook.Model.Exceptions;
 using System.Net;
 
@@ -8,6 +10,9 @@ namespace FitBook.WebAPI.Filters;
 
 public sealed class ExceptionFilter : ExceptionFilterAttribute
 {
+    private const int UniqueIndexViolation = 2601;
+    private const int UniqueConstraintViolation = 2627;
+
     private readonly ILogger<ExceptionFilter> _logger;
 
     public ExceptionFilter(ILogger<ExceptionFilter> logger)
@@ -54,6 +59,13 @@ public sealed class ExceptionFilter : ExceptionFilterAttribute
                 _logger.LogInformation("Resource not found: {Message}", notFoundException.Message);
                 break;
 
+            case DbUpdateException dbUpdateException when IsUniqueConstraintViolation(dbUpdateException):
+                statusCode = HttpStatusCode.BadRequest;
+                message = "Zapis sa istim jedinstvenim podacima već postoji.";
+                errors["business"] = [message];
+                _logger.LogWarning(dbUpdateException, "Unique constraint violation.");
+                break;
+
             default:
                 errors["server"] = ["Došlo je do greške na serveru. Molimo pokušajte ponovo kasnije."];
                 _logger.LogError(context.Exception, "Unhandled exception.");
@@ -66,5 +78,11 @@ public sealed class ExceptionFilter : ExceptionFilterAttribute
             message,
             errors
         });
+    }
+
+    private static bool IsUniqueConstraintViolation(DbUpdateException exception)
+    {
+        return exception.InnerException is SqlException sqlException
+            && sqlException.Number is UniqueIndexViolation or UniqueConstraintViolation;
     }
 }

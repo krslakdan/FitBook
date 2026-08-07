@@ -12,6 +12,12 @@ services:
       - "${SQL_HOST_PORT:-1435}:1433"
     volumes:
       - fitbook_sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
     networks:
       - fitbook-net
 
@@ -27,6 +33,12 @@ services:
       - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
     volumes:
       - fitbook_rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
     networks:
       - fitbook-net
 
@@ -47,8 +59,10 @@ services:
     volumes:
       - fitbook_uploads:/app/wwwroot/uploads
     depends_on:
-      - fitbook-db
-      - fitbook-rabbitmq
+      fitbook-db:
+        condition: service_healthy
+      fitbook-rabbitmq:
+        condition: service_healthy
     networks:
       - fitbook-net
 
@@ -64,9 +78,13 @@ services:
       ConnectionStrings__DefaultConnection: Server=fitbook-db;Database=${DB_NAME:-230163};User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False;
       RabbitMQ__Host: fitbook-rabbitmq
       APP_TIMEZONE: ${APP_TIMEZONE:-Europe/Sarajevo}
+    volumes:
+      - fitbook_uploads:/app/wwwroot/uploads
     depends_on:
-      - fitbook-db
-      - fitbook-rabbitmq
+      fitbook-db:
+        condition: service_healthy
+      fitbook-rabbitmq:
+        condition: service_healthy
     networks:
       - fitbook-net
 

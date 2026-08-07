@@ -5,16 +5,15 @@ import '../layouts/master_screen.dart';
 import '../models/enums/training_term_status.dart';
 import '../models/responses/training_equipment_response.dart';
 import '../models/responses/training_response.dart';
-import '../models/responses/training_term_response.dart';
 import '../models/search_objects/training_equipment_search_object.dart';
 import '../models/search_objects/training_term_search_object.dart';
 import '../providers/training_equipment_provider.dart';
 import '../providers/training_term_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/api_client_exception.dart';
-import '../utils/formatters.dart';
 import '../widgets/status_chip.dart';
-import 'term_details_screen.dart';
+import '../widgets/term_card.dart';
+import 'training_terms_screen.dart';
 
 class TrainingDetailsScreen extends StatefulWidget {
   const TrainingDetailsScreen({super.key, required this.training});
@@ -26,13 +25,11 @@ class TrainingDetailsScreen extends StatefulWidget {
 }
 
 class _TrainingDetailsScreenState extends State<TrainingDetailsScreen> {
-  List<TrainingTermResponse> _terms = const [];
-  bool _loading = true;
-  String? _error;
-
   List<TrainingEquipmentResponse> _equipment = const [];
   bool _equipmentLoading = true;
   String? _equipmentError;
+
+  int? _upcomingTermCount;
 
   @override
   void initState() {
@@ -41,7 +38,35 @@ class _TrainingDetailsScreenState extends State<TrainingDetailsScreen> {
   }
 
   Future<void> _loadAll() async {
-    await Future.wait([_loadTerms(), _loadEquipment()]);
+    await Future.wait([_loadEquipment(), _loadUpcomingTermCount()]);
+  }
+
+  Future<void> _loadUpcomingTermCount() async {
+    try {
+      final result = await context.read<TrainingTermProvider>().get(
+        filter: TrainingTermSearchObject(
+          trainingId: widget.training.id,
+          startFromUtc: DateTime.now().toUtc(),
+          status: TrainingTermStatus.scheduled,
+          isActive: true,
+          pageSize: 1,
+          includeTotalCount: true,
+        ),
+      );
+      if (!mounted) return;
+      setState(() => _upcomingTermCount = result.totalCount);
+    } on ApiClientException {
+      if (!mounted) return;
+      setState(() => _upcomingTermCount = null);
+    }
+  }
+
+  static String _termCountLabel(int count) {
+    final lastTwo = count % 100;
+    final last = count % 10;
+    if (last == 1 && lastTwo != 11) return '$count nadolazeći termin';
+    if (last >= 2 && last <= 4 && (lastTwo < 12 || lastTwo > 14)) return '$count nadolazeća termina';
+    return '$count nadolazećih termina';
   }
 
   Future<void> _loadEquipment() async {
@@ -68,39 +93,6 @@ class _TrainingDetailsScreenState extends State<TrainingDetailsScreen> {
       setState(() {
         _equipmentError = e.message;
         _equipmentLoading = false;
-      });
-    }
-  }
-
-  Future<void> _loadTerms() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-
-    try {
-      final result = await context.read<TrainingTermProvider>().get(
-        filter: TrainingTermSearchObject(
-          trainingId: widget.training.id,
-          startFromUtc: DateTime.now().toUtc(),
-          status: TrainingTermStatus.scheduled,
-          isActive: true,
-          pageSize: 50,
-          includeTotalCount: true,
-        ),
-      );
-      if (!mounted) return;
-      final terms = [...result.items]
-        ..sort((a, b) => a.startTimeUtc.compareTo(b.startTimeUtc));
-      setState(() {
-        _terms = terms;
-        _loading = false;
-      });
-    } on ApiClientException catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = e.message;
-        _loading = false;
       });
     }
   }
@@ -132,70 +124,60 @@ class _TrainingDetailsScreenState extends State<TrainingDetailsScreen> {
             ),
             const SizedBox(height: 12),
             ..._buildEquipment(),
-            const SizedBox(height: 24),
-            const Text(
-              'Nadolazeći termini',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 12),
-            ..._buildTerms(),
+            const SizedBox(height: 28),
+            ..._buildTermsAction(),
           ],
         ),
       ),
     );
   }
 
-  List<Widget> _buildTerms() {
-    if (_loading) {
-      return const [
-        Padding(
-          padding: EdgeInsets.symmetric(vertical: 32),
-          child: Center(child: CircularProgressIndicator()),
-        ),
-      ];
-    }
-
-    if (_error != null) {
-      return [
-        _MessageBox(
-          icon: Icons.cloud_off_outlined,
-          message: _error!,
-          action: OutlinedButton.icon(
-            onPressed: _loadTerms,
-            icon: const Icon(Icons.refresh, size: 18),
-            label: const Text('Pokušaj ponovo'),
-          ),
-        ),
-      ];
-    }
-
-    if (_terms.isEmpty) {
-      return const [
-        _MessageBox(
-          icon: Icons.event_busy_outlined,
-          message: 'Trenutno nema zakazanih termina za ovaj trening.',
-        ),
-      ];
-    }
+  List<Widget> _buildTermsAction() {
+    final count = _upcomingTermCount;
+    final hasTerms = count != null && count > 0;
+    final statusText = count == null
+        ? 'Provjera dostupnih termina...'
+        : hasTerms
+            ? _termCountLabel(count)
+            : 'Trenutno nema zakazanih termina za ovaj trening.';
 
     return [
-      for (final term in _terms) ...[
-        _TermCard(term: term, onTap: () => _openTerm(term)),
-        const SizedBox(height: 10),
-      ],
+      Row(
+        children: [
+          Icon(
+            hasTerms ? Icons.event_available_outlined : Icons.event_busy_outlined,
+            size: 18,
+            color: hasTerms ? AppColors.textPrimary : AppColors.textSecondary,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              statusText,
+              style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: hasTerms ? FontWeight.w600 : FontWeight.w400,
+                color: hasTerms ? AppColors.textPrimary : AppColors.textSecondary,
+              ),
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 12),
+      FilledButton.icon(
+        onPressed: hasTerms ? _openTerms : null,
+        style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+        icon: const Icon(Icons.event_available_outlined, size: 20),
+        label: const Text('Pogledaj termine'),
+      ),
     ];
   }
 
-  Future<void> _openTerm(TrainingTermResponse term) async {
+  Future<void> _openTerms() async {
     await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => TermDetailsScreen(term: term)),
+      MaterialPageRoute(builder: (_) => TrainingTermsScreen(training: widget.training)),
     );
     if (!mounted) return;
-    _loadTerms();
+    await _loadUpcomingTermCount();
   }
 
   List<Widget> _buildEquipment() {
@@ -210,7 +192,7 @@ class _TrainingDetailsScreenState extends State<TrainingDetailsScreen> {
 
     if (_equipmentError != null) {
       return [
-        _MessageBox(
+        MessageBox(
           icon: Icons.cloud_off_outlined,
           message: _equipmentError!,
           action: OutlinedButton.icon(
@@ -224,7 +206,7 @@ class _TrainingDetailsScreenState extends State<TrainingDetailsScreen> {
 
     if (_equipment.isEmpty) {
       return const [
-        _MessageBox(
+        MessageBox(
           icon: Icons.inventory_2_outlined,
           message: 'Za ovaj trening nije navedena posebna oprema.',
         ),
@@ -348,138 +330,6 @@ class _Stat extends StatelessWidget {
   }
 }
 
-class _TermCard extends StatelessWidget {
-  const _TermCard({required this.term, required this.onTap});
-
-  final TrainingTermResponse term;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final trainer = '${term.trainerFirstName} ${term.trainerLastName}'.trim();
-
-    return Material(
-      color: AppColors.surface,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: AppColors.infoSoft,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.event_outlined, size: 22, color: AppColors.onInfoSoft),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      formatDateWithWeekday(term.startTimeUtc.toLocal()),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      formatTimeRange(term.startTimeUtc, term.endTimeUtc),
-                      style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-                    ),
-                    const SizedBox(height: 8),
-                    _Line(icon: Icons.person_outline, text: trainer.isEmpty ? 'Trener' : trainer),
-                    const SizedBox(height: 4),
-                    _Line(icon: Icons.place_outlined, text: term.hallName),
-                    const SizedBox(height: 8),
-                    _CapacityPill(reserved: term.reservedCount, max: term.maxParticipants),
-                  ],
-                ),
-              ),
-              const Padding(
-                padding: EdgeInsets.only(left: 6, top: 2),
-                child: Icon(Icons.chevron_right, size: 20, color: AppColors.textSecondary),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CapacityPill extends StatelessWidget {
-  const _CapacityPill({required this.reserved, required this.max});
-
-  final int reserved;
-  final int max;
-
-  @override
-  Widget build(BuildContext context) {
-    final free = (max - reserved).clamp(0, max);
-    final isFull = reserved >= max;
-    final (background, foreground) = isFull
-        ? (AppColors.dangerSoft, AppColors.onDangerSoft)
-        : (AppColors.primarySoft, AppColors.onPrimarySoft);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(isFull ? Icons.block : Icons.people_alt_outlined, size: 13, color: foreground),
-          const SizedBox(width: 5),
-          Text(
-            isFull ? 'Popunjeno · $reserved/$max' : '$free slobodnih · $reserved/$max',
-            style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: foreground),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Line extends StatelessWidget {
-  const _Line({required this.icon, required this.text});
-
-  final IconData icon;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 15, color: AppColors.textSecondary),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            text,
-            style: const TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class _EquipmentRow extends StatelessWidget {
   const _EquipmentRow({required this.item});
 
@@ -548,38 +398,3 @@ class _EquipmentRow extends StatelessWidget {
   }
 }
 
-class _MessageBox extends StatelessWidget {
-  const _MessageBox({required this.icon, required this.message, this.action});
-
-  final IconData icon;
-  final String message;
-  final Widget? action;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, size: 40, color: AppColors.textSecondary),
-          const SizedBox(height: 12),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 13.5, height: 1.4, color: AppColors.textSecondary),
-          ),
-          if (action != null) ...[
-            const SizedBox(height: 16),
-            action!,
-          ],
-        ],
-      ),
-    );
-  }
-}

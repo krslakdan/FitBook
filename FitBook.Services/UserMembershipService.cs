@@ -18,7 +18,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Stripe;
-using System.Collections.Concurrent;
 
 namespace FitBook.Services;
 
@@ -26,21 +25,13 @@ public class UserMembershipService
     : BaseInsertService<UserMembership, UserMembershipResponse, MembershipSearchObject, UserMembershipInsertRequest>,
       IUserMembershipService
 {
-    private static readonly Dictionary<MembershipStatus, MembershipStatus[]> _allowedTransitions = new()
-    {
-        [MembershipStatus.Pending] = [MembershipStatus.Active, MembershipStatus.Cancelled],
-        [MembershipStatus.Active] = [MembershipStatus.Cancelled, MembershipStatus.Expired],
-        [MembershipStatus.Cancelled] = [],
-        [MembershipStatus.Expired] = [],
-    };
-
     private static readonly MembershipStatus[] _activeStatuses =
     [
         MembershipStatus.Pending,
         MembershipStatus.Active,
     ];
 
-    private static readonly ConcurrentDictionary<int, SemaphoreSlim> _userMembershipLocks = new();
+    private static readonly KeyedSemaphores _userMembershipLocks = new();
 
     private const string StripeIntentSucceeded = "succeeded";
     private const string StripeIntentCanceled = "canceled";
@@ -76,7 +67,7 @@ public class UserMembershipService
     public override async Task<UserMembershipResponse> InsertAsync(UserMembershipInsertRequest request, CancellationToken cancellationToken = default)
     {
         var userId = _currentUserService.GetRequiredUserId();
-        var userLock = _userMembershipLocks.GetOrAdd(userId, static _ => new SemaphoreSlim(1, 1));
+        var userLock = _userMembershipLocks.For(userId);
         await userLock.WaitAsync(cancellationToken);
         try
         {
@@ -275,7 +266,7 @@ public class UserMembershipService
         await _changePackageValidator.ValidateAndThrowAsync(request, cancellationToken);
 
         var currentUserId = _currentUserService.GetRequiredUserId();
-        var userLock = _userMembershipLocks.GetOrAdd(currentUserId, static _ => new SemaphoreSlim(1, 1));
+        var userLock = _userMembershipLocks.For(currentUserId);
         await userLock.WaitAsync(cancellationToken);
 
         try
@@ -849,13 +840,9 @@ public class UserMembershipService
         }
     }
 
-    private void EnsureValidTransition(MembershipStatus from, MembershipStatus to)
+    private static void EnsureValidTransition(MembershipStatus from, MembershipStatus to)
     {
-        if (!_allowedTransitions.TryGetValue(from, out var allowed) || !allowed.Contains(to))
-        {
-            throw new BusinessException(
-                $"Nije moguća tranzicija statusa članarine iz '{from}' u '{to}'.");
-        }
+        MembershipStatusTransitions.EnsureAllowed(from, to);
     }
 
     protected override string NotFoundMessage => "Članarina nije pronađena.";

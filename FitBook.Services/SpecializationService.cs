@@ -57,6 +57,18 @@ public class SpecializationService
         await EnsureNameIsUniqueAsync(request.Name, excludeId: id, cancellationToken);
     }
 
+    protected override Task BeforeInsert(SpecializationInsertRequest request, Specialization entity, CancellationToken cancellationToken)
+    {
+        entity.Name = entity.Name.Trim();
+        return Task.CompletedTask;
+    }
+
+    protected override Task BeforeUpdate(int id, SpecializationUpdateRequest request, Specialization entity, CancellationToken cancellationToken)
+    {
+        request.Name = request.Name.Trim();
+        return Task.CompletedTask;
+    }
+
     protected override async Task ValidateDelete(int id, Specialization entity, CancellationToken cancellationToken)
     {
         var isUsed = await _dbContext.Trainers
