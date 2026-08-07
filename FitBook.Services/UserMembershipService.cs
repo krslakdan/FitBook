@@ -836,7 +836,7 @@ public class UserMembershipService
     {
         if (!_currentUserService.IsAdmin() && membership.UserAccountId != _currentUserService.GetRequiredUserId())
         {
-            throw new BusinessException(errorMessage);
+            throw new ForbiddenException(errorMessage);
         }
     }
 

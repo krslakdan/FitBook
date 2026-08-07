@@ -1,4 +1,5 @@
 using FitBook.Model.Constants;
+using FitBook.Model.Exceptions;
 using FitBook.Model.Requests.UserAccounts;
 using FitBook.Model.Responses;
 using FitBook.Model.Responses.UserAccounts;
@@ -39,7 +40,7 @@ public class UserAccountsController
         var currentUserId = _currentUserService.GetRequiredUserId();
         if (!_currentUserService.IsAdmin() && currentUserId != id)
         {
-            return Forbid();
+            throw new ForbiddenException("Nemate pravo pregledati podatke drugog korisnika.");
         }
         return await base.GetById(id, cancellationToken);
     }
@@ -59,7 +60,7 @@ public class UserAccountsController
 
         if (!_currentUserService.IsAdmin() && currentUserId != id)
         {
-            return Forbid();
+            throw new ForbiddenException("Nemate pravo mijenjati podatke drugog korisnika.");
         }
 
         return await base.Update(id, request, cancellationToken);

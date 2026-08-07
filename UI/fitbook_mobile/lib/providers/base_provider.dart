@@ -116,7 +116,7 @@ abstract class BaseProvider with ChangeNotifier {
     if (response.statusCode >= 200 && response.statusCode < 300) return;
 
     if (response.statusCode == 401) {
-      AuthSession.clear();
+      AuthSession.expireSession();
       throw UnauthorizedException();
     }
 
