@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'providers/auth_provider.dart';
@@ -62,6 +63,9 @@ class FitBookDesktopApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'FitBook Desktop',
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        supportedLocales: const [Locale('bs')],
+        locale: const Locale('bs'),
         theme: buildAppTheme(),
         navigatorKey: appNavigatorKey,
         home: const _StartupGate(),

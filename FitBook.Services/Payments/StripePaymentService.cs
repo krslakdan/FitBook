@@ -85,6 +85,24 @@ public class StripePaymentService : IStripePaymentService
         return FromSmallestCurrencyUnit(refund.Amount);
     }
 
+    public async Task CancelPaymentIntentAsync(string paymentIntentId, CancellationToken ct)
+    {
+        var service = new PaymentIntentService();
+
+        try
+        {
+            await service.CancelAsync(paymentIntentId, null, requestOptions: null, cancellationToken: ct);
+        }
+        catch (StripeException ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Could not cancel the unused PaymentIntent {PaymentIntentId}. Stripe expires it automatically. Stripe code: {StripeCode}.",
+                paymentIntentId,
+                ex.StripeError?.Code);
+        }
+    }
+
     private static long ToSmallestCurrencyUnit(decimal amount) =>
         (long)Math.Round(amount * 100, 0, MidpointRounding.AwayFromZero);
 

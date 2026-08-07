@@ -12,12 +12,12 @@ DashboardSummaryResponse _$DashboardSummaryResponseFromJson(
   totalUsers: (json['totalUsers'] as num).toInt(),
   totalUsersChangePercent: (json['totalUsersChangePercent'] as num?)
       ?.toDouble(),
+  totalTrainers: (json['totalTrainers'] as num).toInt(),
+  totalTrainings: (json['totalTrainings'] as num).toInt(),
   activeMemberships: (json['activeMemberships'] as num).toInt(),
   activeMembershipsChangePercent:
       (json['activeMembershipsChangePercent'] as num?)?.toDouble(),
-  todayReservations: (json['todayReservations'] as num).toInt(),
-  todayReservationsChangePercent:
-      (json['todayReservationsChangePercent'] as num?)?.toDouble(),
+  activeReservations: (json['activeReservations'] as num).toInt(),
   monthRevenue: (json['monthRevenue'] as num).toDouble(),
   revenueCurrency: json['revenueCurrency'] as String,
   monthRevenueChangePercent: (json['monthRevenueChangePercent'] as num?)
@@ -46,10 +46,11 @@ Map<String, dynamic> _$DashboardSummaryResponseToJson(
 ) => <String, dynamic>{
   'totalUsers': instance.totalUsers,
   'totalUsersChangePercent': instance.totalUsersChangePercent,
+  'totalTrainers': instance.totalTrainers,
+  'totalTrainings': instance.totalTrainings,
   'activeMemberships': instance.activeMemberships,
   'activeMembershipsChangePercent': instance.activeMembershipsChangePercent,
-  'todayReservations': instance.todayReservations,
-  'todayReservationsChangePercent': instance.todayReservationsChangePercent,
+  'activeReservations': instance.activeReservations,
   'monthRevenue': instance.monthRevenue,
   'revenueCurrency': instance.revenueCurrency,
   'monthRevenueChangePercent': instance.monthRevenueChangePercent,

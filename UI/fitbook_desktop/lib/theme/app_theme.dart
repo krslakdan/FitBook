@@ -80,6 +80,7 @@ ThemeData buildAppTheme() {
         color: AppColors.textSecondary,
         fontSize: 13.5,
       ),
+      errorMaxLines: 3,
       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
     ),
     filledButtonTheme: FilledButtonThemeData(

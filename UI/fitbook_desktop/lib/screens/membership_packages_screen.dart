@@ -158,7 +158,7 @@ class _MembershipPackagesScreenState extends State<MembershipPackagesScreen> {
     }
   }
 
-  String _price(double value) => '${value.toStringAsFixed(2)} KM';
+  String _price(double value) => formatMoney(value);
 
   @override
   Widget build(BuildContext context) {
@@ -358,14 +358,14 @@ class _MembershipPackageDetailsDialog extends StatelessWidget {
           DetailRow(
             icon: Icons.payments_outlined,
             label: 'Cijena',
-            value: '${package.price.toStringAsFixed(2)} KM',
+            value: formatMoney(package.price),
           ),
           DetailRow(
             icon: Icons.savings_outlined,
             label: 'Ušteda',
             value: package.savingsAmount == null
                 ? ''
-                : '${package.savingsAmount!.toStringAsFixed(2)} KM',
+                : formatMoney(package.savingsAmount!),
           ),
           DetailRow(
             icon: Icons.checklist_outlined,

@@ -7,11 +7,14 @@ public class DashboardSummaryResponse
     public int TotalUsers { get; set; }
     public double? TotalUsersChangePercent { get; set; }
 
+    public int TotalTrainers { get; set; }
+
+    public int TotalTrainings { get; set; }
+
     public int ActiveMemberships { get; set; }
     public double? ActiveMembershipsChangePercent { get; set; }
 
-    public int TodayReservations { get; set; }
-    public double? TodayReservationsChangePercent { get; set; }
+    public int ActiveReservations { get; set; }
 
     public decimal MonthRevenue { get; set; }
     public string RevenueCurrency { get; set; } = string.Empty;

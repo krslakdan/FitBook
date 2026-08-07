@@ -65,9 +65,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => screen));
   }
 
-  String _money(double amount, String currency) =>
-      '${amount.toStringAsFixed(2)} ${currency.toUpperCase()}';
-
   String _time(DateTime utc) {
     final local = utc.toLocal();
     String two(int v) => v.toString().padLeft(2, '0');
@@ -147,56 +144,82 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildKpiRow(DashboardSummaryResponse summary) {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: _KpiTile(
-            icon: Icons.groups_outlined,
-            iconBackground: AppColors.primarySoft,
-            iconColor: AppColors.onPrimarySoft,
-            label: 'UKUPNO KORISNIKA',
-            value: '${summary.totalUsers}',
-            changePercent: summary.totalUsersChangePercent,
-            changeCaption: 'u odnosu na prošli mjesec',
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: _KpiTile(
+                icon: Icons.groups_outlined,
+                iconBackground: AppColors.primarySoft,
+                iconColor: AppColors.onPrimarySoft,
+                label: 'UKUPNO KORISNIKA',
+                value: '${summary.totalUsers}',
+                changePercent: summary.totalUsersChangePercent,
+                changeCaption: 'u odnosu na prošli mjesec',
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _KpiTile(
+                icon: Icons.badge_outlined,
+                iconBackground: AppColors.infoSoft,
+                iconColor: AppColors.onInfoSoft,
+                label: 'UKUPNO TRENERA',
+                value: '${summary.totalTrainers}',
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _KpiTile(
+                icon: Icons.fitness_center,
+                iconBackground: AppColors.purpleSoft,
+                iconColor: AppColors.onPurpleSoft,
+                label: 'UKUPNO TRENINGA',
+                value: '${summary.totalTrainings}',
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _KpiTile(
-            icon: Icons.loyalty_outlined,
-            iconBackground: AppColors.infoSoft,
-            iconColor: AppColors.onInfoSoft,
-            label: 'AKTIVNE ČLANARINE',
-            value: '${summary.activeMemberships}',
-            changePercent: summary.activeMembershipsChangePercent,
-            changeCaption: 'u odnosu na prije 30 dana',
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _KpiTile(
-            icon: Icons.event_available_outlined,
-            iconBackground: AppColors.purpleSoft,
-            iconColor: AppColors.onPurpleSoft,
-            label: 'DANAŠNJE REZERVACIJE',
-            value: '${summary.todayReservations}',
-            changePercent: summary.todayReservationsChangePercent,
-            changeCaption: 'u odnosu na jučer',
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _KpiTile(
-            icon: Icons.payments_outlined,
-            iconBackground: AppColors.warningSoft,
-            iconColor: AppColors.onWarningSoft,
-            label: 'PRIHOD (OVAJ MJESEC)',
-            value: summary.revenueCurrency.isEmpty
-                ? summary.monthRevenue.toStringAsFixed(2)
-                : _money(summary.monthRevenue, summary.revenueCurrency),
-            changePercent: summary.monthRevenueChangePercent,
-            changeCaption: 'u odnosu na prošli mjesec',
-          ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _KpiTile(
+                icon: Icons.event_available_outlined,
+                iconBackground: AppColors.purpleSoft,
+                iconColor: AppColors.onPurpleSoft,
+                label: 'AKTIVNE REZERVACIJE',
+                value: '${summary.activeReservations}',
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _KpiTile(
+                icon: Icons.loyalty_outlined,
+                iconBackground: AppColors.infoSoft,
+                iconColor: AppColors.onInfoSoft,
+                label: 'AKTIVNE ČLANARINE',
+                value: '${summary.activeMemberships}',
+                changePercent: summary.activeMembershipsChangePercent,
+                changeCaption: 'u odnosu na prije 30 dana',
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _KpiTile(
+                icon: Icons.payments_outlined,
+                iconBackground: AppColors.warningSoft,
+                iconColor: AppColors.onWarningSoft,
+                label: 'PRIHOD (OVAJ MJESEC)',
+                value: summary.revenueCurrency.isEmpty
+                    ? summary.monthRevenue.toStringAsFixed(2)
+                    : formatMoney(summary.monthRevenue, summary.revenueCurrency),
+                changePercent: summary.monthRevenueChangePercent,
+                changeCaption: 'u odnosu na prošli mjesec',
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -284,10 +307,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 for (var i = 0; i < summary.recentPayments.length; i++) ...[
                   if (i > 0) const SizedBox(height: 12),
-                  _RecentPaymentRow(
-                    payment: summary.recentPayments[i],
-                    money: _money,
-                  ),
+                  _RecentPaymentRow(payment: summary.recentPayments[i]),
                 ],
               ],
             ),
@@ -321,8 +341,8 @@ class _KpiTile extends StatelessWidget {
     required this.iconColor,
     required this.label,
     required this.value,
-    required this.changePercent,
-    required this.changeCaption,
+    this.changePercent,
+    this.changeCaption = '',
   });
 
   final IconData icon;
@@ -774,10 +794,9 @@ class _RecentReservationRow extends StatelessWidget {
 }
 
 class _RecentPaymentRow extends StatelessWidget {
-  const _RecentPaymentRow({required this.payment, required this.money});
+  const _RecentPaymentRow({required this.payment});
 
   final DashboardRecentPayment payment;
-  final String Function(double, String) money;
 
   @override
   Widget build(BuildContext context) {
@@ -817,7 +836,7 @@ class _RecentPaymentRow extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              money(payment.amount, payment.currency),
+              formatMoney(payment.amount, payment.currency),
               style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
             ),
             Text(
