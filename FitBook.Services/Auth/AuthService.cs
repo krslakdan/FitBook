@@ -25,6 +25,7 @@ public class AuthService : IAuthService
     private readonly FitBookDbContext _context;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IRefreshTokenService _refreshTokenService;
+    private readonly ITokenVersionService _tokenVersionService;
     private readonly IUserAccountService _userAccountService;
     private readonly ICryptoService _cryptoService;
     private readonly IEmailNotificationPublisher _emailNotificationPublisher;
@@ -36,6 +37,7 @@ public class AuthService : IAuthService
         FitBookDbContext context,
         IJwtTokenService jwtTokenService,
         IRefreshTokenService refreshTokenService,
+        ITokenVersionService tokenVersionService,
         IUserAccountService userAccountService,
         ICryptoService cryptoService,
         IEmailNotificationPublisher emailNotificationPublisher,
@@ -46,6 +48,7 @@ public class AuthService : IAuthService
         _context = context;
         _jwtTokenService = jwtTokenService;
         _refreshTokenService = refreshTokenService;
+        _tokenVersionService = tokenVersionService;
         _userAccountService = userAccountService;
         _cryptoService = cryptoService;
         _emailNotificationPublisher = emailNotificationPublisher;
@@ -160,6 +163,7 @@ public class AuthService : IAuthService
         }
 
         await _refreshTokenService.RevokeRefreshTokenAsync(request.RefreshToken.Trim(), cancellationToken);
+        await _tokenVersionService.InvalidateIssuedTokensAsync(userId, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
     }
 
@@ -266,6 +270,7 @@ public class AuthService : IAuthService
             refreshToken.RevokedAtUtc = now;
         }
 
+        await _tokenVersionService.InvalidateIssuedTokensAsync(user.Id, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Password reset completed for user {UserId}.", user.Id);

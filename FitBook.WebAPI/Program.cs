@@ -5,6 +5,7 @@ using FitBook.Services.Configuration;
 using FitBook.Services.Database;
 using FitBook.Services.Files;
 using FitBook.Services.Interfaces;
+using FitBook.Services.Interfaces.Auth;
 using FitBook.WebAPI.Filters;
 using FitBook.WebAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -74,6 +75,31 @@ builder.Services
             ClockSkew = TimeSpan.Zero,
             RoleClaimType = ClaimNames.Role,
             NameClaimType = ClaimNames.Username
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                var principal = context.Principal;
+                var userIdClaim = principal?.FindFirst(ClaimNames.Id)?.Value;
+                var tokenVersionClaim = principal?.FindFirst(ClaimNames.TokenVersion)?.Value;
+
+                if (!int.TryParse(userIdClaim, out var userId)
+                    || !int.TryParse(tokenVersionClaim, out var tokenVersion))
+                {
+                    context.Fail("Token ne sadrži validne podatke o korisniku.");
+                    return;
+                }
+
+                var tokenVersionService = context.HttpContext.RequestServices
+                    .GetRequiredService<ITokenVersionService>();
+
+                if (!await tokenVersionService.IsTokenVersionCurrentAsync(userId, tokenVersion, context.HttpContext.RequestAborted))
+                {
+                    context.Fail("Token više nije važeći.");
+                }
+            }
         };
     });
 

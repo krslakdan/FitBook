@@ -410,6 +410,15 @@ class _InfoCard extends StatelessWidget {
       ));
     }
 
+    final nextPayment = membership.nextPaymentDateUtc;
+    if (nextPayment != null) {
+      rows.add((
+        Icons.event_repeat_outlined,
+        'Sljedeća uplata',
+        formatDate(nextPayment.toLocal()),
+      ));
+    }
+
     rows.add((Icons.schedule_outlined, 'Kreirano', formatDateTime(membership.createdAtUtc)));
 
     return Container(

@@ -11,6 +11,7 @@ public class UserAccount : SoftDeletableEntity
     public string Role { get; set; } = string.Empty;
     public string? ProfileImageUrl { get; set; }
     public bool IsActive { get; set; }
+    public int TokenVersion { get; set; }
 
     public Trainer? Trainer { get; set; }
 

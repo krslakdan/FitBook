@@ -56,6 +56,7 @@ public class MembershipExpiryService : IMembershipExpiryService
 
             membership.Status = MembershipStatus.Expired;
             membership.IsActive = false;
+            membership.NextPaymentDateUtc = null;
             membership.UpdatedAtUtc = now;
 
             _dbContext.UserMembershipStatusAudits.Add(new UserMembershipStatusAudit
