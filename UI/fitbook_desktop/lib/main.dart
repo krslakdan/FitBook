@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'providers/auth_provider.dart';
@@ -22,10 +23,13 @@ import 'providers/training_term_provider.dart';
 import 'providers/user_account_provider.dart';
 import 'providers/user_membership_provider.dart';
 import 'layouts/master_screen.dart';
+import 'providers/auth_session.dart';
 import 'screens/login_screen.dart';
 import 'theme/app_theme.dart';
+import 'utils/app_navigator.dart';
 
 void main() {
+  AuthSession.onSessionExpired = returnToLogin;
   runApp(const FitBookDesktopApp());
 }
 
@@ -59,7 +63,11 @@ class FitBookDesktopApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'FitBook Desktop',
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        supportedLocales: const [Locale('bs')],
+        locale: const Locale('bs'),
         theme: buildAppTheme(),
+        navigatorKey: appNavigatorKey,
         home: const _StartupGate(),
       ),
     );

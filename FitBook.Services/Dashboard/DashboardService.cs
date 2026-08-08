@@ -52,8 +52,6 @@ public class DashboardService : IDashboardService
         var nowUtc = DateTime.UtcNow;
         var localToday = LocalTimeProvider.LocalDate(nowUtc);
         var localMonthStart = new DateTime(localToday.Year, localToday.Month, 1);
-        var todayUtc = LocalTimeProvider.ToUtc(localToday);
-        var yesterdayUtc = LocalTimeProvider.ToUtc(localToday.AddDays(-1));
         var monthStartUtc = LocalTimeProvider.ToUtc(localMonthStart);
         var previousMonthStartUtc = LocalTimeProvider.ToUtc(localMonthStart.AddMonths(-1));
         var thirtyDaysAgoUtc = nowUtc.AddDays(-30);
@@ -88,10 +86,12 @@ public class DashboardService : IDashboardService
             .Select(g => new
             {
                 Total = g.Count(),
-                Today = g.Count(r => r.ReservedAtUtc >= todayUtc),
-                Yesterday = g.Count(r => r.ReservedAtUtc >= yesterdayUtc && r.ReservedAtUtc < todayUtc),
+                Active = g.Count(r => r.Status == ReservationStatus.Pending || r.Status == ReservationStatus.Confirmed),
             })
             .FirstOrDefaultAsync(cancellationToken);
+
+        var totalTrainers = await _dbContext.Trainers.CountAsync(cancellationToken);
+        var totalTrainings = await _dbContext.Trainings.CountAsync(t => t.IsActive, cancellationToken);
 
         var revenueStats = await _dbContext.MembershipPayments
             .Where(p => (p.Status == PaymentStatus.Completed || p.Status == PaymentStatus.Refunded)
@@ -184,25 +184,27 @@ public class DashboardService : IDashboardService
         var activeMemberships = membershipStats?.ActiveNow ?? 0;
         var membershipsActiveThirtyDaysAgo = membershipStats?.ActiveThirtyDaysAgo ?? 0;
         var totalReservations = reservationStats?.Total ?? 0;
-        var todayReservations = reservationStats?.Today ?? 0;
-        var yesterdayReservations = reservationStats?.Yesterday ?? 0;
+        var activeReservations = reservationStats?.Active ?? 0;
         var monthRevenue = revenueStats?.CurrentMonth ?? 0m;
         var previousMonthRevenue = revenueStats?.PreviousMonth ?? 0m;
 
         _logger.LogInformation(
-            "Dashboard summary generated. Users: {TotalUsers}, active memberships: {ActiveMemberships}, today reservations: {TodayReservations}.",
+            "Dashboard summary generated. Users: {TotalUsers}, trainers: {TotalTrainers}, trainings: {TotalTrainings}, active memberships: {ActiveMemberships}, active reservations: {ActiveReservations}.",
             totalUsers,
+            totalTrainers,
+            totalTrainings,
             activeMemberships,
-            todayReservations);
+            activeReservations);
 
         return new DashboardSummaryResponse
         {
             TotalUsers = totalUsers,
             TotalUsersChangePercent = ChangePercent(totalUsers, usersBeforeThisMonth),
+            TotalTrainers = totalTrainers,
+            TotalTrainings = totalTrainings,
             ActiveMemberships = activeMemberships,
             ActiveMembershipsChangePercent = ChangePercent(activeMemberships, membershipsActiveThirtyDaysAgo),
-            TodayReservations = todayReservations,
-            TodayReservationsChangePercent = ChangePercent(todayReservations, yesterdayReservations),
+            ActiveReservations = activeReservations,
             MonthRevenue = monthRevenue,
             RevenueCurrency = PaymentConstants.Currency,
             MonthRevenueChangePercent = ChangePercent((double)monthRevenue, (double)previousMonthRevenue),

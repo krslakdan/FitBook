@@ -264,7 +264,7 @@ public class ReservationService
 
         if (!_currentUserService.IsAdmin() && !isTrainer)
         {
-            throw new BusinessException("Nemate pravo potvrditi ovu rezervaciju.");
+            throw new ForbiddenException("Nemate pravo potvrditi ovu rezervaciju.");
         }
 
         EnsureValidTransition(reservation.Status, ReservationStatus.Confirmed);
@@ -343,7 +343,7 @@ public class ReservationService
 
         if (!_currentUserService.IsAdmin() && !isOwner && !isTrainer)
         {
-            throw new BusinessException("Nemate pravo otkazati ovu rezervaciju.");
+            throw new ForbiddenException("Nemate pravo otkazati ovu rezervaciju.");
         }
 
         EnsureValidTransition(reservation.Status, ReservationStatus.Cancelled);
@@ -503,7 +503,7 @@ public class ReservationService
 
         if (!_currentUserService.IsAdmin() && !isTrainer)
         {
-            throw new BusinessException("Nemate pravo završiti ovu rezervaciju.");
+            throw new ForbiddenException("Nemate pravo završiti ovu rezervaciju.");
         }
 
         EnsureValidTransition(reservation.Status, ReservationStatus.Completed);

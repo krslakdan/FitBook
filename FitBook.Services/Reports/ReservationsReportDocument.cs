@@ -52,11 +52,11 @@ internal class ReservationsReportDocument : IDocument
                 {
                     table.ColumnsDefinition(columns =>
                     {
-                        columns.RelativeColumn(2);
-                        columns.RelativeColumn(2);
-                        columns.RelativeColumn(2);
+                        columns.RelativeColumn(2.2f);
+                        columns.RelativeColumn(2.2f);
+                        columns.RelativeColumn(2f);
                         columns.RelativeColumn(1.3f);
-                        columns.RelativeColumn(1.5f);
+                        columns.RelativeColumn(2f);
                     });
 
                     table.Header(header =>
@@ -81,8 +81,8 @@ internal class ReservationsReportDocument : IDocument
 
             page.Footer().Row(row =>
             {
-                row.RelativeItem().Text($"Ukupno rezervacija: {_rows.Count}   |   Generisano: {LocalTimeProvider.FormatDateTime(_generatedAtUtc)}");
-                row.RelativeItem().AlignRight().Text(x =>
+                row.RelativeItem(4).Text($"Ukupno rezervacija: {_rows.Count}   |   Generisano: {LocalTimeProvider.FormatDateTime(_generatedAtUtc)}");
+                row.RelativeItem(1).AlignRight().Text(x =>
                 {
                     x.Span("Stranica ");
                     x.CurrentPageNumber();

@@ -11,6 +11,8 @@ class AuthSession {
 
   static Future<bool> Function()? refreshHandler;
 
+  static void Function()? onSessionExpired;
+
   static Future<bool>? _inFlightRefresh;
 
   static Future<void> persist() async {
@@ -33,6 +35,15 @@ class AuthSession {
   static Future<void> clear() async {
     accessToken = null;
     refreshToken = null;
+    await persist();
+  }
+
+  static Future<void> expireSession() async {
+    if (accessToken == null && refreshToken == null) return;
+
+    accessToken = null;
+    refreshToken = null;
+    onSessionExpired?.call();
     await persist();
   }
 

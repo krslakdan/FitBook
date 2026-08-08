@@ -95,7 +95,7 @@ public class FileStorageService : IFileStorageService
 
         if (AdminOnlyFolders.Contains(normalizedFolder) && !_currentUserService.IsAdmin())
         {
-            throw new BusinessException("Samo administrator može uploadovati slike u ovaj folder.");
+            throw new ForbiddenException("Samo administrator može uploadovati slike u ovaj folder.");
         }
 
         var extension = Path.GetExtension(originalFileName).ToLowerInvariant();

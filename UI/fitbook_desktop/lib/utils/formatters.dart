@@ -11,6 +11,18 @@ String formatDate(DateTime? date) {
   return '${_two(date.day)}.${_two(date.month)}.${date.year}.';
 }
 
+String formatMoney(num amount, [String currency = 'USD']) {
+  final normalized = currency.trim().toUpperCase();
+  final value = amount.toStringAsFixed(2);
+  return switch (normalized) {
+    'USD' => '\$$value',
+    'EUR' => '€$value',
+    'GBP' => '£$value',
+    'BAM' || 'KM' => '$value KM',
+    _ => '$value $normalized',
+  };
+}
+
 String formatIsoDate(DateTime date) =>
     '${date.year.toString().padLeft(4, '0')}-${_two(date.month)}-${_two(date.day)}';
 

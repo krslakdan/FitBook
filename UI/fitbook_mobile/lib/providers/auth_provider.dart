@@ -14,6 +14,7 @@ import 'base_provider.dart';
 class AuthProvider extends BaseProvider {
   AuthProvider() {
     AuthSession.refreshHandler = _performRefresh;
+    AuthSession.onSessionExpired = () => notifyListeners();
   }
 
   bool get isAuthenticated => AuthSession.accessToken != null;

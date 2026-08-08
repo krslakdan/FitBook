@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'layouts/main_navigation.dart';
@@ -62,6 +63,9 @@ class FitBookMobileApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'FitBook',
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        supportedLocales: const [Locale('bs')],
+        locale: const Locale('bs'),
         debugShowCheckedModeBanner: false,
         theme: buildAppTheme(),
         home: const AuthGate(),

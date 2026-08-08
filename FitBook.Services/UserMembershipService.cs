@@ -533,6 +533,8 @@ public class UserMembershipService
         }
         catch (DbUpdateException)
         {
+            await _stripePaymentService.CancelPaymentIntentAsync(intent.Id, cancellationToken);
+
             if (await HasActivePaymentAsync(id, payment.Id, cancellationToken))
             {
                 throw new BusinessException("Za ovu članarinu je upravo kreirano plaćanje u drugom zahtjevu. Osvježite stranicu i pokušajte ponovo.");
@@ -836,7 +838,7 @@ public class UserMembershipService
     {
         if (!_currentUserService.IsAdmin() && membership.UserAccountId != _currentUserService.GetRequiredUserId())
         {
-            throw new BusinessException(errorMessage);
+            throw new ForbiddenException(errorMessage);
         }
     }
 

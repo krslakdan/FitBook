@@ -101,7 +101,7 @@ public class SystemNotificationService
 
         if (notification.UserAccountId != currentUserId)
         {
-            throw new BusinessException("Nemate pravo označiti ovu notifikaciju kao pročitanu.");
+            throw new ForbiddenException("Nemate pravo označiti ovu notifikaciju kao pročitanu.");
         }
 
         if (!notification.IsRead)

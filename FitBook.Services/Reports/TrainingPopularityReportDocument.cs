@@ -68,8 +68,8 @@ internal class TrainingPopularityReportDocument : IDocument
 
             page.Footer().Row(row =>
             {
-                row.RelativeItem().Text($"Ukupno treninga: {_rows.Count}   |   Generisano: {LocalTimeProvider.FormatDateTime(_generatedAtUtc)}");
-                row.RelativeItem().AlignRight().Text(x =>
+                row.RelativeItem(4).Text($"Ukupno treninga: {_rows.Count}   |   Generisano: {LocalTimeProvider.FormatDateTime(_generatedAtUtc)}");
+                row.RelativeItem(1).AlignRight().Text(x =>
                 {
                     x.Span("Stranica ");
                     x.CurrentPageNumber();

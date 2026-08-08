@@ -11,10 +11,11 @@ class DashboardSummaryResponse {
   DashboardSummaryResponse({
     required this.totalUsers,
     this.totalUsersChangePercent,
+    required this.totalTrainers,
+    required this.totalTrainings,
     required this.activeMemberships,
     this.activeMembershipsChangePercent,
-    required this.todayReservations,
-    this.todayReservationsChangePercent,
+    required this.activeReservations,
     required this.monthRevenue,
     required this.revenueCurrency,
     this.monthRevenueChangePercent,
@@ -27,10 +28,11 @@ class DashboardSummaryResponse {
 
   final int totalUsers;
   final double? totalUsersChangePercent;
+  final int totalTrainers;
+  final int totalTrainings;
   final int activeMemberships;
   final double? activeMembershipsChangePercent;
-  final int todayReservations;
-  final double? todayReservationsChangePercent;
+  final int activeReservations;
   final double monthRevenue;
   final String revenueCurrency;
   final double? monthRevenueChangePercent;

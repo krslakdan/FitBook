@@ -371,6 +371,12 @@ class _ReservationCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 6),
                       _MetaLine(
+                        icon: Icons.person_outline,
+                        text:
+                            '${reservation.trainerFirstName} ${reservation.trainerLastName}',
+                      ),
+                      const SizedBox(height: 6),
+                      _MetaLine(
                         icon: reservationStatusIcon(reservation.status),
                         text: reservationSecondaryText(reservation),
                       ),

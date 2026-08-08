@@ -521,7 +521,7 @@ class _UserMembershipDetailsDialogState extends State<_UserMembershipDetailsDial
           DetailRow(
             icon: Icons.payments_outlined,
             label: 'Cijena paketa',
-            value: '${membership.packagePrice.toStringAsFixed(2)} KM',
+            value: formatMoney(membership.packagePrice),
           ),
           DetailRow(
             icon: Icons.timelapse_outlined,
@@ -631,11 +631,10 @@ class _PaymentHistoryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final paidAt = payment.paidAtUtc ?? payment.createdAtUtc;
-    final amountText =
-        '${payment.amount.toStringAsFixed(2)} ${payment.currency.toUpperCase()}';
+    final amountText = formatMoney(payment.amount, payment.currency);
     final refundText = payment.refundAmount == null
         ? null
-        : 'Refundirano ${payment.refundAmount!.toStringAsFixed(2)} ${payment.currency.toUpperCase()}'
+        : 'Refundirano ${formatMoney(payment.refundAmount!, payment.currency)}'
               '${payment.refundedAtUtc == null ? '' : ' — ${formatDateTime(payment.refundedAtUtc!)}'}';
 
     return Row(

@@ -12,15 +12,34 @@ public class SmtpEmailSender : ISmtpEmailSender
 {
     private readonly SmtpOptions _options;
     private readonly ILogger<SmtpEmailSender> _logger;
+    private readonly bool _isConfigured;
 
     public SmtpEmailSender(IOptions<SmtpOptions> options, ILogger<SmtpEmailSender> logger)
     {
         _options = options.Value;
         _logger = logger;
+        _isConfigured = !string.IsNullOrWhiteSpace(_options.Host)
+            && !string.IsNullOrWhiteSpace(_options.Username)
+            && !string.IsNullOrWhiteSpace(_options.Password);
+
+        if (!_isConfigured)
+        {
+            _logger.LogWarning(
+                "SMTP nije konfigurisan (SMTP__Host, SMTP__Username i SMTP__Password u .env). E-mail notifikacije se preskaču, ostatak aplikacije radi normalno.");
+        }
     }
 
     public async Task SendAsync(EmailNotificationMessage message, CancellationToken cancellationToken = default)
     {
+        if (!_isConfigured)
+        {
+            _logger.LogInformation(
+                "Preskočen e-mail za {ToEmail} ('{Subject}') jer SMTP nije konfigurisan.",
+                message.ToEmail,
+                message.Subject);
+            return;
+        }
+
         var mimeMessage = new MimeMessage();
         mimeMessage.From.Add(new MailboxAddress("FitBook", _options.Username));
         mimeMessage.To.Add(new MailboxAddress(message.ToName, message.ToEmail));

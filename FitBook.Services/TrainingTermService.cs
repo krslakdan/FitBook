@@ -285,7 +285,7 @@ public class TrainingTermService
 
         if (!isOwningTrainer)
         {
-            throw new BusinessException("Nemate pravo upravljati ovim terminom.");
+            throw new ForbiddenException("Nemate pravo upravljati ovim terminom.");
         }
     }
 
