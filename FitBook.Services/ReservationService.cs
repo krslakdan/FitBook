@@ -627,6 +627,7 @@ public class ReservationService
         var term = await _dbContext.TrainingTerms
             .Include(t => t.Training)
             .Include(t => t.Trainer)
+            .Include(t => t.Hall)
             .FirstOrDefaultAsync(t => t.Id == entity.TrainingTermId, cancellationToken);
         var termStartFormatted = term is not null ? LocalTimeProvider.FormatDateTime(term.StartTimeUtc) : $"termin #{entity.TrainingTermId}";
 

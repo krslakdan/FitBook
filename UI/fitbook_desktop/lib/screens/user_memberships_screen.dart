@@ -542,7 +542,7 @@ class _UserMembershipDetailsDialogState extends State<_UserMembershipDetailsDial
             icon: Icons.schedule_outlined,
             label: 'Sljedeća uplata',
             value: membership.nextPaymentDateUtc == null
-                ? ''
+                ? '—'
                 : formatDate(membership.nextPaymentDateUtc!.toLocal()),
           ),
           DetailRow(

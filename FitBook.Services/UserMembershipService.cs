@@ -178,6 +178,8 @@ public class UserMembershipService
     {
         AddStatusAudit(entity, MembershipStatus.Pending, MembershipStatus.Pending, "Članarina je kreirana.");
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        await _dbContext.Entry(entity).Reference(x => x.UserAccount).LoadAsync(cancellationToken);
     }
 
     public async Task<UserMembershipResponse> CancelAsync(int id, UserMembershipCancelRequest request, CancellationToken cancellationToken = default)
@@ -206,6 +208,7 @@ public class UserMembershipService
         var previousStatus = membership.Status;
         membership.Status = MembershipStatus.Cancelled;
         membership.IsActive = false;
+        membership.NextPaymentDateUtc = null;
         membership.UpdatedAtUtc = DateTime.UtcNow;
 
         AddStatusAudit(membership, previousStatus, MembershipStatus.Cancelled, request.Reason);
@@ -316,6 +319,7 @@ public class UserMembershipService
 
             membership.Status = MembershipStatus.Cancelled;
             membership.IsActive = false;
+            membership.NextPaymentDateUtc = null;
             membership.UpdatedAtUtc = now;
 
             AddStatusAudit(membership, previousStatus, MembershipStatus.Cancelled, changeReason);
@@ -680,7 +684,8 @@ public class UserMembershipService
             {
                 membership.EndDateUtc = DateTime.UtcNow.AddDays(membership.MembershipPackage.DurationDays);
             }
-            
+
+            membership.NextPaymentDateUtc = membership.EndDateUtc;
             membership.UpdatedAtUtc = DateTime.UtcNow;
 
             _dbContext.SystemNotifications.Add(new SystemNotification
