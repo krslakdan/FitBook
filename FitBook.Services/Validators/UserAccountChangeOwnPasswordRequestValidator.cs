@@ -14,5 +14,10 @@ public class UserAccountChangeOwnPasswordRequestValidator : AbstractValidator<Us
             .NotEmpty().WithMessage("Nova lozinka je obavezna.")
             .MinimumLength(8).WithMessage("Nova lozinka mora imati najmanje 8 karaktera.")
             .MaximumLength(128).WithMessage("Nova lozinka ne smije biti duža od 128 karaktera.");
+
+        RuleFor(x => x.NewPassword)
+            .Must((request, newPassword) => !string.Equals(newPassword, request.CurrentPassword, StringComparison.Ordinal))
+            .WithMessage("Nova lozinka mora biti različita od trenutne.")
+            .When(x => !string.IsNullOrEmpty(x.NewPassword));
     }
 }
