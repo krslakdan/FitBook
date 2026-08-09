@@ -90,7 +90,11 @@ class _TrainingTermsDetailsScreenState
       }
       if (!mounted) return;
       final trainers = await context.read<TrainerProvider>().get(
-        filter: const TrainerSearchObject(pageSize: 100, isActive: true),
+        filter: const TrainerSearchObject(
+          pageSize: 100,
+          isActive: true,
+          isAvailable: true,
+        ),
       );
       if (!mounted) return;
       final halls = await context.read<HallProvider>().get(
