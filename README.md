@@ -26,12 +26,12 @@ Backend je ASP.NET Core 9 (WebAPI + Worker mikroservis, RabbitMQ, SQL Server), a
 
 Plaćanje članarine ide preko Stripe sandbox okruženja. Za testnu uplatu koristiti:
 
-| Podatak     | Vrijednost            |
-| ----------- | --------------------- |
-| Broj kartice | `4242 4242 4242 4242` |
-| Datum isteka | bilo koji budući      |
-| CVC          | bilo koja tri broja   |
-| ZIP / poštanski broj | bilo koji     |
+| Podatak              | Vrijednost            |
+| -------------------- | --------------------- |
+| Broj kartice         | `4242 4242 4242 4242` |
+| Datum isteka         | bilo koji budući      |
+| CVC                  | bilo koja tri broja   |
+| ZIP / poštanski broj | bilo koji             |
 
 Otkazivanjem članarine ili promjenom paketa pokreće se stvarni Stripe refund nad prethodno naplaćenim iznosom.
 
@@ -39,7 +39,7 @@ Otkazivanjem članarine ili promjenom paketa pokreće se stvarni Stripe refund n
 
 Potreban je Docker. U root direktoriju repozitorija treba postojati `.env` fajl:
 
-- za pregled rada: otpakovati priloženi `.env-tajne.zip` (šifra je predata uz rad; arhiva koristi AES enkripciju pa je potreban 7-Zip, WinRAR ili sličan alat)
+- za pregled rada: otpakovati priloženi `.env-tajne.zip` (šifra je predata uz rad)
 - inače: kopirati `.env.example` u `.env` i unijeti svoje vrijednosti
 
 Zatim iz root direktorija:
