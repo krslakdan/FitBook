@@ -35,11 +35,19 @@ Plaćanje članarine ide preko Stripe sandbox okruženja. Za testnu uplatu koris
 
 Otkazivanjem članarine ili promjenom paketa pokreće se stvarni Stripe refund nad prethodno naplaćenim iznosom.
 
+## Preduslovi
+
+- Docker — za backend (API, worker, SQL Server, RabbitMQ)
+- Android emulator (AVD) — za mobilnu aplikaciju
+- Flutter SDK — samo ako se desktop i mobilna aplikacija pokreću iz izvornog koda
+
 ## Pokretanje backenda
 
-Potreban je Docker. U root direktoriju repozitorija treba postojati `.env` fajl:
+Backend mora biti podignut prije desktop i mobilne aplikacije.
 
-- za pregled rada: otpakovati priloženi `.env-tajne.zip` (šifra je predata uz rad)
+U root direktoriju repozitorija, pored `docker-compose.yml`, treba postojati `.env` fajl:
+
+- za pregled rada: otpakovati priloženi `.env-tajne.zip` u root repozitorija (šifra je predata uz rad)
 - inače: kopirati `.env.example` u `.env` i unijeti svoje vrijednosti
 
 Zatim iz root direktorija:
@@ -54,7 +62,17 @@ Worker šalje email notifikacije preko SMTP kredencijala iz `.env` fajla. Ako on
 
 Za razvoj bez Dockera: podići samo bazu i RabbitMQ (`docker compose up fitbook-db fitbook-rabbitmq`) pa pokrenuti `dotnet run --project FitBook.WebAPI`.
 
-## Desktop aplikacija (Windows)
+## Pokretanje iz priložene build arhive
+
+Najbrži način za pregled rada — ne zahtijeva Flutter SDK.
+
+1. Podići backend prema koracima iznad.
+2. Desktop: iz foldera `Release` pokrenuti `fitbook_desktop.exe`.
+3. Mobilna: obrisati staru verziju aplikacije u Android emulatoru (AVD), prevući `app-release.apk` u AVD da se instalira, pa pokrenuti aplikaciju.
+
+APK je izgrađen za adresu `http://10.0.2.2:5121/api`, standardnu adresu Android emulatora prema host računaru. Radi u AVD-u; za fizički uređaj potrebno je ponovo izgraditi APK sa `--dart-define` kako je opisano niže.
+
+## Desktop aplikacija (Windows) — iz izvornog koda
 
 ```
 cd UI/fitbook_desktop
@@ -70,7 +88,7 @@ flutter run -d windows --dart-define=API_BASE_URL=http://localhost:5121/api
 
 Release build: `flutter build windows --release` (exe se generiše u `build/windows/x64/runner/Release/`).
 
-## Mobilna aplikacija (Android)
+## Mobilna aplikacija (Android) — iz izvornog koda
 
 ```
 cd UI/fitbook_mobile
