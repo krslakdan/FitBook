@@ -13,7 +13,7 @@ EnvConfiguration.LoadDotEnv();
 
 var builder = Host.CreateApplicationBuilder(args);
 
-builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection("RabbitMQ"));
+builder.Services.AddRabbitMqOptions(builder.Configuration);
 builder.Services.Configure<FitBook.Worker.Messaging.SmtpOptions>(builder.Configuration.GetSection("SMTP"));
 
 builder.Services.AddSingleton<DatabaseReadyGate>();
