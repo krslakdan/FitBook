@@ -39,7 +39,7 @@ Otkazivanjem članarine ili promjenom paketa pokreće se stvarni Stripe refund n
 
 Potreban je Docker. U root direktoriju repozitorija treba postojati `.env` fajl:
 
-- za pregled rada: otpakovati priloženi `.env-tajne.zip` (šifra je predata uz rad)
+- za pregled rada: otpakovati priloženi `.env-tajne.zip` (šifra je predata uz rad; arhiva koristi AES enkripciju pa je potreban 7-Zip, WinRAR ili sličan alat)
 - inače: kopirati `.env.example` u `.env` i unijeti svoje vrijednosti
 
 Zatim iz root direktorija:
