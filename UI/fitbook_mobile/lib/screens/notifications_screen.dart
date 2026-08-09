@@ -30,7 +30,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   void initState() {
     super.initState();
     _provider = context.read<SystemNotificationProvider>();
-    _provider.loadNotifications();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _provider.loadNotifications();
+    });
     _pollTimer = Timer.periodic(
       const Duration(seconds: 30),
       (_) => _provider.loadNotifications(silent: true),
