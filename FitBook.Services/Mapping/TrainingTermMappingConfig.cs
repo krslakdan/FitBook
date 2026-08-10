@@ -17,6 +17,8 @@ public class TrainingTermMappingConfig : IRegister
                 src => src.Trainer != null ? src.Trainer.FirstName : string.Empty)
             .Map(dest => dest.TrainerLastName,
                 src => src.Trainer != null ? src.Trainer.LastName : string.Empty)
+            .Map(dest => dest.TrainerImageUrl,
+                src => src.Trainer != null ? src.Trainer.ImageUrl : null)
             .Map(dest => dest.HallName,
                 src => src.Hall != null ? src.Hall.Name : string.Empty)
             .Map(dest => dest.ReservedCount,

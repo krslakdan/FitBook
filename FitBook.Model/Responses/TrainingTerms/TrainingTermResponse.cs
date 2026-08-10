@@ -16,6 +16,7 @@ public class TrainingTermResponse : IEntityResponse
     public int TrainerId { get; set; }
     public string TrainerFirstName { get; set; } = string.Empty;
     public string TrainerLastName { get; set; } = string.Empty;
+    public string? TrainerImageUrl { get; set; }
     public int HallId { get; set; }
     public string HallName { get; set; } = string.Empty;
     public DateTime CreatedAtUtc { get; set; }

@@ -11,6 +11,7 @@ import '../theme/app_theme.dart';
 import '../utils/api_client_exception.dart';
 import '../utils/formatters.dart';
 import '../utils/reservation_display.dart';
+import '../widgets/trainer_avatar.dart';
 
 class ReservationDetailsScreen extends StatefulWidget {
   const ReservationDetailsScreen({super.key, required this.reservation});
@@ -79,11 +80,12 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
     final showReason = reservation.status == ReservationStatus.cancelled && reason.isNotEmpty;
     final trainer = '${reservation.trainerFirstName} ${reservation.trainerLastName}'.trim();
 
-    final rows = <(IconData, String, String)>[
+    final rows = <(IconData, String, String, Widget?)>[
       (
         Icons.event_outlined,
         'Datum',
         formatDateWithWeekday(reservation.trainingTermStartTimeUtc.toLocal()),
+        null,
       ),
       (
         Icons.schedule_outlined,
@@ -92,16 +94,51 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
           reservation.trainingTermStartTimeUtc,
           reservation.trainingTermEndTimeUtc,
         ),
+        null,
       ),
-      (Icons.person_outline, 'Trener', trainer.isEmpty ? '—' : trainer),
-      (Icons.place_outlined, 'Sala', reservation.hallName.isEmpty ? '—' : reservation.hallName),
-      (Icons.bookmark_added_outlined, 'Rezervisano', formatDateTime(reservation.reservedAtUtc)),
+      (
+        Icons.person_outline,
+        'Trener',
+        trainer.isEmpty ? '—' : trainer,
+        TrainerAvatar(
+          firstName: reservation.trainerFirstName,
+          lastName: reservation.trainerLastName,
+          imageUrl: reservation.trainerImageUrl,
+        ),
+      ),
+      (
+        Icons.place_outlined,
+        'Sala',
+        reservation.hallName.isEmpty ? '—' : reservation.hallName,
+        null,
+      ),
+      (
+        Icons.bookmark_added_outlined,
+        'Rezervisano',
+        formatDateTime(reservation.reservedAtUtc),
+        null,
+      ),
       if (reservation.confirmedAtUtc != null)
-        (Icons.check_circle_outline, 'Potvrđeno', formatDateTime(reservation.confirmedAtUtc)),
+        (
+          Icons.check_circle_outline,
+          'Potvrđeno',
+          formatDateTime(reservation.confirmedAtUtc),
+          null,
+        ),
       if (reservation.completedAtUtc != null)
-        (Icons.task_alt, 'Završeno', formatDateTime(reservation.completedAtUtc)),
+        (
+          Icons.task_alt,
+          'Završeno',
+          formatDateTime(reservation.completedAtUtc),
+          null,
+        ),
       if (reservation.cancelledAtUtc != null)
-        (Icons.cancel_outlined, 'Otkazano', formatDateTime(reservation.cancelledAtUtc)),
+        (
+          Icons.cancel_outlined,
+          'Otkazano',
+          formatDateTime(reservation.cancelledAtUtc),
+          null,
+        ),
     ];
 
     return MasterScreen(
@@ -128,6 +165,7 @@ class _ReservationDetailsScreenState extends State<ReservationDetailsScreen> {
                     icon: rows[i].$1,
                     label: rows[i].$2,
                     value: rows[i].$3,
+                    leading: rows[i].$4,
                     last: i == rows.length - 1,
                   ),
               ],
@@ -231,12 +269,14 @@ class _Line extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
+    this.leading,
     this.last = false,
   });
 
   final IconData icon;
   final String label;
   final String value;
+  final Widget? leading;
   final bool last;
 
   @override
@@ -246,16 +286,17 @@ class _Line extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 38,
-            height: 38,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: AppColors.primarySoft,
-              borderRadius: BorderRadius.circular(11),
-            ),
-            child: Icon(icon, size: 19, color: AppColors.onPrimarySoft),
-          ),
+          leading ??
+              Container(
+                width: 38,
+                height: 38,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Icon(icon, size: 19, color: AppColors.onPrimarySoft),
+              ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

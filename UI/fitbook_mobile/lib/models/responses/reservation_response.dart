@@ -23,6 +23,7 @@ class ReservationResponse {
     required this.trainingName,
     required this.trainerFirstName,
     required this.trainerLastName,
+    this.trainerImageUrl,
     required this.hallName,
     required this.trainingTermStartTimeUtc,
     required this.trainingTermEndTimeUtc,
@@ -47,6 +48,7 @@ class ReservationResponse {
   final String trainingName;
   final String trainerFirstName;
   final String trainerLastName;
+  final String? trainerImageUrl;
   final String hallName;
   final DateTime trainingTermStartTimeUtc;
   final DateTime trainingTermEndTimeUtc;
