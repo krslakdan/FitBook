@@ -28,6 +28,7 @@ public class UserAccountService
     ];
 
     private readonly IRefreshTokenService _refreshTokenService;
+    private readonly ITokenVersionService _tokenVersionService;
     private readonly ICryptoService _cryptoService;
     private readonly IValidator<UserAccountInsertRequest> _insertRequestValidator;
     private readonly IValidator<UserAccountChangeOwnPasswordRequest> _changeOwnPasswordValidator;
@@ -41,6 +42,7 @@ public class UserAccountService
         ILoggerFactory loggerFactory,
         ICryptoService cryptoService,
         IRefreshTokenService refreshTokenService,
+        ITokenVersionService tokenVersionService,
         IValidator<UserAccountInsertRequest> insertValidator,
         IValidator<UserAccountUpdateRequest> updateValidator,
         IValidator<UserAccountChangeOwnPasswordRequest> changeOwnPasswordValidator,
@@ -51,6 +53,7 @@ public class UserAccountService
     {
         _cryptoService = cryptoService;
         _refreshTokenService = refreshTokenService;
+        _tokenVersionService = tokenVersionService;
         _insertRequestValidator = insertValidator;
         _changeOwnPasswordValidator = changeOwnPasswordValidator;
         _adminPasswordResetValidator = adminPasswordResetValidator;
@@ -264,6 +267,8 @@ public class UserAccountService
         user.UpdatedAtUtc = DateTime.UtcNow;
         await _refreshTokenService.RevokeAllUserRefreshTokensAsync(user.Id, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        await _tokenVersionService.InvalidateIssuedTokensAsync(user.Id, cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
     }
