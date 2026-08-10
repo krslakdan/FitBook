@@ -40,6 +40,21 @@ ChipTone trainingTermStatusTone(TrainingTermStatus status) => switch (status) {
   TrainingTermStatus.completed => ChipTone.success,
 };
 
+String? trainingTermCancelBlockReason(TrainingTermStatus status) =>
+    switch (status) {
+      TrainingTermStatus.scheduled => null,
+      TrainingTermStatus.cancelled => 'Termin je već otkazan.',
+      TrainingTermStatus.completed => 'Završen termin se ne može otkazati.',
+    };
+
+String? trainingTermCompleteBlockReason(TrainingTermStatus status) =>
+    switch (status) {
+      TrainingTermStatus.scheduled => null,
+      TrainingTermStatus.cancelled =>
+        'Otkazan termin se ne može označiti kao završen.',
+      TrainingTermStatus.completed => 'Termin je već završen.',
+    };
+
 class TrainingTermsScreen extends StatefulWidget {
   const TrainingTermsScreen({super.key});
 
@@ -475,17 +490,17 @@ class _TrainingTermsScreenState extends State<TrainingTermsScreen> {
                       extras: [
                         TableActionExtra(
                           icon: Icons.event_busy_outlined,
-                          tooltip: scheduled
-                              ? 'Otkaži termin'
-                              : 'Termin se ne može otkazati.',
+                          tooltip:
+                              trainingTermCancelBlockReason(term.status) ??
+                              'Otkaži termin',
                           danger: true,
                           onTap: scheduled ? () => _cancelTerm(term) : null,
                         ),
                         TableActionExtra(
                           icon: Icons.task_alt_outlined,
-                          tooltip: scheduled
-                              ? 'Označi kao završen'
-                              : 'Termin se ne može završiti.',
+                          tooltip:
+                              trainingTermCompleteBlockReason(term.status) ??
+                              'Označi kao završen',
                           onTap: scheduled ? () => _completeTerm(term) : null,
                         ),
                       ],
