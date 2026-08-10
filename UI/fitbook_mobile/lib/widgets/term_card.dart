@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/responses/training_term_response.dart';
 import '../theme/app_theme.dart';
 import '../utils/formatters.dart';
+import 'trainer_avatar.dart';
 
 class TermCard extends StatelessWidget {
   const TermCard({super.key, required this.term, required this.onTap});
@@ -58,8 +59,29 @@ class TermCard extends StatelessWidget {
                       style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
                     ),
                     const SizedBox(height: 8),
-                    TermInfoLine(icon: Icons.person_outline, text: trainer.isEmpty ? 'Trener' : trainer),
-                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        TrainerAvatar(
+                          firstName: term.trainerFirstName,
+                          lastName: term.trainerLastName,
+                          imageUrl: term.trainerImageUrl,
+                          size: 22,
+                          borderRadius: 999,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            trainer.isEmpty ? 'Trener' : trainer,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 12.5,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
                     TermInfoLine(icon: Icons.place_outlined, text: term.hallName),
                     const SizedBox(height: 8),
                     TermCapacityPill(reserved: term.reservedCount, max: term.maxParticipants),

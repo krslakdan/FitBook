@@ -10,6 +10,7 @@ import '../providers/reservation_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/api_client_exception.dart';
 import '../utils/formatters.dart';
+import '../widgets/trainer_avatar.dart';
 
 class TermDetailsScreen extends StatefulWidget {
   const TermDetailsScreen({super.key, required this.term});
@@ -144,6 +145,11 @@ class _TermDetailsScreenState extends State<TermDetailsScreen> {
                   icon: Icons.person_outline,
                   label: 'Trener',
                   value: trainer.isEmpty ? '—' : trainer,
+                  leading: TrainerAvatar(
+                    firstName: term.trainerFirstName,
+                    lastName: term.trainerLastName,
+                    imageUrl: term.trainerImageUrl,
+                  ),
                 ),
                 _Line(
                   icon: Icons.place_outlined,
@@ -328,12 +334,14 @@ class _Line extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
+    this.leading,
     this.last = false,
   });
 
   final IconData icon;
   final String label;
   final String value;
+  final Widget? leading;
   final bool last;
 
   @override
@@ -343,16 +351,17 @@ class _Line extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 38,
-            height: 38,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: AppColors.primarySoft,
-              borderRadius: BorderRadius.circular(11),
-            ),
-            child: Icon(icon, size: 19, color: AppColors.onPrimarySoft),
-          ),
+          leading ??
+              Container(
+                width: 38,
+                height: 38,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Icon(icon, size: 19, color: AppColors.onPrimarySoft),
+              ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

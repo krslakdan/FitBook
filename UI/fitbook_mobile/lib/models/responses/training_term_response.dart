@@ -19,6 +19,7 @@ class TrainingTermResponse {
     required this.trainerId,
     required this.trainerFirstName,
     required this.trainerLastName,
+    this.trainerImageUrl,
     required this.hallId,
     required this.hallName,
     required this.createdAtUtc,
@@ -37,6 +38,7 @@ class TrainingTermResponse {
   final int trainerId;
   final String trainerFirstName;
   final String trainerLastName;
+  final String? trainerImageUrl;
   final int hallId;
   final String hallName;
   final DateTime createdAtUtc;

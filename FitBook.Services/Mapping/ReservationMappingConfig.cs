@@ -26,6 +26,11 @@ public class ReservationMappingConfig : IRegister
                     ? source.TrainingTerm.Trainer.LastName
                     : string.Empty)
             .Map(
+                destination => destination.TrainerImageUrl,
+                source => source.TrainingTerm != null && source.TrainingTerm.Trainer != null
+                    ? source.TrainingTerm.Trainer.ImageUrl
+                    : null)
+            .Map(
                 destination => destination.HallName,
                 source => source.TrainingTerm != null && source.TrainingTerm.Hall != null
                     ? source.TrainingTerm.Hall.Name

@@ -12,6 +12,7 @@ import '../utils/api_client_exception.dart';
 import '../utils/formatters.dart';
 import '../utils/reservation_display.dart';
 import '../widgets/status_chip.dart';
+import '../widgets/trainer_avatar.dart';
 import 'reservation_details_screen.dart';
 
 class ReservationsScreen extends StatefulWidget {
@@ -374,6 +375,13 @@ class _ReservationCard extends StatelessWidget {
                         icon: Icons.person_outline,
                         text:
                             '${reservation.trainerFirstName} ${reservation.trainerLastName}',
+                        leading: TrainerAvatar(
+                          firstName: reservation.trainerFirstName,
+                          lastName: reservation.trainerLastName,
+                          imageUrl: reservation.trainerImageUrl,
+                          size: 20,
+                          borderRadius: 999,
+                        ),
                       ),
                       const SizedBox(height: 6),
                       _MetaLine(
@@ -449,10 +457,16 @@ class _DateTile extends StatelessWidget {
 }
 
 class _MetaLine extends StatelessWidget {
-  const _MetaLine({required this.icon, required this.text, this.strong = false});
+  const _MetaLine({
+    required this.icon,
+    required this.text,
+    this.leading,
+    this.strong = false,
+  });
 
   final IconData icon;
   final String text;
+  final Widget? leading;
   final bool strong;
 
   @override
@@ -460,7 +474,8 @@ class _MetaLine extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 15, color: AppColors.textSecondary),
+        leading ??
+            Icon(icon, size: 15, color: AppColors.textSecondary),
         const SizedBox(width: 6),
         Expanded(
           child: Text(

@@ -35,6 +35,34 @@ ChipTone reservationStatusTone(ReservationStatus status) => switch (status) {
   ReservationStatus.completed => ChipTone.success,
 };
 
+String? reservationConfirmBlockReason(ReservationStatus status) =>
+    switch (status) {
+      ReservationStatus.pending => null,
+      ReservationStatus.confirmed => 'Rezervacija je već potvrđena.',
+      ReservationStatus.cancelled =>
+        'Otkazana rezervacija se ne može potvrditi.',
+      ReservationStatus.completed =>
+        'Završena rezervacija se ne može potvrditi.',
+    };
+
+String? reservationCompleteBlockReason(ReservationStatus status) =>
+    switch (status) {
+      ReservationStatus.confirmed => null,
+      ReservationStatus.pending =>
+        'Rezervaciju je potrebno prvo potvrditi da bi se mogla završiti.',
+      ReservationStatus.cancelled =>
+        'Otkazana rezervacija se ne može završiti.',
+      ReservationStatus.completed => 'Rezervacija je već završena.',
+    };
+
+String? reservationCancelBlockReason(ReservationStatus status) =>
+    switch (status) {
+      ReservationStatus.pending || ReservationStatus.confirmed => null,
+      ReservationStatus.cancelled => 'Rezervacija je već otkazana.',
+      ReservationStatus.completed =>
+        'Završena rezervacija se ne može otkazati.',
+    };
+
 class ReservationsScreen extends StatefulWidget {
   const ReservationsScreen({super.key});
 
@@ -394,10 +422,15 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
                   ColumnSpec('Akcije', width: 160),
                 ],
                 cellsBuilder: (context, reservation) {
-                  final pending =
-                      reservation.status == ReservationStatus.pending;
-                  final confirmed =
-                      reservation.status == ReservationStatus.confirmed;
+                  final confirmBlockReason = reservationConfirmBlockReason(
+                    reservation.status,
+                  );
+                  final completeBlockReason = reservationCompleteBlockReason(
+                    reservation.status,
+                  );
+                  final cancelBlockReason = reservationCancelBlockReason(
+                    reservation.status,
+                  );
                   return [
                     _userCell(reservation),
                     Text(
@@ -423,29 +456,25 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
                       extras: [
                         TableActionExtra(
                           icon: Icons.check_circle_outline,
-                          tooltip: pending
-                              ? 'Potvrdi rezervaciju'
-                              : 'Rezervacija se ne može potvrditi.',
-                          onTap: pending
+                          tooltip:
+                              confirmBlockReason ?? 'Potvrdi rezervaciju',
+                          onTap: confirmBlockReason == null
                               ? () => _confirm(reservation)
                               : null,
                         ),
                         TableActionExtra(
                           icon: Icons.task_alt_outlined,
-                          tooltip: confirmed
-                              ? 'Označi kao završenu'
-                              : 'Rezervacija se ne može završiti.',
-                          onTap: confirmed
+                          tooltip:
+                              completeBlockReason ?? 'Označi kao završenu',
+                          onTap: completeBlockReason == null
                               ? () => _complete(reservation)
                               : null,
                         ),
                         TableActionExtra(
                           icon: Icons.event_busy_outlined,
-                          tooltip: pending || confirmed
-                              ? 'Otkaži rezervaciju'
-                              : 'Rezervacija se ne može otkazati.',
+                          tooltip: cancelBlockReason ?? 'Otkaži rezervaciju',
                           danger: true,
-                          onTap: pending || confirmed
+                          onTap: cancelBlockReason == null
                               ? () => _cancel(reservation)
                               : null,
                         ),
