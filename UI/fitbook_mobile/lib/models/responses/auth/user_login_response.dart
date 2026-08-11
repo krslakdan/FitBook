@@ -7,12 +7,12 @@ class UserLoginResponse {
   UserLoginResponse({
     required this.accessToken,
     required this.refreshToken,
-    required this.expiresAtUtc,
+    required this.refreshTokenExpiresAtUtc,
   });
 
   final String accessToken;
   final String refreshToken;
-  final DateTime expiresAtUtc;
+  final DateTime refreshTokenExpiresAtUtc;
 
   factory UserLoginResponse.fromJson(Map<String, dynamic> json) =>
       _$UserLoginResponseFromJson(json);

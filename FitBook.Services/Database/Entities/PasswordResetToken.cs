@@ -6,6 +6,7 @@ public class PasswordResetToken : BaseEntity
     public string CodeHash { get; set; } = string.Empty;
     public DateTime ExpiresAtUtc { get; set; }
     public DateTime? UsedAtUtc { get; set; }
+    public int FailedAttempts { get; set; }
 
     public UserAccount? UserAccount { get; set; }
 }

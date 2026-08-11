@@ -7,12 +7,12 @@ class RefreshTokenResponse {
   RefreshTokenResponse({
     required this.accessToken,
     required this.refreshToken,
-    required this.expiresAtUtc,
+    required this.refreshTokenExpiresAtUtc,
   });
 
   final String accessToken;
   final String refreshToken;
-  final DateTime expiresAtUtc;
+  final DateTime refreshTokenExpiresAtUtc;
 
   factory RefreshTokenResponse.fromJson(Map<String, dynamic> json) =>
       _$RefreshTokenResponseFromJson(json);

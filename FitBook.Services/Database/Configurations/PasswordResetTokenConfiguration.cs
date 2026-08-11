@@ -14,6 +14,10 @@ public class PasswordResetTokenConfiguration : IEntityTypeConfiguration<Password
             .IsRequired()
             .HasMaxLength(200);
 
+        builder.Property(x => x.FailedAttempts)
+            .IsRequired()
+            .HasDefaultValue(0);
+
         builder.HasOne(x => x.UserAccount)
             .WithMany()
             .HasForeignKey(x => x.UserAccountId)
