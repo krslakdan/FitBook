@@ -22,6 +22,11 @@ public class AuthService : IAuthService
 {
     private static readonly TimeSpan PasswordResetCodeLifetime = TimeSpan.FromMinutes(15);
 
+    private const int MaxPasswordResetAttempts = 5;
+
+    private const string InvalidResetCodeMessage =
+        "Nevažeći ili istekao kod za reset lozinke. Zatražite novi kod i pokušajte ponovo.";
+
     private readonly FitBookDbContext _context;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IRefreshTokenService _refreshTokenService;
@@ -82,7 +87,7 @@ public class AuthService : IAuthService
         {
             AccessToken = accessToken,
             RefreshToken = refreshToken.Token,
-            ExpiresAtUtc = refreshToken.ExpiresAtUtc
+            RefreshTokenExpiresAtUtc = refreshToken.ExpiresAtUtc
         };
     }
 
@@ -149,7 +154,7 @@ public class AuthService : IAuthService
         {
             AccessToken = newAccessToken,
             RefreshToken = newRefreshToken.Token,
-            ExpiresAtUtc = newRefreshToken.ExpiresAtUtc
+            RefreshTokenExpiresAtUtc = newRefreshToken.ExpiresAtUtc
         };
     }
 
@@ -239,7 +244,7 @@ public class AuthService : IAuthService
         if (user == null || !user.IsActive)
         {
             _logger.LogWarning("Password reset attempted for unknown or inactive e-mail address.");
-            throw new BusinessException("Nevažeći ili istekao kod za reset lozinke. Zatražite novi kod i pokušajte ponovo.");
+            throw new BusinessException(InvalidResetCodeMessage);
         }
 
         var now = DateTime.UtcNow;
@@ -249,10 +254,37 @@ public class AuthService : IAuthService
             .OrderByDescending(x => x.CreatedAtUtc)
             .FirstOrDefaultAsync(cancellationToken);
 
-        if (resetToken == null || !_cryptoService.VerifyPassword(request.Code.Trim(), resetToken.CodeHash))
+        if (resetToken == null)
         {
-            _logger.LogWarning("Invalid or expired password reset code for user {UserId}.", user.Id);
-            throw new BusinessException("Nevažeći ili istekao kod za reset lozinke. Zatražite novi kod i pokušajte ponovo.");
+            _logger.LogWarning("No active password reset code for user {UserId}.", user.Id);
+            throw new BusinessException(InvalidResetCodeMessage);
+        }
+
+        if (!_cryptoService.VerifyPassword(request.Code.Trim(), resetToken.CodeHash))
+        {
+            resetToken.FailedAttempts++;
+            resetToken.UpdatedAtUtc = now;
+
+            if (resetToken.FailedAttempts >= MaxPasswordResetAttempts)
+            {
+                resetToken.ExpiresAtUtc = now;
+                _logger.LogWarning(
+                    "Password reset code for user {UserId} invalidated after {FailedAttempts} incorrect attempts.",
+                    user.Id,
+                    resetToken.FailedAttempts);
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "Incorrect password reset code for user {UserId} ({FailedAttempts}/{MaxAttempts}).",
+                    user.Id,
+                    resetToken.FailedAttempts,
+                    MaxPasswordResetAttempts);
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            throw new BusinessException(InvalidResetCodeMessage);
         }
 
         user.PasswordHash = _cryptoService.HashPassword(request.NewPassword.Trim());

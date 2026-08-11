@@ -10,12 +10,15 @@ UserLoginResponse _$UserLoginResponseFromJson(Map<String, dynamic> json) =>
     UserLoginResponse(
       accessToken: json['accessToken'] as String,
       refreshToken: json['refreshToken'] as String,
-      expiresAtUtc: DateTime.parse(json['expiresAtUtc'] as String),
+      refreshTokenExpiresAtUtc: DateTime.parse(
+        json['refreshTokenExpiresAtUtc'] as String,
+      ),
     );
 
 Map<String, dynamic> _$UserLoginResponseToJson(UserLoginResponse instance) =>
     <String, dynamic>{
       'accessToken': instance.accessToken,
       'refreshToken': instance.refreshToken,
-      'expiresAtUtc': instance.expiresAtUtc.toIso8601String(),
+      'refreshTokenExpiresAtUtc': instance.refreshTokenExpiresAtUtc
+          .toIso8601String(),
     };
